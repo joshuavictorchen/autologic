@@ -1,4 +1,7 @@
-import constants
+MIN_INSTRUCTOR_PER_HEAT = 3  # this is modified in roles_and_minima()
+MIN_TIMING_PER_HEAT = 2
+MIN_START_PER_HEAT = 1
+MIN_GRID_PER_HEAT = 1
 
 
 def parse_bool(value):
@@ -75,6 +78,27 @@ def get_max_role_str_length():
         int: Length of the longest role name in the event.
     """
     max_length = 0
-    for r in constants.VALID_ROLES:
+    for r in roles_and_minima():
         max_length = len(r) if len(r) > max_length else max_length
     return max_length
+
+
+def roles_and_minima(number_of_novices=1, novice_denominator=3):
+    """
+    Roles and their minimum required number of individuals per heat.
+
+    The minimum number of instructors in a heat is equal to number_of_novices
+    divided novice_denominator, or MIN_INSTRUCTOR_PER_HEAT, whichever is greater.
+
+    Returns:
+        dict: Role names and their minimum number of individuals per heat.
+    """
+
+    return {
+        "instructor": max(
+            MIN_INSTRUCTOR_PER_HEAT, round(number_of_novices / novice_denominator)
+        ),
+        "timing": MIN_TIMING_PER_HEAT,
+        "grid": MIN_GRID_PER_HEAT,
+        "start": MIN_START_PER_HEAT,
+    }
