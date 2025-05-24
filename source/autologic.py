@@ -24,8 +24,8 @@ def randomize_heats(event, number_of_heats):
 @click.option(
     "--csv",
     "csv_filename",
-    default="./tests/sample.csv",
-    show_default=True,
+    required=True,
+    type=click.Path(exists=True, dir_okay=False, readable=True),
     help="Path to input CSV file.",
 )
 @click.option(
