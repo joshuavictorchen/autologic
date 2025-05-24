@@ -1,5 +1,4 @@
 import csv
-import constants
 import utils
 from Category import Category
 from Group import Group
@@ -39,7 +38,7 @@ class Event(Group):
                     novice=utils.parse_bool(row["novice"]),
                     **{
                         role: utils.parse_bool(row.get(role))
-                        for role in constants.VALID_ROLES
+                        for role in utils.roles_and_minima()
                     },
                 )
                 participants.append(participant)

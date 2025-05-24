@@ -1,4 +1,3 @@
-import constants
 import utils
 
 
@@ -57,7 +56,7 @@ class Participant:
         Useful for filtering unambiguous assignments.
         """
         role_found = False
-        for role in constants.VALID_ROLES:
+        for role in utils.roles_and_minima():
             if getattr(self, role, False):
                 if role_found:
                     return False

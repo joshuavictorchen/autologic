@@ -2,7 +2,6 @@ import click
 import math
 import random
 
-import constants
 import utils
 from Event import Event
 
@@ -51,6 +50,13 @@ def randomize_heats(event, number_of_heats):
     help="Smaller values enforce tighter novice balance across heats.",
 )
 @click.option(
+    "--novice-denominator",
+    default=3,
+    show_default=True,
+    type=int,
+    help="The minimum number of instructors in a heat is equal to the number of novices in the heat divided by this value.",
+)
+@click.option(
     "--max-iterations",
     default=10000,
     show_default=True,
@@ -58,7 +64,12 @@ def randomize_heats(event, number_of_heats):
     help="Maximum number of tries before the program gives up.",
 )
 def main(
-    csv_filename, number_of_heats, heat_size_parity, novice_size_parity, max_iterations
+    csv_filename,
+    number_of_heats,
+    heat_size_parity,
+    novice_size_parity,
+    novice_denominator,
+    max_iterations,
 ):
     """Parse event participants and generate heat assignments with role coverage and balanced sizes."""
 
@@ -71,7 +82,10 @@ def main(
     print("  -------------")
     insufficient = False
     role_ratios = {}
-    for role, minimum in constants.VALID_ROLES.items():
+    for role, minimum in utils.roles_and_minima(
+        number_of_novices=len(event.get_participants("novice")) / number_of_heats,
+        novice_denominator=novice_denominator,
+    ).items():
         qualified = len(event.get_participants(role))
         required = minimum * number_of_heats
         role_ratios[role] = (
@@ -99,6 +113,7 @@ def main(
 
         iteration += 1
         rules_satisfied = True
+        skip_iteration = False
         print(
             f"\n  ==================================================\n\n  [Iteration {iteration}]"
         )
@@ -115,15 +130,25 @@ def main(
         # check if heat constraints are satisfied (size, role fulfillments)
         for h in event.heats.values():
 
+            # skip this loop if a prior heat failed checks
+            if skip_iteration:
+                break
+
             # check total heat size constraints
             heat_size = len(h.participants)
             if abs(mean_group_size - heat_size) > max_group_delta:
                 rules_satisfied = False
+                skip_iteration = True
+                print(f"\n  Heat {h} rejected: participant count of {heat_size}")
+                break
 
             # check heat novice count constraints
             novice_count = len(h.get_participants("novice"))
             if abs(mean_novice_count - novice_count) > max_novice_delta:
                 rules_satisfied = False
+                skip_iteration = True
+                print(f"\n  Heat {h} rejected: novice count of {novice_count}")
+                break
 
             header = f"Heat {h} ({heat_size} total, {novice_count} novices)"
             print(f"\n  {header}")
@@ -132,7 +157,9 @@ def main(
 
             # check if number of qualified participants for each role exceed the minima required
             role_extras = {}
-            for role, minimum in constants.VALID_ROLES.items():
+            for role, minimum in utils.roles_and_minima(
+                number_of_novices=novice_count, novice_denominator=novice_denominator
+            ).items():
                 qualified = len(h.get_participants(role))
                 role_extras[role] = (
                     qualified - minimum
@@ -140,21 +167,35 @@ def main(
                 print(f"    {qualified} of {minimum} {role}s required")
                 if qualified < minimum:
                     rules_satisfied = False
+                    skip_iteration = True
+                    print(
+                        f"\n    Heat {h} rejected: unable to fill {role.upper()} role(s)"
+                    )
+                    break
 
             if rules_satisfied:
-                print()
                 # just because qualified >= minimum doesn't mean we're in the clear
                 # some participants are qualified for multiple roles, but can only fulfill one for their heat
                 # try to assign roles now
                 # start with roles that have the smallest delta between qualified participants and minimum requirements
+                print()
                 for role in utils.sort_dict_by_value(role_extras):
-                    for _ in range(constants.VALID_ROLES[role]):
+                    if skip_iteration:
+                        break
+                    for _ in range(
+                        utils.roles_and_minima(
+                            number_of_novices=novice_count,
+                            novice_denominator=novice_denominator,
+                        )[role]
+                    ):
                         available = h.get_available(role)
                         if not available:
                             rules_satisfied = False
                             print(
-                                f"  [!] Unable to fill {role} due to dual qualifications"
+                                f"\n  Heat {h} rejected: unable to fill {role} role(s)"
                             )
+                            skip_iteration = True
+                            break
                         else:
                             available[0].set_assignment(role)
 
