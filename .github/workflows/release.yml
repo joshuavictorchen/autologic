@@ -46,5 +46,4 @@ jobs:
           name: autologic-exe
 
       - name: Run autologic.exe on sample.csv
-        run: |
-          .\autologic-exe\autologic.exe -csv .\tests\sample.csv
+        run: .\autologic.exe -csv .\tests\sample.csv
