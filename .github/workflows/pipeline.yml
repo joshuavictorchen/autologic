@@ -1,4 +1,5 @@
-name: Build and Release
+# written by ChatGPT, don't blame me
+name: Build / Test / Release
 
 permissions:
   contents: write
@@ -47,11 +48,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download .ex artifact
+      - name: Download .exe artifact
         uses: actions/download-artifact@v4
         with:
           name: autologic-exe
 
+      # very non-deterministic... just make sure it works
       - name: Run autologic.exe on sample.csv
         run: .\autologic.exe --csv .\tests\sample.csv
 
