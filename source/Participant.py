@@ -30,10 +30,10 @@ class Participant:
         self.category_string = category_string
         self.novice = novice
 
-        # Dynamically assign additional role flags (e.g., instructor=True)
+        # dynamically assign additional role flags (e.g., instructor=True)
         [setattr(self, key, value) for key, value in kwargs.items()]
 
-        # If participant is marked special, assign them immediately
+        # if participant is marked special, assign them immediately
         self.assignment = "special" if kwargs.get("special") else None
 
     def __repr__(self):
@@ -56,7 +56,9 @@ class Participant:
         Useful for filtering unambiguous assignments.
         """
         role_found = False
-        for role in utils.roles_and_minima():
+        for role in utils.roles_and_minima(
+            number_of_stations=self.event.number_of_stations
+        ):
             if getattr(self, role, False):
                 if role_found:
                     return False

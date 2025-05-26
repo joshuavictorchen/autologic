@@ -36,6 +36,14 @@ def randomize_heats(event, number_of_heats):
     help="Number of heats to divide participants into.",
 )
 @click.option(
+    "--stations",
+    "number_of_stations",
+    default=5,
+    show_default=True,
+    type=int,
+    help="Number of worker stations for the course.",
+)
+@click.option(
     "--heat-size-parity",
     default=25,
     show_default=True,
@@ -66,6 +74,7 @@ def randomize_heats(event, number_of_heats):
 def main(
     csv_filename,
     number_of_heats,
+    number_of_stations,
     heat_size_parity,
     novice_size_parity,
     novice_denominator,
@@ -75,7 +84,7 @@ def main(
 
     # TODO: refactor for sanity and flexibility
 
-    event = Event(csv_filename, number_of_heats)
+    event = Event(csv_filename, number_of_heats, number_of_stations)
 
     # check if the event has enough qualified participants to fill each role
     print("\n  Role minimums")
@@ -83,6 +92,7 @@ def main(
     insufficient = False
     role_ratios = {}
     for role, minimum in utils.roles_and_minima(
+        number_of_stations=number_of_stations,
         number_of_novices=len(event.get_participants("novice")) / number_of_heats,
         novice_denominator=novice_denominator,
     ).items():
@@ -158,7 +168,9 @@ def main(
             # check if number of qualified participants for each role exceed the minima required
             role_extras = {}
             for role, minimum in utils.roles_and_minima(
-                number_of_novices=novice_count, novice_denominator=novice_denominator
+                number_of_stations=number_of_stations,
+                number_of_novices=novice_count,
+                novice_denominator=novice_denominator,
             ).items():
                 qualified = len(h.get_participants(role))
                 role_extras[role] = (
@@ -184,6 +196,7 @@ def main(
                         break
                     for _ in range(
                         utils.roles_and_minima(
+                            number_of_stations=number_of_stations,
                             number_of_novices=novice_count,
                             novice_denominator=novice_denominator,
                         )[role]
