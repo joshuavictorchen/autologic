@@ -56,7 +56,7 @@ class Event(Group):
         with open(csv_file, newline="", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file)
             for i, row in enumerate(reader):
-                member_data = member_ability_dictionary.get(utils.get_formatted_member_number(row["Member #"]), {})
+                member_ability_data = member_ability_dictionary.get(utils.get_formatted_member_number(row["Member #"]), {})
                 participant = Participant(
                     event=self,
                     id=i,
@@ -64,7 +64,7 @@ class Event(Group):
                     category_string=row["Class"] if row["Modifier"] in ["", "NOV"] else row["Modifier"], # Lemme know if this isn't pythonic, looks ugly
                     novice=utils.parse_bool(row["Modifier"] == "NOV"),
                     **{
-                        role: utils.parse_bool(member_data.get(role))
+                        role: utils.parse_bool(member_ability_data.get(role))
                         for role in utils.roles_and_minima(
                             number_of_stations=self.number_of_stations
                         )
