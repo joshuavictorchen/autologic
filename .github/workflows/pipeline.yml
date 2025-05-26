@@ -38,6 +38,7 @@ jobs:
         run: |
           cp dist/autologic.exe .
           cp tests/sample.csv .
+          cp tests/sample_member_abilities.csv .
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -62,7 +63,7 @@ jobs:
 
       # very non-deterministic... just a sanity check here
       # TODO: use mocking in Pytest instead, and add unit tests
-      - name: Run autologic.exe on sample.csv
+      - name: Run autologic.exe on sample.csv with sample_member_abilities.csv
         run: .\autologic.exe --csv .\sample.csv --member_data .\sample_member_abilities.csv
 
   release:
@@ -82,5 +83,7 @@ jobs:
           files: |
             autologic.exe
             sample.csv
+            sample_member_abilities.csv
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
