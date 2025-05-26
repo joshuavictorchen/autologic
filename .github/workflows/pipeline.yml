@@ -38,7 +38,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: autologic-exe
-          path: dist/autologic.exe
+          path: |
+            dist/autologic.exe
+            tests/sample.csv
 
   test:
     needs: build
@@ -71,6 +73,8 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: autologic.exe
+          files: |
+            autologic.exe
+            sample.csv
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
