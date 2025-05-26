@@ -47,6 +47,7 @@ jobs:
           path: |
             autologic.exe
             sample.csv
+            sample_member_abilities.csv
 
   test:
     needs: build
