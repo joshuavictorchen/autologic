@@ -35,7 +35,7 @@ A CSV export function may be implemented later. For now, it's just this:
   -------------
   instructor: 14 / 9
       timing:  9 / 6
-        grid:  7 / 3
+        grid: 11 / 6
        start:  5 / 3
      captain: 40 / 15
 
@@ -46,7 +46,7 @@ A CSV export function may be implemented later. For now, it's just this:
   Heat size must be 33 +/- 4
   Novice count must be 7 +/- 3
 
-  Heat 0 rejected: participant count of 39
+  Heat 0 rejected: participant count of 25
 
   ==================================================
 
@@ -55,141 +55,141 @@ A CSV export function may be implemented later. For now, it's just this:
   Heat size must be 33 +/- 4
   Novice count must be 7 +/- 3
 
-  Heat 0 (32 total, 7 novices)
+  Heat 0 (33 total, 8 novices)
   ----------------------------
 
-    Car classes: [b, d, f, k, l, m, u]
+    Car classes: [a, f, i, j, k, r, u]
 
     4 of 3 instructors required
-    3 of 2 timings required
-    2 of 1 grids required
-    2 of 1 starts required
-    12 of 5 captains required
-
-    Zane Lee            assigned to INSTRUCTOR
-    Isaac Perez         assigned to INSTRUCTOR
-    Bob Martin          assigned to INSTRUCTOR
-    Frank Jones         assigned to TIMING
-    Alice Martinez      assigned to TIMING
-    Paul Moore          assigned to GRID
-    Hannah Hernandez    assigned to START
-    Charlie Walker      assigned to CAPTAIN
-    Mia Lopez           assigned to CAPTAIN
-    Isabelle Williams   assigned to CAPTAIN
-    Wendy Johnson       assigned to CAPTAIN
-    Tina Rodriguez      assigned to CAPTAIN
-    Eve Clark           assigned to WORKER-0
-    Quinn Garcia        assigned to WORKER-1
-    Henry Garcia        assigned to WORKER-2
-    Hannah Hall         assigned to WORKER-3
-    Liam Garcia         assigned to WORKER-4
-    Xavier Clark        assigned to WORKER-0
-    Isabelle Thompson   assigned to WORKER-1
-    Ursula Lopez        assigned to WORKER-2
-    Mia Lewis           assigned to WORKER-3
-    Samuel Harris       assigned to WORKER-4
-    Mia Miller          assigned to WORKER-0
-    Paul Lewis          assigned to WORKER-1
-    Sophia Gonzalez     assigned to WORKER-2
-    Sophia White        assigned to WORKER-3
-    Grace Johnson       assigned to WORKER-4
-    Bob Lewis           assigned to WORKER-0
-    Olivia Martin       assigned to WORKER-1
-    Charlie Harris      assigned to WORKER-2
-    Ursula Thompson     assigned to WORKER-3
-    Samuel Martinez     assigned to WORKER-4
-
-  Heat 1 (35 total, 8 novices)
-  ----------------------------
-
-    Car classes: [a, j, q, r, s, t, v]
-
-    5 of 3 instructors required
-    3 of 2 timings required
-    2 of 1 grids required
-    2 of 1 starts required
-    15 of 5 captains required
-
-    Rachel Smith        assigned to TIMING
-    Katherine Robinson  assigned to TIMING
-    Noah Moore          assigned to GRID
-    Hannah Johnson      assigned to START
-    Charlie Anderson    assigned to INSTRUCTOR
-    Olivia Thompson     assigned to INSTRUCTOR
-    David Garcia        assigned to INSTRUCTOR
-    Hannah Jackson      assigned to CAPTAIN
-    Jack Taylor         assigned to CAPTAIN
-    Frank Williams      assigned to CAPTAIN
-    Xavier Martinez     assigned to CAPTAIN
-    Katherine Thompson  assigned to CAPTAIN
-    Isaac Wilson        assigned to WORKER-0
-    Zane Harris         assigned to WORKER-1
-    Wendy Jackson       assigned to WORKER-2
-    Frank Hall          assigned to WORKER-3
-    Ursula Wilson       assigned to WORKER-4
-    Alice Thomas        assigned to WORKER-0
-    Henry Lopez         assigned to WORKER-1
-    Liam Miller         assigned to WORKER-2
-    Victor Taylor       assigned to WORKER-3
-    Samuel Thomas       assigned to WORKER-4
-    Mia Hall            assigned to WORKER-0
-    Henry Wilson        assigned to WORKER-1
-    Yvonne Davis        assigned to WORKER-2
-    Jack Moore          assigned to WORKER-3
-    Quinn Smith         assigned to WORKER-4
-    Ursula Rodriguez    assigned to WORKER-0
-    David Walker        assigned to WORKER-1
-    Sophia Taylor       assigned to WORKER-2
-    Sophia White        assigned to WORKER-3
-    Noah Brown          assigned to WORKER-4
-    Eve Miller          assigned to WORKER-0
-    Eve Brown           assigned to WORKER-1
-    Frank Williams      assigned to WORKER-2
-
-  Heat 2 (33 total, 7 novices)
-  ----------------------------
-
-    Car classes: [c, e, g, h, i, p]
-
-    5 of 3 instructors required
-    3 of 2 timings required
-    3 of 1 grids required
+    2 of 2 timings required
+    6 of 2 grids required
     1 of 1 starts required
     13 of 5 captains required
 
-    Katherine Moore     assigned to START
-    Yvonne White        assigned to TIMING
-    David Brown         assigned to TIMING
-    Grace Jones         assigned to INSTRUCTOR
-    Ethan White         assigned to INSTRUCTOR
+    Rachel Smith        assigned to TIMING
+    Alice Martinez      assigned to TIMING
+    Hannah Hernandez    assigned to START
+    Charlie Anderson    assigned to INSTRUCTOR
+    Olivia Thompson     assigned to INSTRUCTOR
     Alice Anderson      assigned to INSTRUCTOR
-    David Thomas        assigned to GRID
-    Bob Davis           assigned to CAPTAIN
-    Alice Jones         assigned to CAPTAIN
+    Zane Harris         assigned to GRID
+    Paul Moore          assigned to GRID
+    Charlie Walker      assigned to CAPTAIN
     Ethan Clark         assigned to CAPTAIN
     Liam Jones          assigned to CAPTAIN
+    Mia Lopez           assigned to CAPTAIN
+    Noah Moore          assigned to CAPTAIN
+    Isaac Wilson        assigned to WORKER-0
+    Ursula Lopez        assigned to WORKER-1
+    Mia Lewis           assigned to WORKER-2
+    Samuel Harris       assigned to WORKER-3
+    Mia Miller          assigned to WORKER-4
+    Noah Jackson        assigned to WORKER-0
+    Quinn Hernandez     assigned to WORKER-1
+    Wendy Jackson       assigned to WORKER-2
+    Frank Hall          assigned to WORKER-3
+    Paul Lewis          assigned to WORKER-4
+    Sophia Gonzalez     assigned to WORKER-0
+    Sophia White        assigned to WORKER-1
+    Henry Lopez         assigned to WORKER-2
+    Liam Miller         assigned to WORKER-3
+    Victor Taylor       assigned to WORKER-4
+    Samuel Thomas       assigned to WORKER-0
+    Charlie Harris      assigned to WORKER-1
+    Ursula Thompson     assigned to WORKER-2
+    Samuel Martinez     assigned to WORKER-3
+    Tina Rodriguez      assigned to WORKER-4
+
+  Heat 1 (34 total, 8 novices)
+  ----------------------------
+
+    Car classes: [c, d, g, h, l, m, p]
+
+    5 of 3 instructors required
+    5 of 2 timings required
+    3 of 2 grids required
+    1 of 1 starts required
+    12 of 5 captains required
+
+    Wendy Johnson       assigned to START
+    Yvonne White        assigned to GRID
+    Isaac Lee           assigned to GRID
+    Bob Martin          assigned to INSTRUCTOR
+    Grace Jones         assigned to INSTRUCTOR
+    Ethan White         assigned to INSTRUCTOR
+    David Brown         assigned to TIMING
+    Alice Jones         assigned to TIMING
+    Bob Davis           assigned to CAPTAIN
+    Isabelle Williams   assigned to CAPTAIN
+    Frank Jones         assigned to CAPTAIN
     Charlie Thomas      assigned to CAPTAIN
+    Rachel Martin       assigned to CAPTAIN
     Jack Rodriguez      assigned to WORKER-0
     Jack Martin         assigned to WORKER-1
     Katherine Rodriguez assigned to WORKER-2
     Yvonne Walker       assigned to WORKER-3
-    Isaac Davis         assigned to WORKER-4
-    Eve Smith           assigned to WORKER-0
-    Noah Lee            assigned to WORKER-1
-    Grace Hernandez     assigned to WORKER-2
-    Olivia Perez        assigned to WORKER-3
-    Ethan Anderson      assigned to WORKER-4
-    Samuel Taylor       assigned to WORKER-0
-    Isaac Lee           assigned to WORKER-1
+    Hannah Hall         assigned to WORKER-4
+    Liam Garcia         assigned to WORKER-0
+    Xavier Clark        assigned to WORKER-1
+    Isabelle Thompson   assigned to WORKER-2
+    Grace Hernandez     assigned to WORKER-3
+    Olivia Perez        assigned to WORKER-4
+    Ethan Anderson      assigned to WORKER-0
+    Samuel Taylor       assigned to WORKER-1
     Liam Jackson        assigned to WORKER-2
     Bob Gonzalez        assigned to WORKER-3
     Tina Anderson       assigned to WORKER-4
-    Noah Jackson        assigned to WORKER-0
-    Quinn Hernandez     assigned to WORKER-1
-    Paul Hall           assigned to WORKER-2
-    Tina Lopez          assigned to WORKER-3
-    Isabelle Perez      assigned to WORKER-4
-    Rachel Martin       assigned to WORKER-0
+    Grace Johnson       assigned to WORKER-0
+    Bob Lewis           assigned to WORKER-1
+    Olivia Martin       assigned to WORKER-2
+    Paul Hall           assigned to WORKER-3
+    Tina Lopez          assigned to WORKER-4
+    Isabelle Perez      assigned to WORKER-0
+
+  Heat 2 (33 total, 6 novices)
+  ----------------------------
+
+    Car classes: [b, e, q, s, t, v]
+
+    5 of 3 instructors required
+    2 of 2 timings required
+    2 of 2 grids required
+    3 of 1 starts required
+    15 of 5 captains required
+
+    Katherine Robinson  assigned to TIMING
+    Katherine Thompson  assigned to TIMING
+    David Thomas        assigned to GRID
+    Xavier Martinez     assigned to GRID
+    Zane Lee            assigned to INSTRUCTOR
+    Isaac Perez         assigned to INSTRUCTOR
+    David Garcia        assigned to INSTRUCTOR
+    Katherine Moore     assigned to START
+    Hannah Jackson      assigned to CAPTAIN
+    Hannah Johnson      assigned to CAPTAIN
+    Jack Taylor         assigned to CAPTAIN
+    Frank Williams      assigned to CAPTAIN
+    Sophia White        assigned to CAPTAIN
+    Eve Clark           assigned to WORKER-0
+    Quinn Garcia        assigned to WORKER-1
+    Henry Garcia        assigned to WORKER-2
+    Isaac Davis         assigned to WORKER-3
+    Eve Smith           assigned to WORKER-4
+    Noah Lee            assigned to WORKER-0
+    Ursula Wilson       assigned to WORKER-1
+    Alice Thomas        assigned to WORKER-2
+    Mia Hall            assigned to WORKER-3
+    Henry Wilson        assigned to WORKER-4
+    Yvonne Davis        assigned to WORKER-0
+    Jack Moore          assigned to WORKER-1
+    Quinn Smith         assigned to WORKER-2
+    Ursula Rodriguez    assigned to WORKER-3
+    David Walker        assigned to WORKER-4
+    Sophia Taylor       assigned to WORKER-0
+    Noah Brown          assigned to WORKER-1
+    Eve Miller          assigned to WORKER-2
+    Eve Brown           assigned to WORKER-3
+    Frank Williams      assigned to WORKER-4
 
   ---
 
