@@ -87,10 +87,3 @@ class Event(Group):
             dict[int, Heat]: Mapping of heat number to Heat objects.
         """
         return {i: Heat(self, i) for i in range(number_of_heats)}
-
-    def export_data(self):
-        """
-        Placeholder
-        """
-
-        return
