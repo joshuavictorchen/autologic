@@ -14,7 +14,13 @@ class Event(Group):
     domain-specific structures.
     """
 
-    def __init__(self, csv_file: str, number_of_heats: int):
+    def __init__(
+        self,
+        csv_file: str,
+        number_of_heats: int,
+        number_of_stations: int,
+    ):
+        self.number_of_stations = number_of_stations
         self.participants = self.load_participants(csv_file)
         self.categories = self.load_categories()
         self.heats = self.load_heats(number_of_heats)
@@ -38,7 +44,9 @@ class Event(Group):
                     novice=utils.parse_bool(row["novice"]),
                     **{
                         role: utils.parse_bool(row.get(role))
-                        for role in utils.roles_and_minima()
+                        for role in utils.roles_and_minima(
+                            number_of_stations=self.number_of_stations
+                        )
                     },
                 )
                 participants.append(participant)
