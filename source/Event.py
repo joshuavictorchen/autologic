@@ -17,11 +17,12 @@ class Event(Group):
     def __init__(
         self,
         csv_file: str,
+        member_ability_csv_file: str,
         number_of_heats: int,
         number_of_stations: int,
     ):
         self.number_of_stations = number_of_stations
-        self.participants = self.load_participants(csv_file)
+        self.participants = self.load_participants(csv_file, member_ability_csv_file)
         self.categories = self.load_categories()
         self.heats = self.load_heats(number_of_heats)
 
@@ -38,25 +39,32 @@ class Event(Group):
             max_length = len(p.name) if len(p.name) > max_length else max_length
         return max_length
 
-    def load_participants(self, csv_file: str):
+    def load_participants(self, csv_file: str, member_ability_csv_file: str):
         """
-        Loads participants from a CSV file.
+        Loads participants from an MSR Exported CSV file, then gets their possible work assignments from the private Member CSV file.
 
         Returns:
             list[Participant]: All parsed participants.
         """
+        member_ability_dictionary = {}
+        with open(member_ability_csv_file, newline="", encoding="utf-8") as member_ability_csv:
+            member_data = csv.DictReader(member_ability_csv)
+            for _id, row in enumerate(member_data):
+                member_ability_dictionary[row["id"]] = row
+
         participants = []
         with open(csv_file, newline="", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file)
             for i, row in enumerate(reader):
+                member_data = member_ability_dictionary.get(utils.get_formatted_member_number(row["Member #"]), {})
                 participant = Participant(
                     event=self,
                     id=i,
-                    name=row["name"],
-                    category_string=row["category"],
-                    novice=utils.parse_bool(row["novice"]),
+                    name=row["Name"],
+                    category_string=row["Class"] if row["Modifier"] in ["", "NOV"] else row["Modifier"], # Lemme know if this isn't pythonic, looks ugly
+                    novice=utils.parse_bool(row["Modifier"] == "NOV"),
                     **{
-                        role: utils.parse_bool(row.get(role))
+                        role: utils.parse_bool(member_data.get(role))
                         for role in utils.roles_and_minima(
                             number_of_stations=self.number_of_stations
                         )

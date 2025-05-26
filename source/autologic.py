@@ -28,6 +28,13 @@ def randomize_heats(event, number_of_heats):
     help="Path to input CSV file.",
 )
 @click.option(
+    "--member_data",
+    "member_data_csv_filename",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    help="Path to member CSV file with work ability data.",
+)
+@click.option(
     "--heats",
     "number_of_heats",
     default=3,
@@ -73,6 +80,7 @@ def randomize_heats(event, number_of_heats):
 )
 def main(
     csv_filename,
+    member_data_csv_filename,
     number_of_heats,
     number_of_stations,
     heat_size_parity,
@@ -84,7 +92,7 @@ def main(
 
     # TODO: refactor for sanity and flexibility
 
-    event = Event(csv_filename, number_of_heats, number_of_stations)
+    event = Event(csv_filename, member_data_csv_filename, number_of_heats, number_of_stations)
 
     # check if the event has enough qualified participants to fill each role
     print("\n  Role minimums")

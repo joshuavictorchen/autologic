@@ -1,3 +1,5 @@
+import re
+
 MIN_INSTRUCTOR_PER_HEAT = 3  # this is modified in roles_and_minima()
 MIN_TIMING_PER_HEAT = 2
 MIN_START_PER_HEAT = 1
@@ -110,3 +112,17 @@ def roles_and_minima(number_of_stations, number_of_novices=1, novice_denominator
         "start": MIN_START_PER_HEAT,
         "captain": number_of_stations,
     }
+
+def get_formatted_member_number(member_number_string):
+    """
+    This returns a formatted member number, that is only the numbers in the string
+    This is because there's numerous member number formats being used, like:
+    0000, THSCC-000, LT-0000
+
+    Args:
+        member_number_string (string): THSCC member number.
+
+    Returns:
+        int: Formatted member number.
+    """
+    return re.sub("[^0-9]", "", member_number_string)
