@@ -34,13 +34,18 @@ jobs:
         run: |
           pyinstaller --onefile source/autologic.py --name autologic
 
-      - name: Upload build artifact
+      - name: Flatten release files
+        run: |
+          cp dist/autologic.exe .
+          cp tests/sample.csv .
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: autologic-exe
+          name: autologic
           path: |
-            dist/autologic.exe
-            tests/sample.csv
+            autologic.exe
+            sample.csv
 
   test:
     needs: build
@@ -53,11 +58,12 @@ jobs:
       - name: Download .exe artifact
         uses: actions/download-artifact@v4
         with:
-          name: autologic-exe
+          name: autologic
 
-      # very non-deterministic... just make sure it works
+      # very non-deterministic... just a sanity check here
+      # TODO: use mocking in Pytest instead, and add unit tests
       - name: Run autologic.exe on sample.csv
-        run: .\autologic.exe --csv .\tests\sample.csv
+        run: .\autologic.exe --csv .\sample.csv
 
   release:
     needs: test
@@ -68,7 +74,7 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: autologic-exe
+          name: autologic
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v1
