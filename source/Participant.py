@@ -1,5 +1,7 @@
 import utils
 
+WORKER_ASSIGNMENT = "worker"
+
 
 class Participant:
     """
@@ -65,19 +67,30 @@ class Participant:
                 role_found = True
         return role_found
 
-    def set_assignment(self, assignment):
+    def set_assignment(self, assignment, verbose=True):
         """
         Assigns a role to this participant if they are qualified for it.
 
         Args:
             assignment (str): The role to assign.
         """
-        if not getattr(self, assignment, False):
-            print(f"    {self} is not qualified for {assignment.upper()}")
+        # reject unqualified assignments (everyone is qualified to be a worker)
+        if not getattr(self, assignment, False) and not assignment.lower().startswith(
+            WORKER_ASSIGNMENT
+        ):
+            (
+                print(f"    {self} is not qualified for {assignment.upper()}")
+                if verbose
+                else None
+            )
         else:
-            print(
-                f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
-                # uncomment if interactive mode is implemented
-                # f" (previously: {self.assignment.upper() if self.assignment else None})"
+            (
+                print(
+                    f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
+                    # uncomment if interactive mode is implemented
+                    # f" (previously: {self.assignment.upper() if self.assignment else None})"
+                )
+                if verbose
+                else None
             )
             self.assignment = assignment

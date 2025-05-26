@@ -93,10 +93,11 @@ def main(
     role_ratios = {}
     for role, minimum in utils.roles_and_minima(
         number_of_stations=number_of_stations,
-        number_of_novices=len(event.get_participants("novice")) / number_of_heats,
+        number_of_novices=len(event.get_participants_by_attribute("novice"))
+        / number_of_heats,
         novice_denominator=novice_denominator,
     ).items():
-        qualified = len(event.get_participants(role))
+        qualified = len(event.get_participants_by_attribute(role))
         required = minimum * number_of_heats
         role_ratios[role] = (
             qualified / required if required > 0 else 100
@@ -111,9 +112,11 @@ def main(
     # calculate heat size restrictions for total participants and novices
     mean_group_size = round(len(event.participants) / number_of_heats)
     max_group_delta = math.ceil(len(event.participants) / heat_size_parity)
-    mean_novice_count = round(len(event.get_participants("novice")) / number_of_heats)
+    mean_novice_count = round(
+        len(event.get_participants_by_attribute("novice")) / number_of_heats
+    )
     max_novice_delta = math.ceil(
-        len(event.get_participants("novice")) / novice_size_parity
+        len(event.get_participants_by_attribute("novice")) / novice_size_parity
     )
 
     # keep randomizing heats until all criteria are met (lol)
@@ -153,7 +156,7 @@ def main(
                 break
 
             # check heat novice count constraints
-            novice_count = len(h.get_participants("novice"))
+            novice_count = len(h.get_participants_by_attribute("novice"))
             if abs(mean_novice_count - novice_count) > max_novice_delta:
                 rules_satisfied = False
                 skip_iteration = True
@@ -172,7 +175,7 @@ def main(
                 number_of_novices=novice_count,
                 novice_denominator=novice_denominator,
             ).items():
-                qualified = len(h.get_participants(role))
+                qualified = len(h.get_participants_by_attribute(role))
                 role_extras[role] = (
                     qualified - minimum
                 )  # used later to assign workers to roles based on need
@@ -211,6 +214,10 @@ def main(
                             break
                         else:
                             available[0].set_assignment(role)
+
+                # now assign everyone else to worker stations
+                for i, worker in enumerate(h.get_available(role=None)):
+                    worker.set_assignment(f"worker-{i % number_of_stations}")
 
     if not rules_satisfied:
         print(f"\n\n  Could not create heats in {max_iterations} iterations.")
