@@ -12,7 +12,7 @@ class Group:
         """Returns the total number of participants in the group."""
         return len(self.participants)
 
-    def get_participants(self, attribute, value=True):
+    def get_participants_by_attribute(self, attribute, value=True):
         """
         Returns all participants with a specific attribute value.
 
@@ -42,12 +42,14 @@ class Group:
         Returns participants who are eligible for a role and not yet assigned.
 
         Args:
-            role (str): The role to check.
+            role (str): The role to check. If set to None, then returns all unassigned participants.
             has_sole_role (bool): If True, filters to participants with exactly one role.
 
         Returns:
             list: Available and qualified participants.
         """
+        if not role:
+            return [p for p in self.participants if not p.assignment]
         if has_sole_role:
             return [
                 p

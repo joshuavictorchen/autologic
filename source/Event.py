@@ -25,6 +25,19 @@ class Event(Group):
         self.categories = self.load_categories()
         self.heats = self.load_heats(number_of_heats)
 
+    @property
+    def max_name_length(self):
+        """
+        Finds the length of the longest name in the event.
+
+        Returns:
+            int: Length of the longest name in the event.
+        """
+        max_length = 0
+        for p in self.participants:
+            max_length = len(p.name) if len(p.name) > max_length else max_length
+        return max_length
+
     def load_participants(self, csv_file: str):
         """
         Loads participants from a CSV file.
@@ -74,16 +87,3 @@ class Event(Group):
             dict[int, Heat]: Mapping of heat number to Heat objects.
         """
         return {i: Heat(self, i) for i in range(number_of_heats)}
-
-    @property
-    def max_name_length(self):
-        """
-        Finds the length of the longest name in the event.
-
-        Returns:
-            int: Length of the longest name in the event.
-        """
-        max_length = 0
-        for p in self.participants:
-            max_length = len(p.name) if len(p.name) > max_length else max_length
-        return max_length
