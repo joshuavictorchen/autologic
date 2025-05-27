@@ -61,7 +61,7 @@ class Event(Group):
                     event=self,
                     id=i,
                     name=row["Name"],
-                    category_string=row["Class"] if row["Modifier"] in ["", "NOV"] else row["Modifier"], # Lemme know if this isn't pythonic, looks ugly
+                    category_string=row["Class"] if row["Modifier"] in ["", "NOV"] else row["Modifier"],
                     novice=utils.parse_bool(row["Modifier"] == "NOV"),
                     **{
                         role: utils.parse_bool(member_ability_data.get(role))
