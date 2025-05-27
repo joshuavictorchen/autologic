@@ -1,0 +1,4 @@
+# Minimal Requirements for Running Autologic
+# Install with: pip install -r requirements-minimal.txt
+
+click>=8.0.0        # Command-line interface framework

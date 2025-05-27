@@ -11,12 +11,19 @@ class Heat(Group):
     """
 
     def __init__(self, event, number):
+        # Initialize cache from parent class
+        super().__init__()
         self.event = event
         self.number = number
         self.assigned_categories = []
 
     def __repr__(self):
         return f"{self.number}"
+    
+    def add_category(self, category):
+        """Add a category to this heat."""
+        if category not in self.assigned_categories:
+            self.assigned_categories.append(category)
 
     @property
     def categories(self):

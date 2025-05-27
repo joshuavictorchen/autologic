@@ -33,7 +33,8 @@ class Participant:
         self.novice = novice
 
         # dynamically assign additional role flags (e.g., instructor=True)
-        [setattr(self, key, value) for key, value in kwargs.items()]
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
         # if participant is marked special, assign them immediately
         self.assignment = "special" if kwargs.get("special") else None
@@ -73,24 +74,20 @@ class Participant:
 
         Args:
             assignment (str): The role to assign.
+            verbose (bool): Whether to print assignment details.
         """
         # reject unqualified assignments (everyone is qualified to be a worker)
         if not getattr(self, assignment, False) and not assignment.lower().startswith(
             WORKER_ASSIGNMENT
         ):
-            (
+            if verbose:
                 print(f"    {self} is not qualified for {assignment.upper()}")
-                if verbose
-                else None
-            )
         else:
-            (
+            if verbose:
+                # Safe string formatting with bounds checking
+                name_width = min(self.event.max_name_length, 30)  # Cap name width
+                role_width = min(utils.get_max_role_str_length(), 15)  # Cap role width
                 print(
-                    f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
-                    # uncomment if interactive mode is implemented
-                    # f" (previously: {self.assignment.upper() if self.assignment else None})"
+                    f"    {self.name[:name_width].ljust(name_width)} assigned to {assignment.upper()[:role_width].ljust(role_width)}"
                 )
-                if verbose
-                else None
-            )
             self.assignment = assignment

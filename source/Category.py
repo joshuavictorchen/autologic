@@ -14,6 +14,8 @@ class Category(Group):
     """
 
     def __init__(self, event, name):
+        # Initialize cache from parent class
+        super().__init__()
         self.event = event
         self.name = name
         self.participants = []
@@ -33,7 +35,4 @@ class Category(Group):
         Args:
             heat (int): The heat number.
         """
-        previous_heat = self.heat
         self.heat = heat
-        # uncomment if interactive mode is implemented
-        # print(f"  Class {self} assigned to heat {heat} (previously: {previous_heat})")

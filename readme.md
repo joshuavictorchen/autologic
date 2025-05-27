@@ -1,197 +1,249 @@
 # Autologic
 
-Somewhat questionable Python program that takes an autocross event roster and generates heat + worker assignments.
+         ______
+        /|_||_\`.__
+       (   _    _ _\
+       =`-(_)--(_)-'
 
-It provides a rough framework that may be used to assign `Categories` (car classes) to `Heats`, and `Participants` to `Roles` (specialized work assignments).
+A Python program that takes an autocross event roster and generates fair heat + worker assignments.
+Updates by Steve Dock
 
-The current "algorithm" loads an `Event`, randomly assigns `Categories` to `Heats`, checks against acceptance criteria (can all `Roles` be filled within each `Heat`?), and keeps iterating until all criteria are met.
+It assigns `Categories` (car classes) to `Heats`, and `Participants` to `Roles` (specialized work assignments) while ensuring:
+- All cars in the same class run in the same heat
+- Heat cycle times are fair (differ by no more than 1.5 minutes)
+- All required worker roles are filled in each heat
+- Participants with multiple qualifications are optimally assigned
 
-Better documentation to come... if there is interest. A smarter algorithm may be implemented later. Tests may be implemented later.
+The algorithm uses intelligent category grouping, timing fairness constraints, and role optimization to create balanced heat assignments.
 
-## Retrieval and usage
+## Installation
 
+### Option 1: Download Pre-built Release (Windows)
 1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/).
+2. Open a terminal window and execute `.\path\to\autologic.exe --csv .\path\to\file.csv`
 
-2. Open a terminal window and execute `.\path\to\autologic.exe --csv .\path\to\file.csv` to generate heat and worker assignments for a set of default parameters.
+### Option 2: Run from Source (All Platforms)
+1. Ensure Python 3.7+ is installed
+2. Clone the repository
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Run the program:
+   ```bash
+   python source/autologic.py --csv path/to/file.csv
+   ```
 
-### Notes
+## Key Features
 
-- Run `autologic.exe --help` for more options (number of heats, number of worker stations, etc.).
+- **Timing Fairness**: Optimizes heat assignments to minimize cycle time variance for fair driver wait times
+- **Smart Assignment**: Uses role scarcity analysis to optimally assign multi-qualified participants
+- **Heat Comparison**: Automatic comparison tool runs both 3 and 4 heat configurations side-by-side
+- **Best-Effort Mode**: Provides workable solutions even when constraints can't be met, with clear documentation of violations
+- **Timing Flexibility**: Optional mode allows timing workers to work in different heats than they race (useful for 4-heat configurations)
+- **Complete Output**: Each run produces full heat assignments and worker lists for evaluation
+- **Visual Feedback**: Shows heat cycle times and fairness status in the output
 
-- See [sample.csv](./tests/sample.csv) for an example of the required input data structure. May change to accommodate different configurations. The `special` role is for VPs, worker coordinators, gate workers, etc. who should not be assigned to another role.
+## Usage
 
-- The dictionary of roles and their minimum requirements per heat is semi-hardcoded in [utils.py](./source/utils.py)'s `roles_and_minima` definition.
-  - The minimum number of instructors in a heat is equal to `number_of_novices` divided `novice_denominator`, or `MIN_INSTRUCTOR_PER_HEAT`, whichever is greater.
-  - The minimum number of corner captains in a heat is equal to `number_of_stations`.
+### Quick Start
+```bash
+# Basic usage - automatically selects optimal heat count
+python source/autologic.py --csv path/to/file.csv
 
-## Sample output
-
-A CSV export function may be implemented later. For now, it's just this:
-
-```powershell
-(autologic) PS C:\codes\autologic> .\dist\autologic.exe --csv .\dist\sample.csv
-
-  Role minimums
-  -------------
-  instructor: 14 / 9
-      timing:  9 / 6
-        grid: 11 / 6
-       start:  5 / 3
-     captain: 40 / 15
-
-  ==================================================
-
-  [Iteration 0]
-
-  Heat size must be 33 +/- 4
-  Novice count must be 7 +/- 3
-
-  Heat 0 rejected: participant count of 25
-
-  ==================================================
-
-  [Iteration 1]
-
-  Heat size must be 33 +/- 4
-  Novice count must be 7 +/- 3
-
-  Heat 0 (33 total, 8 novices)
-  ----------------------------
-
-    Car classes: [a, f, i, j, k, r, u]
-
-    4 of 3 instructors required
-    2 of 2 timings required
-    6 of 2 grids required
-    1 of 1 starts required
-    13 of 5 captains required
-
-    Rachel Smith        assigned to TIMING
-    Alice Martinez      assigned to TIMING
-    Hannah Hernandez    assigned to START
-    Charlie Anderson    assigned to INSTRUCTOR
-    Olivia Thompson     assigned to INSTRUCTOR
-    Alice Anderson      assigned to INSTRUCTOR
-    Zane Harris         assigned to GRID
-    Paul Moore          assigned to GRID
-    Charlie Walker      assigned to CAPTAIN
-    Ethan Clark         assigned to CAPTAIN
-    Liam Jones          assigned to CAPTAIN
-    Mia Lopez           assigned to CAPTAIN
-    Noah Moore          assigned to CAPTAIN
-    Isaac Wilson        assigned to WORKER-0
-    Ursula Lopez        assigned to WORKER-1
-    Mia Lewis           assigned to WORKER-2
-    Samuel Harris       assigned to WORKER-3
-    Mia Miller          assigned to WORKER-4
-    Noah Jackson        assigned to WORKER-0
-    Quinn Hernandez     assigned to WORKER-1
-    Wendy Jackson       assigned to WORKER-2
-    Frank Hall          assigned to WORKER-3
-    Paul Lewis          assigned to WORKER-4
-    Sophia Gonzalez     assigned to WORKER-0
-    Sophia White        assigned to WORKER-1
-    Henry Lopez         assigned to WORKER-2
-    Liam Miller         assigned to WORKER-3
-    Victor Taylor       assigned to WORKER-4
-    Samuel Thomas       assigned to WORKER-0
-    Charlie Harris      assigned to WORKER-1
-    Ursula Thompson     assigned to WORKER-2
-    Samuel Martinez     assigned to WORKER-3
-    Tina Rodriguez      assigned to WORKER-4
-
-  Heat 1 (34 total, 8 novices)
-  ----------------------------
-
-    Car classes: [c, d, g, h, l, m, p]
-
-    5 of 3 instructors required
-    5 of 2 timings required
-    3 of 2 grids required
-    1 of 1 starts required
-    12 of 5 captains required
-
-    Wendy Johnson       assigned to START
-    Yvonne White        assigned to GRID
-    Isaac Lee           assigned to GRID
-    Bob Martin          assigned to INSTRUCTOR
-    Grace Jones         assigned to INSTRUCTOR
-    Ethan White         assigned to INSTRUCTOR
-    David Brown         assigned to TIMING
-    Alice Jones         assigned to TIMING
-    Bob Davis           assigned to CAPTAIN
-    Isabelle Williams   assigned to CAPTAIN
-    Frank Jones         assigned to CAPTAIN
-    Charlie Thomas      assigned to CAPTAIN
-    Rachel Martin       assigned to CAPTAIN
-    Jack Rodriguez      assigned to WORKER-0
-    Jack Martin         assigned to WORKER-1
-    Katherine Rodriguez assigned to WORKER-2
-    Yvonne Walker       assigned to WORKER-3
-    Hannah Hall         assigned to WORKER-4
-    Liam Garcia         assigned to WORKER-0
-    Xavier Clark        assigned to WORKER-1
-    Isabelle Thompson   assigned to WORKER-2
-    Grace Hernandez     assigned to WORKER-3
-    Olivia Perez        assigned to WORKER-4
-    Ethan Anderson      assigned to WORKER-0
-    Samuel Taylor       assigned to WORKER-1
-    Liam Jackson        assigned to WORKER-2
-    Bob Gonzalez        assigned to WORKER-3
-    Tina Anderson       assigned to WORKER-4
-    Grace Johnson       assigned to WORKER-0
-    Bob Lewis           assigned to WORKER-1
-    Olivia Martin       assigned to WORKER-2
-    Paul Hall           assigned to WORKER-3
-    Tina Lopez          assigned to WORKER-4
-    Isabelle Perez      assigned to WORKER-0
-
-  Heat 2 (33 total, 6 novices)
-  ----------------------------
-
-    Car classes: [b, e, q, s, t, v]
-
-    5 of 3 instructors required
-    2 of 2 timings required
-    2 of 2 grids required
-    3 of 1 starts required
-    15 of 5 captains required
-
-    Katherine Robinson  assigned to TIMING
-    Katherine Thompson  assigned to TIMING
-    David Thomas        assigned to GRID
-    Xavier Martinez     assigned to GRID
-    Zane Lee            assigned to INSTRUCTOR
-    Isaac Perez         assigned to INSTRUCTOR
-    David Garcia        assigned to INSTRUCTOR
-    Katherine Moore     assigned to START
-    Hannah Jackson      assigned to CAPTAIN
-    Hannah Johnson      assigned to CAPTAIN
-    Jack Taylor         assigned to CAPTAIN
-    Frank Williams      assigned to CAPTAIN
-    Sophia White        assigned to CAPTAIN
-    Eve Clark           assigned to WORKER-0
-    Quinn Garcia        assigned to WORKER-1
-    Henry Garcia        assigned to WORKER-2
-    Isaac Davis         assigned to WORKER-3
-    Eve Smith           assigned to WORKER-4
-    Noah Lee            assigned to WORKER-0
-    Ursula Wilson       assigned to WORKER-1
-    Alice Thomas        assigned to WORKER-2
-    Mia Hall            assigned to WORKER-3
-    Henry Wilson        assigned to WORKER-4
-    Yvonne Davis        assigned to WORKER-0
-    Jack Moore          assigned to WORKER-1
-    Quinn Smith         assigned to WORKER-2
-    Ursula Rodriguez    assigned to WORKER-3
-    David Walker        assigned to WORKER-4
-    Sophia Taylor       assigned to WORKER-0
-    Noah Brown          assigned to WORKER-1
-    Eve Miller          assigned to WORKER-2
-    Eve Brown           assigned to WORKER-3
-    Frank Williams      assigned to WORKER-4
-
-  ---
-
-  >>> Iteration 1 accepted <<<
+# Compare 3 vs 4 heats automatically
+python source/compare_heats.py --csv path/to/file.csv
 ```
+
+### Advanced Options
+```bash
+# Run specific heat configurations
+python source/autologic.py --csv path/to/file.csv --heats 3
+python source/autologic.py --csv path/to/file.csv --heats 4
+
+# For 4 heats with limited timing workers, allow timing flexibility
+python source/autologic.py --csv path/to/file.csv --heats 4 --allow-timing-flexibility
+
+# Get best-effort solution with documented constraint violations
+python source/autologic.py --csv path/to/file.csv --heats 4 --best-effort
+
+# Disable timing optimization
+python source/autologic.py --csv path/to/file.csv --no-enforce-timing-fairness
+
+# Show detailed progress
+python source/autologic.py --csv path/to/file.csv --verbose
+
+# See timing analysis only
+python source/autologic.py --csv path/to/file.csv --timing-only
+```
+
+Run `python source/autologic.py --help` for all options.
+
+### Input Format
+
+See [sample.csv](./tests/sample.csv) for the required CSV format:
+- `name`: Participant name
+- `category`: Car class (single letter)
+- `novice`: Whether the participant is a novice (any non-empty value = true)
+- `instructor`, `timing`, `grid`, `start`, `captain`, `special`: Worker qualifications
+
+The `special` role is for VPs, worker coordinators, gate workers, etc. who should not be assigned to another role.
+
+### Configuration
+
+Role minimum requirements per heat are defined in [utils.py](./source/utils.py):
+- **Instructors**: `max(3, novices/3)` - at least 1 instructor per 3 novices
+- **Timing**: 2 workers minimum
+- **Grid**: 2 workers minimum  
+- **Start**: 1 worker minimum
+- **Captains**: Equal to number of corner stations (default: 5)
+
+## Heat Comparison Tool
+
+The comparison tool (`compare_heats.py`) automatically runs both 3 and 4 heat configurations and presents a comprehensive comparison:
+
+```bash
+python source/compare_heats.py --csv path/to/file.csv
+
+# Save output files for both configurations
+python source/compare_heats.py --csv path/to/file.csv --save-outputs
+
+# Show full output from both runs
+python source/compare_heats.py --csv path/to/file.csv --verbose
+```
+
+The tool will:
+1. Run 3-heat configuration
+2. Run 4-heat configuration (with timing flexibility if needed)
+3. If 4-heats fails, automatically try best-effort mode
+4. Present a side-by-side comparison with recommendations
+
+## Best-Effort Mode
+
+When the algorithm can't find a solution that meets all constraints, use `--best-effort` to get a workable solution with documented issues:
+
+```bash
+python source/autologic.py --csv path/to/file.csv --heats 4 --best-effort
+```
+
+This mode:
+- **Always produces a solution** - assigns as many qualified workers as possible
+- **Documents all violations** - clearly shows which roles are short-staffed
+- **Provides specific suggestions** - recommends workarounds like timing flexibility
+- **Helps coordinators make decisions** - shows exactly what adjustments are needed
+
+Example output shows violations with severity indicators:
+- 🔴 Critical issues (timing, start positions)
+- 🟡 Moderate issues (grid, instructor shortages)
+
+Coordinators can use this information along with their knowledge of participants to:
+- Recruit additional qualified workers
+- Cross-train participants for critical roles
+- Implement creative solutions (like timing workers working multiple heats)
+- Make informed risk assessments
+
+## Timing Flexibility
+
+For events with limited timing workers (especially 4-heat configurations), the `--allow-timing-flexibility` flag enables timing workers to work in different heats than they race:
+
+```bash
+python source/autologic.py --csv path/to/file.csv --heats 4 --allow-timing-flexibility
+```
+
+This is particularly useful when you have exactly the minimum number of timing workers needed (e.g., 9 timing workers for 4 heats requiring 8 total).
+
+## Sample Output
+
+### Standard Run
+```bash
+$ python source/autologic.py --csv tests/sample.csv
+
+         ______
+        /|_||_\`.__
+       (   _    _ _\
+       =`-(_)--(_)-'
+        
+
+  Loaded 100 participants in 20 categories
+
+  Heat Timing Analysis
+  ===================
+  Total participants: 100
+
+  3 Heats (assuming equal distribution):
+    - Average heat size: 33 drivers
+    - Heat cycle time: 25.0 minutes
+
+  4 Heats (assuming equal distribution):
+    - Average heat size: 25 drivers
+    - Heat cycle time: 18.8 minutes
+
+  [... continues with heat assignments ...]
+```
+
+### Comparison Tool Output
+```bash
+$ python source/compare_heats.py --csv tests/sample.csv
+
+🏁 AutoLogic Heat Comparison Tool
+========================================
+Analyzing: tests/sample.csv
+
+→ Running 3 heat configuration...
+→ Running 4 heat configuration...
+→ Retrying 4 heats with timing flexibility...
+
+======================================================================
+HEAT CONFIGURATION COMPARISON
+======================================================================
+
+SUMMARY
+----------------------------------------
+                           3 HEATS              4 HEATS       
+------------------------------------------------------------
+Status                    ✓ SUCCESS            ✓ SUCCESS      
+Heat Sizes                33, 33, 34          24, 25, 25, 26  
+Cycle Time Range        24.8-25.5 min        18.0-19.5 min    
+Timing Variance            0.8 min              1.5 min       
+Timing Fairness             ✓ FAIR              ✓ FAIR       
+Timing Flexibility        Not needed        Yes (2 workers)   
+------------------------------------------------------------
+
+[... continues with detailed analysis and recommendations ...]
+```
+
+## Output Files
+
+Three output files are generated for each run:
+1. `<filename>.heats.txt` - Participants listed by heat
+2. `<filename>.heats_by_class.txt` - Participants organized by heat and car class
+3. `<filename>.workers.txt` - Worker assignments by heat and role
+
+When using the comparison tool with `--save-outputs`, files are saved as:
+- `<filename>_3heats.*.txt`
+- `<filename>_4heats.*.txt`
+
+## Troubleshooting
+
+### "Worker assignment failed"
+- Try using `--best-effort` flag to see what constraints can't be met
+- Consider using `--allow-timing-flexibility` for 4-heat configurations
+- Check if you have enough qualified workers for the number of heats
+
+### "Could not find valid heat assignment"
+- Try adjusting `--heat-size-parity` (higher values allow more variation)
+- Use fewer heats or ensure you have enough participants
+- Run with `--verbose` to see detailed constraint information
+
+### 4 Heats Not Working
+- 4-heat configurations often require timing flexibility due to limited timing workers
+- Use the comparison tool to see if 4 heats is feasible for your event
+- Consider the best-effort mode to understand what adjustments would be needed
+
+## Contributing
+
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)

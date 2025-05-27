@@ -5,7 +5,8 @@ class Group:
     """
 
     def __init__(self):
-        self.participants = []
+        # Will be set by subclasses
+        self._attribute_cache = {}
 
     @property
     def total(self):
@@ -15,15 +16,27 @@ class Group:
     def get_participants_by_attribute(self, attribute, value=True):
         """
         Returns all participants with a specific attribute value.
+        
+        Uses internal caching for performance during heat iterations.
 
         Args:
             attribute (str): The attribute to check.
             value (any): The expected value of the attribute.
 
         Returns:
-            list: Matching participants.
+            tuple: Matching participants (tuple for immutability).
         """
-        return [p for p in self.participants if getattr(p, attribute, None) == value]
+        # Create cache key
+        cache_key = (attribute, value)
+        
+        # Return cached result if available
+        if cache_key in self._attribute_cache:
+            return self._attribute_cache[cache_key]
+        
+        # Calculate and cache result
+        result = tuple(p for p in self.participants if getattr(p, attribute, None) == value)
+        self._attribute_cache[cache_key] = result
+        return result
 
     def get_participant_by_id(self, id):
         """
