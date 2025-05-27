@@ -58,15 +58,17 @@ class Event(Group):
         with open(msr_export_csv, newline="", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file)
             for row in reader:
-                member_attributes = member_attributes_dict.get(utils.get_formatted_member_number(row["Member #"]))
+                this_id =utils.get_formatted_member_number(row["Member #"])
+                member_attributes = member_attributes_dict.get(this_id)
                 participant = Participant(
                     event=self,
-                    id=row["id"],
+                    id=this_id,
                     name=row["Name"],
                     category_string=row["Class"] if row["Modifier"] in ["", "NOV"] else row["Modifier"],
                     novice=utils.parse_bool(row["Modifier"] == "NOV"),
                     **{
-                        role: utils.parse_bool(member_attributes.get(role))
+                        # TODO: unjumble this
+                        role: utils.parse_bool(member_attributes.get(role) if member_attributes else 0)
                         for role in utils.roles_and_minima(
                             number_of_stations=self.number_of_stations
                         )
