@@ -117,10 +117,10 @@ def get_formatted_member_number(member_number_string):
     """
     This returns a formatted member number, that is only the numbers in the string
     This is because there's numerous member number formats being used, like:
-    0000, THSCC-000, LT-0000
+    0000, CLUB-000, LT-0000
 
     Args:
-        member_number_string (string): THSCC member number.
+        member_number_string (string): Club member number.
 
     Returns:
         int: Formatted member number.
