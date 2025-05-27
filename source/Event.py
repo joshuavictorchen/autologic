@@ -22,7 +22,9 @@ class Event(Group):
         number_of_stations: int,
     ):
         self.number_of_stations = number_of_stations
-        self.participants = self.load_participants(msr_export_csv, member_attributes_csv)
+        self.participants = self.load_participants(
+            msr_export_csv, member_attributes_csv
+        )
         self.categories = self.load_categories()
         self.heats = self.load_heats(number_of_heats)
 
@@ -43,7 +45,7 @@ class Event(Group):
         """
         Loads participants from `msr_export_csv`, then gets their possible work assignments from `member_attributes_csv`.
 
-        TODO: currently requires the CSVs to match the samples exactly, with case sensitivity; loosen these shackles.
+        TODO: currently requires the CSVs to match the samples exactly, with case sensitivity; loosen these shackles. Also, unjumble this function.
 
         Returns:
             list[Participant]: All parsed participants.
@@ -58,17 +60,22 @@ class Event(Group):
         with open(msr_export_csv, newline="", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file)
             for row in reader:
-                this_id =utils.get_formatted_member_number(row["Member #"])
+                this_id = utils.get_formatted_member_number(row["Member #"])
                 member_attributes = member_attributes_dict.get(this_id)
                 participant = Participant(
                     event=self,
                     id=this_id,
                     name=row["Name"],
-                    category_string=row["Class"] if row["Modifier"] in ["", "NOV"] else row["Modifier"],
+                    category_string=(
+                        row["Class"]
+                        if row["Modifier"] in ["", "NOV"]
+                        else row["Modifier"]
+                    ),
                     novice=utils.parse_bool(row["Modifier"] == "NOV"),
                     **{
-                        # TODO: unjumble this
-                        role: utils.parse_bool(member_attributes.get(role) if member_attributes else 0)
+                        role: utils.parse_bool(
+                            member_attributes.get(role) if member_attributes else 0
+                        )
                         for role in utils.roles_and_minima(
                             number_of_stations=self.number_of_stations
                         )

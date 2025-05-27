@@ -92,7 +92,12 @@ def main(
 
     # TODO: refactor for sanity and flexibility
 
-    event = Event(msr_export_filename, member_attributes_filename, number_of_heats, number_of_stations)
+    event = Event(
+        msr_export_filename,
+        member_attributes_filename,
+        number_of_heats,
+        number_of_stations,
+    )
 
     # check if the event has enough qualified participants to fill each role
     print("\n  Role minimums")
