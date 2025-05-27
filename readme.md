@@ -18,7 +18,7 @@ Better documentation to come... if there is interest. A smarter algorithm may be
 
 - Run `autologic.exe --help` for more options (number of heats, number of worker stations, etc.).
 
-- See [sample.csv](./tests/sample.csv) for an example of the required input data structure. May change to accommodate different configurations. The `special` role is for VPs, worker coordinators, gate workers, etc. who should not be assigned to another role.
+- See [sample.csv](tests/sample_msr_export.csv) for an example of the required input data structure. May change to accommodate different configurations. The `special` role is for VPs, worker coordinators, gate workers, etc. who should not be assigned to another role.
 
 - The dictionary of roles and their minimum requirements per heat is semi-hardcoded in [utils.py](./source/utils.py)'s `roles_and_minima` definition.
   - The minimum number of instructors in a heat is equal to `number_of_novices` divided `novice_denominator`, or `MIN_INSTRUCTOR_PER_HEAT`, whichever is greater.
