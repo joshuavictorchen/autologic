@@ -38,7 +38,7 @@ jobs:
         run: |
           cp dist/autologic.exe .
           cp tests/sample_msr_export.csv .
-          cp tests/sample_member_abilities.csv .
+          cp tests/sample_member_attributes.csv .
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -47,7 +47,7 @@ jobs:
           path: |
             autologic.exe
             sample_msr_export.csv
-            sample_member_abilities.csv
+            sample_member_attributes.csv
 
   test:
     needs: build
@@ -84,7 +84,7 @@ jobs:
           files: |
             autologic.exe
             sample_msr_export.csv
-            sample_member_abilities.csv
+            sample_member_attributes.csv
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
