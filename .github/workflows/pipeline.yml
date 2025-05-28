@@ -37,7 +37,7 @@ jobs:
       - name: Flatten release files
         run: |
           cp dist/autologic.exe .
-          cp tests/sample_msr_export.csv .
+          cp tests/sample_axware_export.csv .
           cp tests/sample_member_attributes.csv .
 
       - name: Upload build artifacts
@@ -46,7 +46,7 @@ jobs:
           name: autologic
           path: |
             autologic.exe
-            sample_msr_export.csv
+            sample_axware_export.csv
             sample_member_attributes.csv
 
   test:
@@ -64,8 +64,8 @@ jobs:
 
       # very non-deterministic... just a sanity check here
       # TODO: use mocking in Pytest instead, and add unit tests
-      - name: Run autologic.exe on sample_msr_export.csv with sample_member_attributes.csv
-        run: .\autologic.exe --msr-export .\sample_msr_export.csv --member-attributes .\sample_member_attributes.csv
+      - name: Run autologic.exe on sample_axware_export.csv with sample_member_attributes.csv
+        run: .\autologic.exe --axware-export .\sample_axware_export.csv --member-attributes .\sample_member_attributes.csv
 
   release:
     needs: test
@@ -83,7 +83,7 @@ jobs:
         with:
           files: |
             autologic.exe
-            sample_msr_export.csv
+            sample_axware_export.csv
             sample_member_attributes.csv
 
         env:
