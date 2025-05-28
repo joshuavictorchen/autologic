@@ -42,7 +42,12 @@ class Event(Group):
             max_length = len(p.name) if len(p.name) > max_length else max_length
         return max_length
 
-    def load_participants(self, axware_export_tsv: str, member_attributes_csv: str, custom_assignments: dict[str, str]):
+    def load_participants(
+        self,
+        axware_export_tsv: str,
+        member_attributes_csv: str,
+        custom_assignments: dict[str, str],
+    ):
         """
         Loads participants from `axware_export_tsv`, then gets their possible work assignments from `member_attributes_csv`.
         Checks custom_assignments dictionary from `sample_event_config.yaml` for static, special assignments.
