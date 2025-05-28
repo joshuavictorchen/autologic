@@ -18,12 +18,13 @@ class Event(Group):
         self,
         axware_export_tsv: str,
         member_attributes_csv: str,
+        custom_assignments: dict[str, str],
         number_of_heats: int,
         number_of_stations: int,
     ):
         self.number_of_stations = number_of_stations
         self.participants, self.no_shows = self.load_participants(
-            axware_export_tsv, member_attributes_csv
+            axware_export_tsv, member_attributes_csv, custom_assignments
         )
         self.categories = self.load_categories()
         self.heats = self.load_heats(number_of_heats)
@@ -41,10 +42,15 @@ class Event(Group):
             max_length = len(p.name) if len(p.name) > max_length else max_length
         return max_length
 
-    def load_participants(self, axware_export_tsv: str, member_attributes_csv: str):
+    def load_participants(
+        self,
+        axware_export_tsv: str,
+        member_attributes_csv: str,
+        custom_assignments: dict[str, str],
+    ):
         """
         Loads participants from `axware_export_tsv`, then gets their possible work assignments from `member_attributes_csv`.
-
+        Checks custom_assignments dictionary from `sample_event_config.yaml` for static, special assignments.
         TODO: currently requires the CSVs to match the samples exactly, with case sensitivity; loosen these shackles.
         TODO: Also, unjumble this function. Right now it just gets things to work with the sample files on hand.
 
@@ -72,6 +78,7 @@ class Event(Group):
                     axware_row["Member #"] if axware_row["Member #"] else this_fullname
                 )
                 member_attributes = member_attributes_dict.get(axware_row["Member #"])
+                special_assignment = custom_assignments.get(axware_row["Member #"])
 
                 # scrappy implementation to pivot toward using axware export for now
                 is_novice = False
@@ -94,6 +101,7 @@ class Event(Group):
                     category_string=category_string,
                     number=axware_row["Number"],
                     novice=is_novice,
+                    special_assignment=special_assignment,
                     **{
                         role: bool(
                             member_attributes.get(role) if member_attributes else False

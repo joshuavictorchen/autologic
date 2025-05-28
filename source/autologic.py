@@ -110,6 +110,7 @@ def main(
     event = Event(
         axware_export_tsv,
         member_attributes_csv,
+        custom_assignments,
         number_of_heats,
         number_of_stations,
     )
@@ -165,8 +166,9 @@ def main(
         print(f"  Novice count must be {mean_novice_count} +/- {max_novice_delta}")
 
         # clear assignments from the previous iteration
+        # TODO: make a p.clear_assignment() function that handles this and other logic trees
         for p in event.participants:
-            p.assignment = None
+            p.assignment = p.special_assignment if p.special_assignment else None
 
         # check if heat constraints are satisfied (size, role fulfillments)
         for h in event.heats.values():
@@ -221,17 +223,30 @@ def main(
                 # some participants are qualified for multiple roles, but can only fulfill one for their heat
                 # try to assign roles now
                 # start with roles that have the smallest delta between qualified participants and minimum requirements
+                # TODO: this is another thing that really needs to be split out
                 print()
                 for role in utils.sort_dict_by_value(role_extras):
                     if skip_iteration:
                         break
-                    for _ in range(
-                        utils.roles_and_minima(
-                            number_of_stations=number_of_stations,
-                            number_of_novices=novice_count,
-                            novice_denominator=novice_denominator,
-                        )[role]
-                    ):
+
+                    # calculate how many slots need to be filled for this role, accounting for custom pre-assignments
+                    pre_assigned_participants = h.get_participants_by_attribute(
+                        attribute="assignment", value=role
+                    )
+                    for p in pre_assigned_participants:
+                        p.set_assignment(
+                            role
+                        )  # redundant but is helpful for console output
+                    pre_assigned_count = len(pre_assigned_participants)
+                    baseline_required_count = utils.roles_and_minima(
+                        number_of_stations=number_of_stations,
+                        number_of_novices=novice_count,
+                        novice_denominator=novice_denominator,
+                    )[role]
+                    actual_required_count = baseline_required_count - pre_assigned_count
+
+                    # fill the actual required slots for this role
+                    for _ in range(actual_required_count):
                         available = h.get_available(role)
                         if not available:
                             rules_satisfied = False
@@ -253,7 +268,7 @@ def main(
 
     print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
 
-    # print smmary statements and export to csv
+    # print summary statements and export to csv
     # TODO: these should be their own functions (like many items above)
     if event.no_shows:
         print(
