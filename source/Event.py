@@ -63,8 +63,11 @@ class Event(Group):
             reader = csv.DictReader(file, delimiter="\t")
             for axware_row in reader:
 
-                this_id = axware_row["Member #"]
                 this_fullname = f"{axware_row['First Name']} {axware_row['Last Name']}"
+                # use full name as the ID instead of member number if no member number found
+                this_id = (
+                    axware_row["Member #"] if axware_row["Member #"] else this_fullname
+                )
                 member_attributes = member_attributes_dict.get(axware_row["Member #"])
 
                 # scrappy implementation to pivot toward using axware export for now

@@ -84,7 +84,7 @@ Charlotte	Cooper	SAMPLE-1336	XA	2007 Nissan 350z	18	Yes
 Benjamin	Gonzalez	SAMPLE-407	PAST	2016 Mazda MX-5 Miata	21	Yes
 Ella	Bryant	SAMPLE-073	DST	2002 BMW 325ci	12	Yes
 Daniel	Ward	SAMPLE-1492	NOVES	1993 Mazda MIATA	81	Yes
-Leo	Scott	SAMPLE-979	CST	2003 Mazda Miata	24	Yes
+Leo	Scott		CST	2003 Mazda Miata	24	Yes
 Samuel	Allen	SAMPLE-931	GST	2015 Volkswagen GTI	21	Yes
 Jackson	Herrera	SAMPLE-032	DS	2013 Subaru brz	117	Yes
 Isabella	Ortiz	SAMPLE-1330	FP	2010 Acura RL	773	Yes
@@ -123,5 +123,5 @@ Jack	Long	SAMPLE-1529	NOVCAM-C	2008 Ford Mustang	77	Yes
 Emily	Richardson	SAMPLE-1496	NOVXB	2002 Mazda Miata MX-5	30	Yes
 Grace	Ford	SAMPLE-027	SSC	2016 Scion FR-S	8	Yes
 Isabella	Simmons	SAMPLE-1567	FSP	1991 BMW E30 318is	6	No
-Aria	Parker	1062	DST	2013 BMW 128	7	No
+Aria	Parker		DST	2013 BMW 128	7	No
 Victoria	Castillo	SAMPLE-1515	NOVXA	2010 Volkswagen jetta	17	No
