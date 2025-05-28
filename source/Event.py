@@ -82,8 +82,10 @@ class Event(Group):
                 else:
                     category_string = axware_row["Class"]
 
+                no_show = True if axware_row["Checkin"].upper() != "YES" else False
+
                 participant = Participant(
-                    event=self,
+                    event=self if not no_show else None,
                     id=this_id,
                     name=this_fullname,
                     category_string=category_string,
@@ -98,7 +100,11 @@ class Event(Group):
                         )
                     },
                 )
-                participants.append(participant)
+
+                if no_show:
+                    no_shows.append(participant)
+                else:
+                    participants.append(participant)
 
         if no_shows:
             print(
