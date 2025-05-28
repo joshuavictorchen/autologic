@@ -41,6 +41,10 @@ class Config(BaseModel):
     number_of_stations: int = Field(
         5, description="Number of worker stations for the course."
     )
+    custom_assignments: list[str] = Field(
+        default_factory=list,
+        description="A dictionary of member IDs to their fixed role assignments.",
+    )
     heat_size_parity: int = Field(
         25, description="Smaller values enforce tighter heat size balance."
     )
@@ -94,6 +98,7 @@ def main(
     axware_export_tsv,
     member_attributes_csv,
     number_of_heats,
+    custom_assignments,
     number_of_stations,
     heat_size_parity,
     novice_size_parity,

@@ -5,6 +5,13 @@ member_attributes_csv: ./tests/sample_member_attributes.csv
 number_of_heats: 3
 number_of_stations: 5
 
+# A dictionary of member IDs to their fixed role assignments.
+custom_assignments:
+  SAMPLE-499: special # i.e. a gate worker
+  SAMPLE-797: special # i.e. a tech worker
+  SAMPLE-105: instructor # i.e. a novice coordinator
+  SAMPLE-549: special # i.e. someone who made an automated worker assignment program (kidding)
+
 # Smaller values enforce tighter heat size balance.
 heat_size_parity: 25
 
