@@ -99,21 +99,3 @@ def roles_and_minima(number_of_stations, number_of_novices=1, novice_denominator
         "start": MIN_START_PER_HEAT,
         "captain": number_of_stations,
     }
-
-
-def get_formatted_member_number(member_number_string):
-    """
-    This returns only the digits of `member_number_string`.
-
-    This is because there multiple member number format may be used
-    within the same dataset, such as:
-
-        0000, CLUB-000, LT-0000
-
-    Args:
-        member_number_string (string): Club member number.
-
-    Returns:
-        int: Formatted member number.
-    """
-    return re.sub("[^0-9]", "", member_number_string)
