@@ -41,8 +41,8 @@ class Config(BaseModel):
     number_of_stations: int = Field(
         5, description="Number of worker stations for the course."
     )
-    custom_assignments: list[str] = Field(
-        default_factory=list,
+    custom_assignments: dict[str, str] = Field(
+        default_factory=dict,
         description="A dictionary of member IDs to their fixed role assignments.",
     )
     heat_size_parity: int = Field(
