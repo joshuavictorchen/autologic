@@ -50,8 +50,10 @@ class Event(Group):
     ):
         """
         Loads participants from `axware_export_tsv`, then gets their possible work assignments from `member_attributes_csv`.
+
         Checks custom_assignments dictionary from `sample_event_config.yaml` for static, special assignments.
-        TODO: currently requires the CSVs to match the samples exactly, with case sensitivity; loosen these shackles.
+
+        TODO: Currently requires the CSVs to match the samples exactly, with case sensitivity; loosen these shackles.
         TODO: Also, unjumble this function. Right now it just gets things to work with the sample files on hand.
 
         Returns:
