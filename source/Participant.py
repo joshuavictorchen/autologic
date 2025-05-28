@@ -13,6 +13,7 @@ class Participant:
         name (str): Name of the participant.
         category_string (str): Key to the participant's category.
         novice (bool): Whether the participant is a novice.
+        special_assignment (str or None): Participant's special assignment if they have one, this will never be reassigned.
         assignment (str or None): Currently assigned role.
         Other attributes (like 'instructor', 'timing', etc.) are added dynamically.
     """
@@ -24,6 +25,7 @@ class Participant:
         name: str,
         category_string: str,
         novice: bool,
+        special_assignment: str | None,
         **kwargs,
     ):
         self.event = event
@@ -31,12 +33,13 @@ class Participant:
         self.name = name
         self.category_string = category_string
         self.novice = novice
+        self.special_assignment = special_assignment
 
         # dynamically assign additional role flags (e.g., instructor=True)
         [setattr(self, key, value) for key, value in kwargs.items()]
 
-        # if participant is marked special, assign them immediately
-        self.assignment = "special" if kwargs.get("special") else None
+        # if participant has a special assignment, assign them immediately
+        self.assignment = special_assignment if special_assignment else None
 
     def __repr__(self):
         return f"{self.name}"
@@ -93,4 +96,4 @@ class Participant:
                 if verbose
                 else None
             )
-            self.assignment = assignment
+            self.assignment = self.special_assignment if self.special_assignment else assignment

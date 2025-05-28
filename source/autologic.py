@@ -110,6 +110,7 @@ def main(
     event = Event(
         axware_export_tsv,
         member_attributes_csv,
+        custom_assignments,
         number_of_heats,
         number_of_stations,
     )
@@ -253,7 +254,7 @@ def main(
 
     print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
 
-    # print smmary statements and export to csv
+    # print summary statements and export to csv
     # TODO: these should be their own functions (like many items above)
     if event.no_shows:
         print(
