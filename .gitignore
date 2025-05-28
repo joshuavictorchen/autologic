@@ -187,5 +187,5 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-tests/private*
+*private*
 *autologic-export*
