@@ -12,7 +12,7 @@ Better documentation to come... if there is interest. A smarter algorithm may be
 
 1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/).
 
-2. Open a terminal window and execute `.\path\to\autologic.exe --csv .\path\to\file.csv` to generate heat and worker assignments for a set of default parameters.
+2. Open a terminal window and execute `.\path\to\autologic.exe --axware-export .\path\to\file.tsv --member-attributes .\path\to\file.csv` to generate heat and worker assignments for a set of default parameters.
 
 ### Notes
 
