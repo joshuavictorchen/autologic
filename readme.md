@@ -57,48 +57,92 @@ A CSV export function may be implemented later. For now, it's just this:
 
   ==================================================
 
-  [Iteration 1]
+  [Iteration 20]
 
   Heat size must be 41 +/- 5
   Novice count must be 14 +/- 5
 
-  Heat 0 (41 total, 13 novices)
+  Heat 0 (37 total, 12 novices)
   -----------------------------
 
-    Car classes: [CAM-C, CAM-T, FS, EST, BS, EP, BST, SST, XA, CSM]
+    Car classes: [EVX, CAM-T, DSP, EP, GST, AS, CST, HS, XB, CSM]
 
-    6 of 4 instructors required
+    7 of 4 instructors required
     8 of 2 timings required
     7 of 2 grids required
     5 of 1 starts required
-    9 of 5 captains required
+    6 of 5 captains required
 
-    Johnson, Noah       assigned to INSTRUCTOR (special assignment)
-    Cruz, Layla         assigned to INSTRUCTOR
+    Taylor, Henry       assigned to SPECIAL
+    Anderson, Lucas     assigned to CAPTAIN
+    Davis, Sophia       assigned to CAPTAIN
+    Jordan, Charlotte   assigned to CAPTAIN
+    Edwards, Eleanor    assigned to CAPTAIN
+    Hall, Joseph        assigned to CAPTAIN
+    Johnson, Noah       assigned to INSTRUCTOR (custom assignment)
     Turner, Elias       assigned to INSTRUCTOR
     Patterson, Benjamin assigned to INSTRUCTOR
+    Evans, Nathan       assigned to INSTRUCTOR
     Lewis, Aiden        assigned to START
-    Davis, Sophia       assigned to CAPTAIN
-    Williams, Emma      assigned to CAPTAIN
+    Hayes, Matthew      assigned to GRID
+    Gray, Avery         assigned to GRID
+    Allen, Samuel       assigned to TIMING
+    Ellis, Aiden        assigned to TIMING
+    Jones, Ava          assigned to WORKER-0
+    Foster, Theodore    assigned to WORKER-1
+    Hernandez, James    assigned to WORKER-2
+    Wright, Victoria    assigned to WORKER-3
+    Coleman, Hannah     assigned to WORKER-4
+    Romero, James       assigned to WORKER-0
+    Mendoza, David      assigned to WORKER-1
+    Wilson, Amelia      assigned to WORKER-2
+    Hughes, Samuel      assigned to WORKER-3
+    Barnes, Oliver      assigned to WORKER-4
+    Moreno, Abigail     assigned to WORKER-0
+    Scott, Leo          assigned to WORKER-1
+    Chavez, Jackson     assigned to WORKER-2
+    Vasquez, William    assigned to WORKER-3
+    Chavez, Jackson     assigned to WORKER-4
+    Cook, Elijah        assigned to WORKER-0
+    Aguilar, Joseph     assigned to WORKER-1
+    Coleman, Hannah     assigned to WORKER-2
+    West, Daniel        assigned to WORKER-3
+    Cole, Emily         assigned to WORKER-4
+    Richardson, Emily   assigned to WORKER-0
+    Moore, Alexander    assigned to WORKER-1
+
+  Heat 1 (40 total, 10 novices)
+  -----------------------------
+
+    Car classes: [DS, GS, BS, SSC, AST, SMF, DP, SM, XA, ESP]
+
+    3 of 3 instructors required
+    8 of 2 timings required
+    12 of 2 grids required
+    6 of 1 starts required
+    8 of 5 captains required
+
+    Thomas, Mia         assigned to SPECIAL
+    Hamilton, Lucas     assigned to INSTRUCTOR
+    Martin, Abigail     assigned to INSTRUCTOR
+    Wallace, Michael    assigned to INSTRUCTOR
+    Robinson, Ella      assigned to CAPTAIN
+    Myers, Penelope     assigned to CAPTAIN
+    Graham, Mia         assigned to CAPTAIN
     Hughes, Samuel      assigned to CAPTAIN
-    Alvarez, Grace      assigned to CAPTAIN
-    Rodriguez, Sofia    assigned to CAPTAIN
-    Howard, Henry       assigned to GRID
+    Young, Luna         assigned to CAPTAIN
+    Rogers, Sophia      assigned to START
+    Nelson, Lily        assigned to TIMING
+    Howard, Henry       assigned to TIMING
+    Reyes, Hannah       assigned to GRID
     Ramos, Evelyn       assigned to GRID
-    Carter, Theodore    assigned to TIMING
-    Green, Chloe        assigned to TIMING
-    Bailey, Amelia      assigned to WORKER-0
-    Jenkins, Elias      assigned to WORKER-1
-    Morris, Mia         assigned to WORKER-2
-    Long, Jack          assigned to WORKER-3
-    Jones, Ava          assigned to WORKER-4
     Foster, Theodore    assigned to WORKER-0
-    Hernandez, James    assigned to WORKER-1
-    Ramos, Evelyn       assigned to WORKER-2
-    Garcia, Liam        assigned to WORKER-3
-    Martinez, Matthew   assigned to WORKER-4
-    Fisher, Sophia      assigned to WORKER-0
-    Miller, Elijah      assigned to WORKER-1
+    Peterson, Benjamin  assigned to WORKER-1
+    Watson, Matthew     assigned to WORKER-2
+    Herrera, Jackson    assigned to WORKER-3
+    Murphy, Oliver      assigned to WORKER-4
+    King, Grace         assigned to WORKER-0
+    Jimenez, Zoey       assigned to WORKER-1
     Ruiz, Joseph        assigned to WORKER-2
     Brooks, Ella        assigned to WORKER-3
     Martinez, Isabella  assigned to WORKER-4
@@ -106,117 +150,76 @@ A CSV export function may be implemented later. For now, it's just this:
     Powell, Nathan      assigned to WORKER-1
     Castillo, Victoria  assigned to WORKER-2
     Miller, Elijah      assigned to WORKER-3
-    Cox, Abigail        assigned to WORKER-4
-    Smith, Olivia       assigned to WORKER-0
-    Garcia, Emily       assigned to WORKER-1
-    Tran, Avery         assigned to WORKER-2
+    Ford, Grace         assigned to WORKER-4
+    Thompson, Daniel    assigned to WORKER-0
+    Gonzalez, Benjamin  assigned to WORKER-1
+    Lopez, Charlotte    assigned to WORKER-2
+    Baker, Jack         assigned to WORKER-3
+    Murray, Luna        assigned to WORKER-4
+    Adams, Penelope     assigned to WORKER-0
+    Rodriguez, William  assigned to WORKER-1
+    Stewart, Isaac      assigned to WORKER-2
     Cooper, Charlotte   assigned to WORKER-3
     Harris, Michael     assigned to WORKER-4
-    Moore, Alexander    assigned to WORKER-0
+    Henderson, Mia      assigned to WORKER-0
 
-  Heat 1 (45 total, 13 novices)
+  Heat 2 (46 total, 19 novices)
   -----------------------------
 
-    Car classes: [DS, DSP, GS, GST, HS, AST, DST, XB, DP, SM]
+    Car classes: [CAM-C, CS, ES, FS, EST, BST, DST, SST, FP]
 
-    4 of 4 instructors required
-    13 of 2 timings required
-    11 of 2 grids required
-    10 of 1 starts required
-    8 of 5 captains required
+    6 of 6 instructors required
+    10 of 2 timings required
+    12 of 2 grids required
+    13 of 1 starts required
+    12 of 5 captains required
 
-    Hamilton, Lucas     assigned to INSTRUCTOR
-    Martin, Abigail     assigned to INSTRUCTOR
-    Phillips, Zoey      assigned to INSTRUCTOR
-    Alexander, Amelia   assigned to INSTRUCTOR
-    Robinson, Ella      assigned to CAPTAIN
-    Myers, Penelope     assigned to CAPTAIN
-    Graham, Mia         assigned to CAPTAIN
-    Edwards, Eleanor    assigned to CAPTAIN
-    Young, Luna         assigned to CAPTAIN
-    Reyes, Hannah       assigned to GRID
-    Rogers, Sophia      assigned to GRID
-    Wilson, Amelia      assigned to START
-    Nelson, Lily        assigned to TIMING
-    Allen, Samuel       assigned to TIMING
-    Foster, Theodore    assigned to WORKER-0
-    Peterson, Benjamin  assigned to WORKER-1
-    Watson, Matthew     assigned to WORKER-2
-    Herrera, Jackson    assigned to WORKER-3
-    Wright, Victoria    assigned to WORKER-4
-    Murphy, Oliver      assigned to WORKER-0
-    King, Grace         assigned to WORKER-1
-    Jimenez, Zoey       assigned to WORKER-2
-    Coleman, Hannah     assigned to WORKER-3
-    Romero, James       assigned to WORKER-4
-    Mendoza, David      assigned to WORKER-0
-    Vasquez, William    assigned to WORKER-1
-    Gray, Avery         assigned to WORKER-2
-    Chavez, Jackson     assigned to WORKER-3
-    Cook, Elijah        assigned to WORKER-4
-    Aguilar, Joseph     assigned to WORKER-0
-    Coleman, Hannah     assigned to WORKER-1
-    Thompson, Daniel    assigned to WORKER-2
-    Gonzalez, Benjamin  assigned to WORKER-3
-    Reed, Lucas         assigned to WORKER-4
-    Simmons, Isabella   assigned to WORKER-0
-    Bryant, Ella        assigned to WORKER-1
-    Medina, David       assigned to WORKER-2
-    Hall, Joseph        assigned to WORKER-3
-    West, Daniel        assigned to WORKER-4
-    Cole, Emily         assigned to WORKER-0
-    Ellis, Aiden        assigned to WORKER-1
-    Richardson, Emily   assigned to WORKER-2
-    Adams, Penelope     assigned to WORKER-3
-    Rodriguez, William  assigned to WORKER-4
-    Stewart, Isaac      assigned to WORKER-0
-
-  Heat 2 (37 total, 15 novices)
-  -----------------------------
-
-    Car classes: [EVX, CS, ES, AS, CST, SSC, SMF, FP, ESP]
-
-    6 of 5 instructors required
-    5 of 2 timings required
-    13 of 2 grids required
-    9 of 1 starts required
-    9 of 5 captains required
-
+    Clark, Jackson      assigned to SPECIAL
     Brown, Oliver       assigned to INSTRUCTOR
     White, Evelyn       assigned to INSTRUCTOR
-    Evans, Nathan       assigned to INSTRUCTOR
-    Moreno, Abigail     assigned to INSTRUCTOR
-    Wallace, Michael    assigned to INSTRUCTOR
-    Walker, David       assigned to TIMING
-    Gibson, Sofia       assigned to TIMING
-    Anderson, Lucas     assigned to CAPTAIN
+    Cruz, Layla         assigned to INSTRUCTOR
+    Smith, Olivia       assigned to INSTRUCTOR
+    Phillips, Zoey      assigned to INSTRUCTOR
+    Alexander, Amelia   assigned to INSTRUCTOR
     Reynolds, Henry     assigned to CAPTAIN
-    Jordan, Charlotte   assigned to CAPTAIN
-    Lopez, Charlotte    assigned to CAPTAIN
-    Baker, Jack         assigned to CAPTAIN
-    Griffin, Evelyn     assigned to START
+    Walker, David       assigned to CAPTAIN
+    Gibson, Sofia       assigned to CAPTAIN
+    Williams, Emma      assigned to CAPTAIN
+    Alvarez, Grace      assigned to CAPTAIN
+    Carter, Theodore    assigned to TIMING
+    Bryant, Ella        assigned to TIMING
     Stewart, Isaac      assigned to GRID
     Gray, Avery         assigned to GRID
-    Sullivan, Eleanor   assigned to WORKER-0
-    Russell, Layla      assigned to WORKER-1
-    Sullivan, Eleanor   assigned to WORKER-2
-    Patel, Chloe        assigned to WORKER-3
-    Morgan, James       assigned to WORKER-4
-    Perry, Aria         assigned to WORKER-0
-    Jackson, Harper     assigned to WORKER-1
-    Gutierrez, William  assigned to WORKER-2
-    Kelly, Mia          assigned to WORKER-3
-    Ward, Daniel        assigned to WORKER-4
-    Stevens, Samuel     assigned to WORKER-0
-    Hughes, Samuel      assigned to WORKER-1
-    Barnes, Oliver      assigned to WORKER-2
-    Hayes, Matthew      assigned to WORKER-3
-    Scott, Leo          assigned to WORKER-4
-    Chavez, Jackson     assigned to WORKER-0
-    Ford, Grace         assigned to WORKER-1
-    Murray, Luna        assigned to WORKER-2
+    Griffin, Evelyn     assigned to START
+    Bailey, Amelia      assigned to WORKER-0
+    Jenkins, Elias      assigned to WORKER-1
+    Morris, Mia         assigned to WORKER-2
+    Long, Jack          assigned to WORKER-3
+    Sullivan, Eleanor   assigned to WORKER-4
+    Russell, Layla      assigned to WORKER-0
+    Sullivan, Eleanor   assigned to WORKER-1
+    Patel, Chloe        assigned to WORKER-2
+    Morgan, James       assigned to WORKER-3
+    Perry, Aria         assigned to WORKER-4
+    Jackson, Harper     assigned to WORKER-0
+    Gutierrez, William  assigned to WORKER-1
+    Kelly, Mia          assigned to WORKER-2
+    Ward, Daniel        assigned to WORKER-3
+    Stevens, Samuel     assigned to WORKER-4
+    Ramos, Evelyn       assigned to WORKER-0
+    Garcia, Liam        assigned to WORKER-1
+    Martinez, Matthew   assigned to WORKER-2
+    Fisher, Sophia      assigned to WORKER-3
+    Miller, Elijah      assigned to WORKER-4
+    Cox, Abigail        assigned to WORKER-0
+    Garcia, Emily       assigned to WORKER-1
+    Rodriguez, Sofia    assigned to WORKER-2
+    Tran, Avery         assigned to WORKER-3
+    Reed, Lucas         assigned to WORKER-4
+    Simmons, Isabella   assigned to WORKER-0
+    Medina, David       assigned to WORKER-1
+    Green, Chloe        assigned to WORKER-2
     Ortiz, Isabella     assigned to WORKER-3
-    Henderson, Mia      assigned to WORKER-4
 
   ---
 

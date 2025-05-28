@@ -41,7 +41,7 @@ class Config(BaseModel):
     number_of_stations: int = Field(
         5, description="Number of worker stations for the course."
     )
-    custom_assignments: dict[str, str] = Field(
+    custom_assignments: dict[str | int, str] = Field(
         default_factory=dict,
         description="A dictionary of member IDs to their fixed role assignments.",
     )
@@ -108,11 +108,13 @@ def main(
     """Parse event participants and generate heat assignments with role coverage and balanced sizes."""
 
     event = Event(
-        axware_export_tsv,
-        member_attributes_csv,
-        custom_assignments,
-        number_of_heats,
-        number_of_stations,
+        axware_export_tsv=axware_export_tsv,
+        member_attributes_csv=member_attributes_csv,
+        custom_assignments={
+            str(key): value for key, value in custom_assignments.items()
+        },  # ensure all keys are str
+        number_of_heats=number_of_heats,
+        number_of_stations=number_of_stations,
     )
 
     # check if the event has enough qualified participants to fill each role
@@ -225,6 +227,14 @@ def main(
                 # start with roles that have the smallest delta between qualified participants and minimum requirements
                 # TODO: this is another thing that really needs to be split out
                 print()
+
+                # assign special assignments - redundant but is helpful for console output
+                # TODO: remove this sloppiness
+                for p in h.get_participants_by_attribute(
+                    attribute="assignment", value="special"
+                ):
+                    p.set_assignment("special")
+
                 for role in utils.sort_dict_by_value(role_extras):
                     if skip_iteration:
                         break

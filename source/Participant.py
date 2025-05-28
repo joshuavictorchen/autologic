@@ -85,13 +85,14 @@ class Participant:
 
         if verbose:
             assignment_string = f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
+            special_string = "" if assignment == "special" else "(custom assignment)"
 
         # special assignments take precedence no matter what
         # TODO: eliminate redundancy in this function
         if self.special_assignment:
             if assignment == self.special_assignment:
                 self.assignment = assignment
-                print(f"{assignment_string} (special assignment)") if verbose else None
+                print(f"{assignment_string} {special_string}") if verbose else None
             else:
                 raise ValueError(
                     f"{self} was attempted to be reassigned from their special assignment of {self.special_assignment.upper()}"
