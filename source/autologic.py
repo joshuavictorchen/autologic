@@ -21,18 +21,18 @@ def randomize_heats(event, number_of_heats):
 
 @click.command(context_settings={"max_content_width": 120})
 @click.option(
-    "--msr_export",
+    "--msr-export",
     "msr_export_filename",
     required=True,
     type=click.Path(exists=True, dir_okay=False, readable=True),
-    help="Path to input CSV file.",
+    help="Path to input MSR export CSV file.",
 )
 @click.option(
-    "--member_attributes",
+    "--member-attributes",
     "member_attributes_filename",
     required=True,
     type=click.Path(exists=True, dir_okay=False, readable=True),
-    help="Path to member CSV file with work ability data.",
+    help="Path to member attribute CSV file.",
 )
 @click.option(
     "--heats",
@@ -92,7 +92,12 @@ def main(
 
     # TODO: refactor for sanity and flexibility
 
-    event = Event(msr_export_filename, member_attributes_filename, number_of_heats, number_of_stations)
+    event = Event(
+        msr_export_filename,
+        member_attributes_filename,
+        number_of_heats,
+        number_of_stations,
+    )
 
     # check if the event has enough qualified participants to fill each role
     print("\n  Role minimums")
