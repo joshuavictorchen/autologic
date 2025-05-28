@@ -22,7 +22,7 @@ class Event(Group):
         number_of_stations: int,
     ):
         self.number_of_stations = number_of_stations
-        self.participants = self.load_participants(
+        self.participants, self.no_shows = self.load_participants(
             axware_export_tsv, member_attributes_csv
         )
         self.categories = self.load_categories()
@@ -49,7 +49,8 @@ class Event(Group):
         TODO: Also, unjumble this function. Right now it just gets things to work with the sample files on hand.
 
         Returns:
-            list[Participant]: All parsed participants.
+            list[Participant]: All participants that have checked into the event.
+            list[Participant]: All participants that have NOT checked into the event.
         """
         member_attributes_dict = {}
         with open(member_attributes_csv, newline="", encoding="utf-8-sig") as file:
@@ -63,6 +64,8 @@ class Event(Group):
             reader = csv.DictReader(file, delimiter="\t")
             for axware_row in reader:
 
+                this_firstname = f"{axware_row['First Name']}"
+                this_lastname = f"{axware_row['Last Name']}"
                 this_fullname = f"{axware_row['First Name']} {axware_row['Last Name']}"
                 # use full name as the ID instead of member number if no member number found
                 this_id = (
@@ -87,7 +90,7 @@ class Event(Group):
                 participant = Participant(
                     event=self if not no_show else None,
                     id=this_id,
-                    name=this_fullname,
+                    name=f"{this_lastname}, {this_firstname}",
                     category_string=category_string,
                     number=axware_row["Number"],
                     novice=is_novice,
@@ -106,13 +109,7 @@ class Event(Group):
                 else:
                     participants.append(participant)
 
-        if no_shows:
-            print(
-                f"\n  The following individuals have not checked in and will be omitted:\n"
-            )
-            [print(f"  - {i}") for i in no_shows]
-
-        return participants
+        return participants, no_shows
 
     def load_categories(self):
         """

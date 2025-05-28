@@ -1,4 +1,5 @@
 import click
+import csv
 import math
 import random
 
@@ -91,6 +92,8 @@ def main(
     """Parse event participants and generate heat assignments with role coverage and balanced sizes."""
 
     # TODO: refactor for sanity and flexibility
+    #       this should be split out into separate functions and perhaps even modules
+    #       left as-is for quick prototype development ahead of a pilot event
 
     event = Event(
         axware_export_tsv,
@@ -236,7 +239,40 @@ def main(
         print(f"\n\n  Could not create heats in {max_iterations} iterations.")
         exit(1)
 
-    print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<\n")
+    print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
+
+    # print smmary statements and export to csv
+    # TODO: these should be their own functions (like many items above)
+    if event.no_shows:
+        print(
+            f"\n  The following individuals have not checked in and are therefore excluded:\n"
+        )
+        [print(f"  - {i}") for i in event.no_shows]
+
+    rows = []
+    for h in event.heats.values():
+        for p in sorted(h.participants, key=lambda p: p.name):
+            rows.append(
+                {
+                    "heat": h.number,
+                    "name": p.name,
+                    "class": p.category_string,
+                    "number": p.number,
+                    "assignment": p.assignment,
+                    "checked_in": "",
+                }
+            )
+
+    with open("autologic-export.csv", "w", newline="") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=["heat", "name", "class", "number", "assignment", "checked_in"],
+        )
+        writer.writeheader()
+        writer.writerows(rows)
+        print(f"\n  Worker assignment sheet saved to autologic-export.csv")
+
+    print()
 
 
 if __name__ == "__main__":
