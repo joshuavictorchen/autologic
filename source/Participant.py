@@ -33,13 +33,18 @@ class Participant:
         self.name = name
         self.category_string = category_string
         self.novice = novice
+        self.assignment = None
         self.special_assignment = special_assignment
 
         # dynamically assign additional role flags (e.g., instructor=True)
         [setattr(self, key, value) for key, value in kwargs.items()]
 
         # if participant has a special assignment, assign them immediately
-        self.assignment = special_assignment if special_assignment else None
+        (
+            self.set_assignment(special_assignment, verbose=False)
+            if special_assignment
+            else None
+        )
 
     def __repr__(self):
         return f"{self.name}"
@@ -77,19 +82,32 @@ class Participant:
         Args:
             assignment (str): The role to assign.
         """
+
+        if verbose:
+            assignment_string = f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
+
+        # special assignments take precedence no matter what
+        # TODO: eliminate redundancy in this function
+        if self.special_assignment:
+            if assignment == self.special_assignment:
+                self.assignment = assignment
+                print(f"{assignment_string} (special assignment)") if verbose else None
+            else:
+                raise ValueError(
+                    f"{self} was attempted to be reassigned from their special assignment of {self.special_assignment.upper()}"
+                )
+
         # reject unqualified assignments (everyone is qualified to be a worker)
-        if not getattr(self, assignment, False) and not assignment.lower().startswith(
+        elif not getattr(self, assignment, False) and not assignment.lower().startswith(
             WORKER_ASSIGNMENT
         ):
-            (
-                print(f"    {self} is not qualified for {assignment.upper()}")
-                if verbose
-                else None
+            raise ValueError(
+                f"    {self} was attemped to be assigned to {assignment.upper()}, but is not qualified"
             )
         else:
             (
                 print(
-                    f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
+                    assignment_string
                     # uncomment if interactive mode is implemented
                     # f" (previously: {self.assignment.upper() if self.assignment else None})"
                 )
