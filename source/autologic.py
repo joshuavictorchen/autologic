@@ -22,10 +22,10 @@ def randomize_heats(event, number_of_heats):
 @click.command(context_settings={"max_content_width": 120})
 @click.option(
     "--axware-export",
-    "axware_export_csv",
+    "axware_export_tsv",
     required=True,
     type=click.Path(exists=True, dir_okay=False, readable=True),
-    help="Path to AxWare export CSV file.",
+    help="Path to AxWare export TSV file.",
 )
 @click.option(
     "--member-attributes",
@@ -79,7 +79,7 @@ def randomize_heats(event, number_of_heats):
     help="Maximum number of tries before the program gives up.",
 )
 def main(
-    axware_export_csv,
+    axware_export_tsv,
     member_attributes_csv,
     number_of_heats,
     number_of_stations,
@@ -93,7 +93,7 @@ def main(
     # TODO: refactor for sanity and flexibility
 
     event = Event(
-        axware_export_csv,
+        axware_export_tsv,
         member_attributes_csv,
         number_of_heats,
         number_of_stations,

@@ -16,14 +16,14 @@ class Event(Group):
 
     def __init__(
         self,
-        axware_export_csv: str,
+        axware_export_tsv: str,
         member_attributes_csv: str,
         number_of_heats: int,
         number_of_stations: int,
     ):
         self.number_of_stations = number_of_stations
         self.participants = self.load_participants(
-            axware_export_csv, member_attributes_csv
+            axware_export_tsv, member_attributes_csv
         )
         self.categories = self.load_categories()
         self.heats = self.load_heats(number_of_heats)
@@ -41,9 +41,9 @@ class Event(Group):
             max_length = len(p.name) if len(p.name) > max_length else max_length
         return max_length
 
-    def load_participants(self, axware_export_csv: str, member_attributes_csv: str):
+    def load_participants(self, axware_export_tsv: str, member_attributes_csv: str):
         """
-        Loads participants from `axware_export_csv`, then gets their possible work assignments from `member_attributes_csv`.
+        Loads participants from `axware_export_tsv`, then gets their possible work assignments from `member_attributes_csv`.
 
         TODO: currently requires the CSVs to match the samples exactly, with case sensitivity; loosen these shackles.
         TODO: Also, unjumble this function. Right now it just gets things to work with the sample files on hand.
@@ -55,23 +55,17 @@ class Event(Group):
         with open(member_attributes_csv, newline="", encoding="utf-8-sig") as file:
             member_data = csv.DictReader(file)
             for member_row in member_data:
-                member_attributes_dict[member_row["name"]] = member_row
+                member_attributes_dict[member_row["id"]] = member_row
 
         participants = []
         no_shows = []
-        with open(axware_export_csv, newline="", encoding="utf-8-sig") as file:
+        with open(axware_export_tsv, newline="", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file, delimiter="\t")
             for axware_row in reader:
 
-                # use full name as "id" for now to account for non-members
+                this_id = axware_row["Member #"]
                 this_fullname = f"{axware_row['First Name']} {axware_row['Last Name']}"
-                member_attributes = member_attributes_dict.get(this_fullname)
-
-                # skip if not checked in
-                # TODO: save these to a file
-                if axware_row["Checkin"].upper() != "YES":
-                    no_shows.append(this_fullname)
-                    continue
+                member_attributes = member_attributes_dict.get(axware_row["Member #"])
 
                 # scrappy implementation to pivot toward using axware export for now
                 is_novice = False
@@ -87,7 +81,7 @@ class Event(Group):
 
                 participant = Participant(
                     event=self,
-                    id=this_fullname,
+                    id=this_id,
                     name=this_fullname,
                     category_string=category_string,
                     number=axware_row["Number"],
