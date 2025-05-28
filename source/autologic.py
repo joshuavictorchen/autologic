@@ -167,7 +167,7 @@ def main(
 
         # clear assignments from the previous iteration
         for p in event.participants:
-            p.assignment = None
+            p.assignment = p.special_assignment if p.special_assignment else None
 
         # check if heat constraints are satisfied (size, role fulfillments)
         for h in event.heats.values():

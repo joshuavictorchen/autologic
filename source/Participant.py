@@ -96,4 +96,4 @@ class Participant:
                 if verbose
                 else None
             )
-            self.assignment = self.special_assignment if self.special_assignment else assignment
+            self.assignment = assignment
