@@ -6,19 +6,6 @@ MIN_START_PER_HEAT = 1
 MIN_GRID_PER_HEAT = 2
 
 
-def parse_bool(value):
-    """
-    Safely converts a value to a boolean.
-
-    Args:
-        value (any): A truthy/falsy value (string, number, etc.).
-
-    Returns:
-        bool: True if the value is truthy, False otherwise.
-    """
-    return True if value else False
-
-
 def sort_dict_by_value(d: dict, ascending: bool = True) -> dict:
     """
     Sorts a dictionary by its values.

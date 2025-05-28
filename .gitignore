@@ -187,4 +187,4 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-tests/member_csv.csv
+tests/private*.csv
