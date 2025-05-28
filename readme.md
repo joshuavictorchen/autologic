@@ -4,7 +4,7 @@ Somewhat questionable Python program that takes an autocross event roster and ge
 
 It provides a rough framework that may be used to assign `Categories` (car classes) to `Heats`, and `Participants` to `Roles` (specialized work assignments).
 
-The current "algorithm" loads an `Event`, randomly assigns `Categories` to `Heats`, checks against acceptance criteria (can all `Roles` be filled within each `Heat`?), and keeps iterating until all criteria are met.
+The current "algorithm" loads an `Event`, randomly assigns `Categories` to `Heats`, checks against acceptance criteria (can all `Roles` be filled within each `Heat` / do all `Heats` contain a similar number of `Participants` / are Novices evenly distributed / etc.), and keeps iterating until all criteria are met.
 
 Better documentation to come... if there is interest. A smarter algorithm may be implemented later. Tests may be implemented later.
 
@@ -12,13 +12,13 @@ Better documentation to come... if there is interest. A smarter algorithm may be
 
 1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/).
 
-2. Open a terminal window and execute `.\path\to\autologic.exe --axware-export .\path\to\file.tsv --member-attributes .\path\to\file.csv` to generate heat and worker assignments for a set of default parameters.
+2. Open a terminal window and execute `.\path\to\autologic.exe --config .\path\to\config_file.yaml` to generate heat and worker assignments for a set of configured parameters.
 
 ### Notes
 
-- Run `autologic.exe --help` for more options (number of heats, number of worker stations, etc.).
+- See [sample_event_config.yaml](./tests/sample_event_config.yaml) for an example of a configuration file.
 
-- See [sample_axware_export.tsv](./tests/sample_axware_export.tsv) and [sample_member_attributes.csv](./tests/sample_member_attributes.csv) for examples of the required input data structures. May change to accommodate different configurations. The `special` role is for VPs, worker coordinators, tech inspectors, gate workers, etc. who should not be assigned to another role.
+- See [sample_axware_export.tsv](./tests/sample_axware_export.tsv) and [sample_member_attributes.csv](./tests/sample_member_attributes.csv) for examples of the expected input data structures. May change to accommodate different configurations.
 
 - The dictionary of roles and their minimum requirements per heat is semi-hardcoded in [utils.py](./source/utils.py)'s `roles_and_minima` definition.
   - The minimum number of instructors in a heat is equal to `number_of_novices` divided `novice_denominator`, or `MIN_INSTRUCTOR_PER_HEAT`, whichever is greater.
