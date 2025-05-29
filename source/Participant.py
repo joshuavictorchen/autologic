@@ -12,6 +12,7 @@ class Participant:
         id (int): Unique numeric identifier.
         name (str): Name of the participant.
         category_string (str): Key to the participant's category.
+        axware_category (str): Category as displayed in AXWare, i.e. NOVCST instead of just CST.
         novice (bool): Whether the participant is a novice.
         special_assignment (str or None): Participant's special assignment if they have one, this will never be reassigned.
         assignment (str or None): Currently assigned role.
@@ -24,6 +25,7 @@ class Participant:
         id: int,
         name: str,
         category_string: str,
+        axware_category: str,
         novice: bool,
         special_assignment: str | None,
         **kwargs,
@@ -32,6 +34,7 @@ class Participant:
         self.id = id
         self.name = name
         self.category_string = category_string
+        self.axware_category = axware_category
         self.novice = novice
         self.assignment = None
         self.special_assignment = special_assignment

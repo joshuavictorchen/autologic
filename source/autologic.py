@@ -305,7 +305,7 @@ def main(
                 {
                     "heat": h.number,
                     "name": p.name,
-                    "class": p.category_string,
+                    "class": p.axware_category,
                     "number": p.number,
                     "assignment": f"{p.assignment}{string_modifier}",
                     "checked_in": "",
