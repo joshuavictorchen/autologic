@@ -187,4 +187,5 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-tests/member_csv.csv
+*private*
+*autologic-export*

@@ -13,6 +13,7 @@ class Participant:
         name (str): Name of the participant.
         category_string (str): Key to the participant's category.
         novice (bool): Whether the participant is a novice.
+        special_assignment (str or None): Participant's special assignment if they have one, this will never be reassigned.
         assignment (str or None): Currently assigned role.
         Other attributes (like 'instructor', 'timing', etc.) are added dynamically.
     """
@@ -24,6 +25,7 @@ class Participant:
         name: str,
         category_string: str,
         novice: bool,
+        special_assignment: str | None,
         **kwargs,
     ):
         self.event = event
@@ -31,12 +33,18 @@ class Participant:
         self.name = name
         self.category_string = category_string
         self.novice = novice
+        self.assignment = None
+        self.special_assignment = special_assignment
 
         # dynamically assign additional role flags (e.g., instructor=True)
         [setattr(self, key, value) for key, value in kwargs.items()]
 
-        # if participant is marked special, assign them immediately
-        self.assignment = "special" if kwargs.get("special") else None
+        # if participant has a special assignment, assign them immediately
+        (
+            self.set_assignment(special_assignment, verbose=False)
+            if special_assignment
+            else None
+        )
 
     def __repr__(self):
         return f"{self.name}"
@@ -74,19 +82,33 @@ class Participant:
         Args:
             assignment (str): The role to assign.
         """
+
+        if verbose:
+            assignment_string = f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
+            special_string = "" if assignment == "special" else "(custom assignment)"
+
+        # special assignments take precedence no matter what
+        # TODO: eliminate redundancy in this function
+        if self.special_assignment:
+            if assignment == self.special_assignment:
+                self.assignment = assignment
+                print(f"{assignment_string} {special_string}") if verbose else None
+            else:
+                raise ValueError(
+                    f"{self} was attempted to be reassigned from their special assignment of {self.special_assignment.upper()}"
+                )
+
         # reject unqualified assignments (everyone is qualified to be a worker)
-        if not getattr(self, assignment, False) and not assignment.lower().startswith(
+        elif not getattr(self, assignment, False) and not assignment.lower().startswith(
             WORKER_ASSIGNMENT
         ):
-            (
-                print(f"    {self} is not qualified for {assignment.upper()}")
-                if verbose
-                else None
+            raise ValueError(
+                f"    {self} was attemped to be assigned to {assignment.upper()}, but is not qualified"
             )
         else:
             (
                 print(
-                    f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
+                    assignment_string
                     # uncomment if interactive mode is implemented
                     # f" (previously: {self.assignment.upper() if self.assignment else None})"
                 )

@@ -1,0 +1,23 @@
+
+# Self-explanatory.
+axware_export_tsv: ./tests/sample_axware_export.tsv
+member_attributes_csv: ./tests/sample_member_attributes.csv
+number_of_heats: 3
+number_of_stations: 5
+
+# A dictionary of member IDs to their fixed role assignments.
+# Values must be drawn from the columns in the `member_attributes` CSV, or marked as 'special'.
+custom_assignments:
+  SAMPLE-499: special # i.e. a gate worker - Mia Thomas
+  SAMPLE-797: special # i.e. a tech worker - Jackson Clark
+  SAMPLE-105: instructor # i.e. a novice coordinator - Noah Johnson
+  SAMPLE-549: special # i.e. someone who made an automated worker assignment program (kidding) - Henry Taylor
+
+# Smaller values enforce tighter heat size balance.
+heat_size_parity: 25
+
+# Smaller values enforce tighter novice balance across heats.
+novice_denominator: 3
+
+# Maximum number of attempts to be made by the program.
+max_iterations: 10000

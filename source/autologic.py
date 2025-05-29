@@ -1,9 +1,20 @@
 import click
+import csv
 import math
 import random
+import yaml
+
+from pathlib import Path
+from pydantic import BaseModel, Field, ValidationError
 
 import utils
 from Event import Event
+
+# =============================================================================
+# TODO: refactor for sanity and flexibility
+#       this should be split out into separate functions and perhaps even modules
+#       left as-is for quick prototype development ahead of a pilot event
+# =============================================================================
 
 
 def randomize_heats(event, number_of_heats):
@@ -19,69 +30,75 @@ def randomize_heats(event, number_of_heats):
         c.set_heat(i % number_of_heats)
 
 
+class Config(BaseModel):
+    axware_export_tsv: Path = Field(..., description="Path to AXWare export TSV file.")
+    member_attributes_csv: Path = Field(
+        ..., description="Path to member attribute CSV file."
+    )
+    number_of_heats: int = Field(
+        3, description="Number of heats to divide participants into."
+    )
+    number_of_stations: int = Field(
+        5, description="Number of worker stations for the course."
+    )
+    custom_assignments: dict[str | int, str] = Field(
+        default_factory=dict,
+        description="A dictionary of member IDs to their fixed role assignments.",
+    )
+    heat_size_parity: int = Field(
+        25, description="Smaller values enforce tighter heat size balance."
+    )
+    novice_size_parity: int = Field(
+        10, description="Smaller values enforce tighter novice balance across heats."
+    )
+    novice_denominator: int = Field(
+        3, description="Min instructors in heat = novices / denominator."
+    )
+    max_iterations: int = Field(
+        10000, description="Max number of attempts before giving up."
+    )
+
+    def validate_paths(self):
+        """Ensure all paths exist and are files."""
+        for path_attr in ["axware_export_tsv", "member_attributes_csv"]:
+            p = getattr(self, path_attr)
+            if not p.exists():
+                raise FileNotFoundError(f"{path_attr} does not exist: {p}")
+            if not p.is_file():
+                raise ValueError(f"{path_attr} is not a file: {p}")
+
+
+def load_config(ctx, param, value: Path) -> Config:
+    try:
+        with open(value, "r") as f:
+            data = yaml.safe_load(f)
+        config = Config(**data)
+        config.validate_paths()
+        return config
+    except (ValidationError, FileNotFoundError, ValueError) as e:
+        raise click.BadParameter(f"Invalid config: {e}")
+    except Exception as e:
+        raise click.BadParameter(f"Failed to load config: {e}")
+
+
 @click.command(context_settings={"max_content_width": 120})
 @click.option(
-    "--msr-export",
-    "msr_export_filename",
+    "--config",
+    type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
+    callback=load_config,
     required=True,
-    type=click.Path(exists=True, dir_okay=False, readable=True),
-    help="Path to input MSR export CSV file.",
+    help="Path to event configuration file.",
 )
-@click.option(
-    "--member-attributes",
-    "member_attributes_filename",
-    required=True,
-    type=click.Path(exists=True, dir_okay=False, readable=True),
-    help="Path to member attribute CSV file.",
-)
-@click.option(
-    "--heats",
-    "number_of_heats",
-    default=3,
-    show_default=True,
-    type=int,
-    help="Number of heats to divide participants into.",
-)
-@click.option(
-    "--stations",
-    "number_of_stations",
-    default=5,
-    show_default=True,
-    type=int,
-    help="Number of worker stations for the course.",
-)
-@click.option(
-    "--heat-size-parity",
-    default=25,
-    show_default=True,
-    type=int,
-    help="Smaller values enforce tighter heat size balance.",
-)
-@click.option(
-    "--novice-size-parity",
-    default=10,
-    show_default=True,
-    type=int,
-    help="Smaller values enforce tighter novice balance across heats.",
-)
-@click.option(
-    "--novice-denominator",
-    default=3,
-    show_default=True,
-    type=int,
-    help="The minimum number of instructors in a heat is equal to the number of novices in the heat divided by this value.",
-)
-@click.option(
-    "--max-iterations",
-    default=10000,
-    show_default=True,
-    type=int,
-    help="Maximum number of tries before the program gives up.",
-)
+def cli(config: Config):
+    # Unpack fields to local variables
+    main(**config.model_dump())
+
+
 def main(
-    msr_export_filename,
-    member_attributes_filename,
+    axware_export_tsv,
+    member_attributes_csv,
     number_of_heats,
+    custom_assignments,
     number_of_stations,
     heat_size_parity,
     novice_size_parity,
@@ -90,13 +107,14 @@ def main(
 ):
     """Parse event participants and generate heat assignments with role coverage and balanced sizes."""
 
-    # TODO: refactor for sanity and flexibility
-
     event = Event(
-        msr_export_filename,
-        member_attributes_filename,
-        number_of_heats,
-        number_of_stations,
+        axware_export_tsv=axware_export_tsv,
+        member_attributes_csv=member_attributes_csv,
+        custom_assignments={
+            str(key): value for key, value in custom_assignments.items()
+        },  # ensure all keys are str
+        number_of_heats=number_of_heats,
+        number_of_stations=number_of_stations,
     )
 
     # check if the event has enough qualified participants to fill each role
@@ -150,8 +168,9 @@ def main(
         print(f"  Novice count must be {mean_novice_count} +/- {max_novice_delta}")
 
         # clear assignments from the previous iteration
+        # TODO: make a p.clear_assignment() function that handles this and other logic trees
         for p in event.participants:
-            p.assignment = None
+            p.assignment = p.special_assignment if p.special_assignment else None
 
         # check if heat constraints are satisfied (size, role fulfillments)
         for h in event.heats.values():
@@ -206,17 +225,38 @@ def main(
                 # some participants are qualified for multiple roles, but can only fulfill one for their heat
                 # try to assign roles now
                 # start with roles that have the smallest delta between qualified participants and minimum requirements
+                # TODO: this is another thing that really needs to be split out
                 print()
+
+                # assign special assignments - redundant but is helpful for console output
+                # TODO: remove this sloppiness
+                for p in h.get_participants_by_attribute(
+                    attribute="assignment", value="special"
+                ):
+                    p.set_assignment("special")
+
                 for role in utils.sort_dict_by_value(role_extras):
                     if skip_iteration:
                         break
-                    for _ in range(
-                        utils.roles_and_minima(
-                            number_of_stations=number_of_stations,
-                            number_of_novices=novice_count,
-                            novice_denominator=novice_denominator,
-                        )[role]
-                    ):
+
+                    # calculate how many slots need to be filled for this role, accounting for custom pre-assignments
+                    pre_assigned_participants = h.get_participants_by_attribute(
+                        attribute="assignment", value=role
+                    )
+                    for p in pre_assigned_participants:
+                        p.set_assignment(
+                            role
+                        )  # redundant but is helpful for console output
+                    pre_assigned_count = len(pre_assigned_participants)
+                    baseline_required_count = utils.roles_and_minima(
+                        number_of_stations=number_of_stations,
+                        number_of_novices=novice_count,
+                        novice_denominator=novice_denominator,
+                    )[role]
+                    actual_required_count = baseline_required_count - pre_assigned_count
+
+                    # fill the actual required slots for this role
+                    for _ in range(actual_required_count):
                         available = h.get_available(role)
                         if not available:
                             rules_satisfied = False
@@ -228,16 +268,61 @@ def main(
                         else:
                             available[0].set_assignment(role)
 
-                # now assign everyone else to worker stations
-                for i, worker in enumerate(h.get_available(role=None)):
-                    worker.set_assignment(f"worker-{i % number_of_stations}")
+                # now assign everyone else to worker role
+                for worker in h.get_available(role=None):
+                    worker.set_assignment("worker")
 
     if not rules_satisfied:
-        print(f"\n\n  Could not create heats in {max_iterations} iterations.")
+        print(f"\n\n  Could not create heats in {max_iterations} iterations.\n")
         exit(1)
 
-    print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<\n")
+    print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
+
+    # print summary statements and export to csv
+    # TODO: these should be their own functions (like many items above)
+    if event.no_shows:
+        print(
+            f"\n  The following individuals have not checked in and are therefore excluded:\n"
+        )
+        [print(f"  - {i}") for i in event.no_shows]
+
+    rows = []
+    for h in event.heats.values():
+        captain_count = 0
+        worker_count = 0
+        for p in sorted(h.participants, key=lambda p: p.name):
+            # TODO: we're reaching elongated levels of code spaghettification here
+            #       append station number to corner captain assignments in the printout
+            #       same with workers
+            string_modifier = ""
+            if p.assignment == "captain":
+                string_modifier = f"-{captain_count}"
+                captain_count += 1
+            elif p.assignment == "worker":
+                string_modifier = f"-{worker_count % number_of_stations}"
+                worker_count += 1
+            rows.append(
+                {
+                    "heat": h.number,
+                    "name": p.name,
+                    "class": p.category_string,
+                    "number": p.number,
+                    "assignment": f"{p.assignment}{string_modifier}",
+                    "checked_in": "",
+                }
+            )
+
+    with open("autologic-export.csv", "w", newline="") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=["heat", "name", "class", "number", "assignment", "checked_in"],
+        )
+        writer.writeheader()
+        writer.writerows(rows)
+        print(f"\n  Worker assignment sheet saved to autologic-export.csv")
+
+    print()
 
 
 if __name__ == "__main__":
-    main()
+    cli()

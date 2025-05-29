@@ -4,7 +4,7 @@ Somewhat questionable Python program that takes an autocross event roster and ge
 
 It provides a rough framework that may be used to assign `Categories` (car classes) to `Heats`, and `Participants` to `Roles` (specialized work assignments).
 
-The current "algorithm" loads an `Event`, randomly assigns `Categories` to `Heats`, checks against acceptance criteria (can all `Roles` be filled within each `Heat`?), and keeps iterating until all criteria are met.
+The current "algorithm" loads an `Event`, randomly assigns `Categories` to `Heats`, checks against acceptance criteria (can all `Roles` be filled within each `Heat` / do all `Heats` contain a similar number of `Participants` / are Novices evenly distributed / etc.), and keeps iterating until all criteria are met.
 
 Better documentation to come... if there is interest. A smarter algorithm may be implemented later. Tests may be implemented later.
 
@@ -12,13 +12,13 @@ Better documentation to come... if there is interest. A smarter algorithm may be
 
 1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/).
 
-2. Open a terminal window and execute `.\path\to\autologic.exe --csv .\path\to\file.csv` to generate heat and worker assignments for a set of default parameters.
+2. Open a terminal window and execute `.\path\to\autologic.exe --config .\path\to\config_file.yaml` to generate heat and worker assignments for a set of configured parameters.
 
 ### Notes
 
-- Run `autologic.exe --help` for more options (number of heats, number of worker stations, etc.).
+- See [sample_event_config.yaml](./tests/sample_event_config.yaml) for an example of a configuration file.
 
-- See [sample_msr_export.csv](./tests/sample_msr_export.csv) and [sample_member_attributes.csv](./tests/sample_member_attributes.csv) for examples of the required input data structures. May change to accommodate different configurations. The `special` role is for VPs, worker coordinators, tech inspectors, gate workers, etc. who should not be assigned to another role.
+- See [sample_axware_export.tsv](./tests/sample_axware_export.tsv) and [sample_member_attributes.csv](./tests/sample_member_attributes.csv) for examples of the expected input data structures. May change to accommodate different configurations.
 
 - The dictionary of roles and their minimum requirements per heat is semi-hardcoded in [utils.py](./source/utils.py)'s `roles_and_minima` definition.
   - The minimum number of instructors in a heat is equal to `number_of_novices` divided `novice_denominator`, or `MIN_INSTRUCTOR_PER_HEAT`, whichever is greater.
@@ -29,195 +29,207 @@ Better documentation to come... if there is interest. A smarter algorithm may be
 A CSV export function may be implemented later. For now, it's just this:
 
 ```powershell
-(autologic) PS C:\codes\autologic> .\dist\autologic.exe --msr-export .\dist\sample_msr_export.csv --member-attributes .\dist\sample_member_attributes.csv
+(autologic) PS C:\codes\autologic> .\dist\autologic.exe --config .\dist\sample_event_config.yaml
 
   Role minimums
   -------------
   instructor: 16 / 15
       timing: 26 / 6
         grid: 31 / 6
-       start: 25 / 3
-     captain: 27 / 15
+       start: 24 / 3
+     captain: 26 / 15
 
   ==================================================
 
   [Iteration 0]
 
-  Heat size must be 42 +/- 6
+  Heat size must be 41 +/- 5
   Novice count must be 14 +/- 5
 
-  Heat 0 rejected: participant count of 35
+  Heat 0 (45 total, 14 novices)
+  -----------------------------
+
+    Car classes: [CAM-C, DS, GST, BST, HS, SSC, SMF, XB, SM, ESP]
+
+    4 of 5 instructors required
+
+    Heat 0 rejected: unable to fill INSTRUCTOR role(s)
 
   ==================================================
 
-  [Iteration 1]
+  [Iteration 20]
 
-  Heat size must be 42 +/- 6
+  Heat size must be 41 +/- 5
   Novice count must be 14 +/- 5
 
-  Heat 0 (39 total, 11 novices)
+  Heat 0 (37 total, 12 novices)
   -----------------------------
 
-    Car classes: [CAM-C, SR, DSP, FS, EST, GST, CST, CAM-T, XB, SST, SM]
+    Car classes: [EVX, CAM-T, DSP, EP, GST, AS, CST, HS, XB, CSM]
 
-    4 of 4 instructors required
+    7 of 4 instructors required
     8 of 2 timings required
-    8 of 2 grids required
+    7 of 2 grids required
+    5 of 1 starts required
+    6 of 5 captains required
+
+    Taylor, Henry       assigned to SPECIAL
+    Anderson, Lucas     assigned to CAPTAIN
+    Davis, Sophia       assigned to CAPTAIN
+    Jordan, Charlotte   assigned to CAPTAIN
+    Edwards, Eleanor    assigned to CAPTAIN
+    Hall, Joseph        assigned to CAPTAIN
+    Johnson, Noah       assigned to INSTRUCTOR (custom assignment)
+    Turner, Elias       assigned to INSTRUCTOR
+    Patterson, Benjamin assigned to INSTRUCTOR
+    Evans, Nathan       assigned to INSTRUCTOR
+    Lewis, Aiden        assigned to START
+    Hayes, Matthew      assigned to GRID
+    Gray, Avery         assigned to GRID
+    Allen, Samuel       assigned to TIMING
+    Ellis, Aiden        assigned to TIMING
+    Jones, Ava          assigned to WORKER
+    Foster, Theodore    assigned to WORKER
+    Hernandez, James    assigned to WORKER
+    Wright, Victoria    assigned to WORKER
+    Coleman, Hannah     assigned to WORKER
+    Romero, James       assigned to WORKER
+    Mendoza, David      assigned to WORKER
+    Wilson, Amelia      assigned to WORKER
+    Hughes, Samuel      assigned to WORKER
+    Barnes, Oliver      assigned to WORKER
+    Moreno, Abigail     assigned to WORKER
+    Scott, Leo          assigned to WORKER
+    Chavez, Jackson     assigned to WORKER
+    Vasquez, William    assigned to WORKER
+    Chavez, Jackson     assigned to WORKER
+    Cook, Elijah        assigned to WORKER
+    Aguilar, Joseph     assigned to WORKER
+    Coleman, Hannah     assigned to WORKER
+    West, Daniel        assigned to WORKER
+    Cole, Emily         assigned to WORKER
+    Richardson, Emily   assigned to WORKER
+    Moore, Alexander    assigned to WORKER
+
+  Heat 1 (40 total, 10 novices)
+  -----------------------------
+
+    Car classes: [DS, GS, BS, SSC, AST, SMF, DP, SM, XA, ESP]
+
+    3 of 3 instructors required
+    8 of 2 timings required
+    12 of 2 grids required
     6 of 1 starts required
-    5 of 5 captains required
+    8 of 5 captains required
 
-    Layla Cruz         assigned to INSTRUCTOR
-    Henry Taylor       assigned to INSTRUCTOR
-    Abigail Moreno     assigned to INSTRUCTOR
-    Noah Johnson       assigned to INSTRUCTOR
-    Emma Williams      assigned to CAPTAIN
-    Charlotte Jordan   assigned to CAPTAIN
-    Sophia Davis       assigned to CAPTAIN
-    Joseph Hall        assigned to CAPTAIN
-    Chloe Green        assigned to CAPTAIN
-    Aiden Lewis        assigned to START
-    Theodore Carter    assigned to TIMING
-    Samuel Allen       assigned to TIMING
-    Matthew Hayes      assigned to GRID
-    Emily Cole         assigned to GRID
-    Amelia Bailey      assigned to WORKER-0
-    Elias Jenkins      assigned to WORKER-1
-    Mia Morris         assigned to WORKER-2
-    Jackson Clark      assigned to WORKER-3
-    Jack Long          assigned to WORKER-4
-    Evelyn Griffin     assigned to WORKER-0
-    Victoria Wright    assigned to WORKER-1
-    Evelyn Ramos       assigned to WORKER-2
-    Liam Garcia        assigned to WORKER-3
-    Matthew Martinez   assigned to WORKER-4
-    Sophia Fisher      assigned to WORKER-0
-    Elijah Miller      assigned to WORKER-1
-    Hannah Coleman     assigned to WORKER-2
-    James Romero       assigned to WORKER-3
-    David Mendoza      assigned to WORKER-4
-    Amelia Wilson      assigned to WORKER-0
-    Leo Scott          assigned to WORKER-1
-    Jackson Chavez     assigned to WORKER-2
-    Ava Jones          assigned to WORKER-3
-    Theodore Foster    assigned to WORKER-4
-    James Hernandez    assigned to WORKER-0
-    Daniel West        assigned to WORKER-1
-    Aiden Ellis        assigned to WORKER-2
-    Emily Richardson   assigned to WORKER-3
-    Isaac Stewart      assigned to WORKER-4
+    Thomas, Mia         assigned to SPECIAL
+    Hamilton, Lucas     assigned to INSTRUCTOR
+    Martin, Abigail     assigned to INSTRUCTOR
+    Wallace, Michael    assigned to INSTRUCTOR
+    Robinson, Ella      assigned to CAPTAIN
+    Myers, Penelope     assigned to CAPTAIN
+    Graham, Mia         assigned to CAPTAIN
+    Hughes, Samuel      assigned to CAPTAIN
+    Young, Luna         assigned to CAPTAIN
+    Rogers, Sophia      assigned to START
+    Nelson, Lily        assigned to TIMING
+    Howard, Henry       assigned to TIMING
+    Reyes, Hannah       assigned to GRID
+    Ramos, Evelyn       assigned to GRID
+    Foster, Theodore    assigned to WORKER
+    Peterson, Benjamin  assigned to WORKER
+    Watson, Matthew     assigned to WORKER
+    Herrera, Jackson    assigned to WORKER
+    Murphy, Oliver      assigned to WORKER
+    King, Grace         assigned to WORKER
+    Jimenez, Zoey       assigned to WORKER
+    Ruiz, Joseph        assigned to WORKER
+    Brooks, Ella        assigned to WORKER
+    Martinez, Isabella  assigned to WORKER
+    Turner, Elias       assigned to WORKER
+    Powell, Nathan      assigned to WORKER
+    Castillo, Victoria  assigned to WORKER
+    Miller, Elijah      assigned to WORKER
+    Ford, Grace         assigned to WORKER
+    Thompson, Daniel    assigned to WORKER
+    Gonzalez, Benjamin  assigned to WORKER
+    Lopez, Charlotte    assigned to WORKER
+    Baker, Jack         assigned to WORKER
+    Murray, Luna        assigned to WORKER
+    Adams, Penelope     assigned to WORKER
+    Rodriguez, William  assigned to WORKER
+    Stewart, Isaac      assigned to WORKER
+    Cooper, Charlotte   assigned to WORKER
+    Harris, Michael     assigned to WORKER
+    Henderson, Mia      assigned to WORKER
 
-  Heat 1 (43 total, 18 novices)
+  Heat 2 (46 total, 19 novices)
   -----------------------------
 
-    Car classes: [P, BS, AS, CS, DST, DP, XA, FP, CSM, ESP]
+    Car classes: [CAM-C, CS, ES, FS, EST, BST, DST, SST, FP]
 
-    8 of 6 instructors required
-    9 of 2 timings required
-    9 of 2 grids required
-    8 of 1 starts required
-    9 of 5 captains required
+    6 of 6 instructors required
+    10 of 2 timings required
+    12 of 2 grids required
+    13 of 1 starts required
+    12 of 5 captains required
 
-    Elias Turner       assigned to INSTRUCTOR
-    Benjamin Patterson assigned to INSTRUCTOR
-    Michael Wallace    assigned to INSTRUCTOR
-    Nathan Evans       assigned to INSTRUCTOR
-    Oliver Brown       assigned to INSTRUCTOR
-    Zoey Phillips      assigned to INSTRUCTOR
-    Henry Reynolds     assigned to CAPTAIN
-    Samuel Hughes      assigned to CAPTAIN
-    David Walker       assigned to CAPTAIN
-    Lucas Reed         assigned to CAPTAIN
-    David Medina       assigned to CAPTAIN
-    Henry Howard       assigned to TIMING
-    Amelia Alexander   assigned to TIMING
-    Evelyn Ramos       assigned to GRID
-    Isaac Stewart      assigned to GRID
-    Benjamin Gonzalez  assigned to START
-    Joseph Ruiz        assigned to WORKER-0
-    Ella Brooks        assigned to WORKER-1
-    Isabella Martinez  assigned to WORKER-2
-    Elias Turner       assigned to WORKER-3
-    Nathan Powell      assigned to WORKER-4
-    Victoria Castillo  assigned to WORKER-0
-    Elijah Miller      assigned to WORKER-1
-    Samuel Hughes      assigned to WORKER-2
-    Oliver Barnes      assigned to WORKER-3
-    Eleanor Sullivan   assigned to WORKER-4
-    Layla Russell      assigned to WORKER-0
-    Eleanor Sullivan   assigned to WORKER-1
-    Chloe Patel        assigned to WORKER-2
-    Avery Gray         assigned to WORKER-3
-    James Morgan       assigned to WORKER-4
-    Aria Perry         assigned to WORKER-0
-    Isabella Simmons   assigned to WORKER-1
-    Ella Bryant        assigned to WORKER-2
-    Aria Parker        assigned to WORKER-3
-    Penelope Adams     assigned to WORKER-4
-    William Rodriguez  assigned to WORKER-0
-    Charlotte Cooper   assigned to WORKER-1
-    Michael Harris     assigned to WORKER-2
-    Victoria Castillo  assigned to WORKER-3
-    Isabella Ortiz     assigned to WORKER-4
-    Alexander Moore    assigned to WORKER-0
-    Mia Henderson      assigned to WORKER-1
-
-  Heat 2 (44 total, 13 novices)
-  -----------------------------
-
-    Car classes: [EVX, DS, ES, GS, BST, HS, AST, SMF, SSC, FSP]
-
-    4 of 4 instructors required
-    9 of 2 timings required
-    14 of 2 grids required
-    11 of 1 starts required
-    13 of 5 captains required
-
-    Lucas Hamilton     assigned to INSTRUCTOR
-    Abigail Martin     assigned to INSTRUCTOR
-    Evelyn White       assigned to INSTRUCTOR
-    Olivia Smith       assigned to INSTRUCTOR
-    Ella Robinson      assigned to TIMING
-    Penelope Myers     assigned to TIMING
-    Lucas Anderson     assigned to CAPTAIN
-    Sofia Gibson       assigned to CAPTAIN
-    Mia Graham         assigned to CAPTAIN
-    Grace Alvarez      assigned to CAPTAIN
-    Sofia Rodriguez    assigned to CAPTAIN
-    William Gutierrez  assigned to START
-    Hannah Reyes       assigned to GRID
-    Sophia Rogers      assigned to GRID
-    Theodore Foster    assigned to WORKER-0
-    Benjamin Peterson  assigned to WORKER-1
-    Matthew Watson     assigned to WORKER-2
-    Jackson Herrera    assigned to WORKER-3
-    Harper Jackson     assigned to WORKER-4
-    Mia Kelly          assigned to WORKER-0
-    Daniel Ward        assigned to WORKER-1
-    Samuel Stevens     assigned to WORKER-2
-    Oliver Murphy      assigned to WORKER-3
-    Grace King         assigned to WORKER-4
-    Lily Nelson        assigned to WORKER-0
-    Zoey Jimenez       assigned to WORKER-1
-    Abigail Cox        assigned to WORKER-2
-    Emily Garcia       assigned to WORKER-3
-    Avery Tran         assigned to WORKER-4
-    William Vasquez    assigned to WORKER-0
-    Avery Gray         assigned to WORKER-1
-    Jackson Chavez     assigned to WORKER-2
-    Elijah Cook        assigned to WORKER-3
-    Joseph Aguilar     assigned to WORKER-4
-    Eleanor Edwards    assigned to WORKER-0
-    Hannah Coleman     assigned to WORKER-1
-    Luna Young         assigned to WORKER-2
-    Daniel Thompson    assigned to WORKER-3
-    Charlotte Lopez    assigned to WORKER-4
-    Jack Baker         assigned to WORKER-0
-    Mia Thomas         assigned to WORKER-1
-    Luna Murray        assigned to WORKER-2
-    Grace Ford         assigned to WORKER-3
-    Isabella Simmons   assigned to WORKER-4
+    Clark, Jackson      assigned to SPECIAL
+    Brown, Oliver       assigned to INSTRUCTOR
+    White, Evelyn       assigned to INSTRUCTOR
+    Cruz, Layla         assigned to INSTRUCTOR
+    Smith, Olivia       assigned to INSTRUCTOR
+    Phillips, Zoey      assigned to INSTRUCTOR
+    Alexander, Amelia   assigned to INSTRUCTOR
+    Reynolds, Henry     assigned to CAPTAIN
+    Walker, David       assigned to CAPTAIN
+    Gibson, Sofia       assigned to CAPTAIN
+    Williams, Emma      assigned to CAPTAIN
+    Alvarez, Grace      assigned to CAPTAIN
+    Carter, Theodore    assigned to TIMING
+    Bryant, Ella        assigned to TIMING
+    Stewart, Isaac      assigned to GRID
+    Gray, Avery         assigned to GRID
+    Griffin, Evelyn     assigned to START
+    Bailey, Amelia      assigned to WORKER
+    Jenkins, Elias      assigned to WORKER
+    Morris, Mia         assigned to WORKER
+    Long, Jack          assigned to WORKER
+    Sullivan, Eleanor   assigned to WORKER
+    Russell, Layla      assigned to WORKER
+    Sullivan, Eleanor   assigned to WORKER
+    Patel, Chloe        assigned to WORKER
+    Morgan, James       assigned to WORKER
+    Perry, Aria         assigned to WORKER
+    Jackson, Harper     assigned to WORKER
+    Gutierrez, William  assigned to WORKER
+    Kelly, Mia          assigned to WORKER
+    Ward, Daniel        assigned to WORKER
+    Stevens, Samuel     assigned to WORKER
+    Ramos, Evelyn       assigned to WORKER
+    Garcia, Liam        assigned to WORKER
+    Martinez, Matthew   assigned to WORKER
+    Fisher, Sophia      assigned to WORKER
+    Miller, Elijah      assigned to WORKER
+    Cox, Abigail        assigned to WORKER
+    Garcia, Emily       assigned to WORKER
+    Rodriguez, Sofia    assigned to WORKER
+    Tran, Avery         assigned to WORKER
+    Reed, Lucas         assigned to WORKER
+    Simmons, Isabella   assigned to WORKER
+    Medina, David       assigned to WORKER
+    Green, Chloe        assigned to WORKER
+    Ortiz, Isabella     assigned to WORKER
 
   ---
 
   >>> Iteration 1 accepted <<<
+
+  The following individuals have not checked in and are therefore excluded:
+
+  - Simmons, Isabella
+  - Parker, Aria
+  - Castillo, Victoria
+
+  Worker assignment sheet saved to autologic-export.csv
 ```
