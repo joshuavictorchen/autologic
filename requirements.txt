@@ -6,15 +6,21 @@
 #
 annotated-types==0.7.0
     # via pydantic
+chardet==5.2.0
+    # via reportlab
 click==8.2.1
     # via -r requirements.in
 colorama==0.4.6
     # via click
+pillow==11.2.1
+    # via reportlab
 pydantic==2.11.5
     # via -r requirements.in
 pydantic-core==2.33.2
     # via pydantic
 pyyaml==6.0.2
+    # via -r requirements.in
+reportlab==4.4.1
     # via -r requirements.in
 typing-extensions==4.13.2
     # via

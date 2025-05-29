@@ -84,13 +84,14 @@ class Event(Group):
 
                 # scrappy implementation to pivot toward using axware export for now
                 is_novice = False
-                if axware_row["Class"].upper().startswith("NOV"):
+                axware_category = axware_row["Class"].upper()
+                if axware_category.startswith("NOV"):
                     is_novice = True
-                    category_string = axware_row["Class"][3:]
-                elif axware_row["Class"].upper().startswith("SR"):
-                    category_string = axware_row["Class"][2:]
-                elif axware_row["Class"].upper().startswith("P"):
-                    category_string = axware_row["Class"][1:]
+                    category_string = axware_category[3:]
+                elif axware_category.startswith("SR"):
+                    category_string = "SR"
+                elif axware_category.startswith("P"):
+                    category_string = "P"
                 else:
                     category_string = axware_row["Class"]
 
@@ -101,6 +102,7 @@ class Event(Group):
                     id=this_id,
                     name=f"{this_lastname}, {this_firstname}",
                     category_string=category_string,
+                    axware_category=axware_category,
                     number=axware_row["Number"],
                     novice=is_novice,
                     special_assignment=special_assignment,
