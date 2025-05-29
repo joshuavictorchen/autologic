@@ -6,16 +6,48 @@
 #
 annotated-types==0.7.0
     # via pydantic
+brotli==1.1.0
+    # via fonttools
+cffi==1.17.1
+    # via weasyprint
 click==8.2.1
     # via -r requirements.in
 colorama==0.4.6
     # via click
+cssselect2==0.8.0
+    # via weasyprint
+fonttools[woff]==4.58.1
+    # via weasyprint
+numpy==2.2.6
+    # via pandas
+pandas==2.2.3
+    # via -r requirements.in
+pillow==11.2.1
+    # via weasyprint
+pycparser==2.22
+    # via cffi
 pydantic==2.11.5
     # via -r requirements.in
 pydantic-core==2.33.2
     # via pydantic
+pydyf==0.11.0
+    # via weasyprint
+pyphen==0.17.2
+    # via weasyprint
+python-dateutil==2.9.0.post0
+    # via pandas
+pytz==2025.2
+    # via pandas
 pyyaml==6.0.2
     # via -r requirements.in
+six==1.17.0
+    # via python-dateutil
+tinycss2==1.4.0
+    # via
+    #   cssselect2
+    #   weasyprint
+tinyhtml5==2.0.0
+    # via weasyprint
 typing-extensions==4.13.2
     # via
     #   pydantic
@@ -23,3 +55,14 @@ typing-extensions==4.13.2
     #   typing-inspection
 typing-inspection==0.4.1
     # via pydantic
+tzdata==2025.2
+    # via pandas
+weasyprint==65.1
+    # via -r requirements.in
+webencodings==0.5.1
+    # via
+    #   cssselect2
+    #   tinycss2
+    #   tinyhtml5
+zopfli==0.2.3.post1
+    # via fonttools

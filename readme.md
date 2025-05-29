@@ -232,4 +232,6 @@ A CSV export function may be implemented later. For now, it's just this:
   - Castillo, Victoria
 
   Worker assignment sheet saved to autologic-export.csv
+
+  Worker assignment printout saved to autologic-export.pdf
 ```
