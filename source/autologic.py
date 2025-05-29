@@ -1,7 +1,6 @@
 import click
 import csv
 import math
-import pandas as pd
 import random
 import yaml
 
