@@ -6,6 +6,7 @@ import yaml
 
 from pathlib import Path
 from pydantic import BaseModel, Field, ValidationError
+from typing import Optional
 
 import utils
 from Event import Event
@@ -69,6 +70,8 @@ class Config(BaseModel):
 
 
 def load_config(ctx, param, value: Path) -> Config:
+    if value is None:
+        return None
     try:
         with open(value, "r") as f:
             data = yaml.safe_load(f)
@@ -86,12 +89,29 @@ def load_config(ctx, param, value: Path) -> Config:
     "--config",
     type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
     callback=load_config,
-    required=True,
+    required=False,
     help="Path to event configuration file.",
 )
-def cli(config: Config):
-    # Unpack fields to local variables
-    main(**config.model_dump())
+@click.option(
+    "--to-pdf",
+    type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
+    required=False,
+    help="Path to autologic-export.csv file for conversion to PDF. Useful for making manual tweaks and then printing.",
+)
+def cli(config: Optional[dict], to_pdf: Optional[Path]):
+
+    if not config and not to_pdf:
+        raise click.UsageError("You must provide either --config or --to-pdf.")
+    if config and to_pdf:
+        raise click.UsageError("Only one of --config or --to-pdf can be used.")
+
+    if config:
+        main(**config.model_dump())
+    elif to_pdf:
+        with open(to_pdf, newline="", encoding="utf-8-sig") as file:
+            rows = csv.DictReader(file)
+            autologic_rows_to_pdf(rows)
+            print()
 
 
 def main(
@@ -278,14 +298,13 @@ def main(
 
     print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
 
-    # print summary statements and export to csv
-    # TODO: these should be their own functions (like many items above)
     if event.no_shows:
         print(
             f"\n  The following individuals have not checked in and are therefore excluded:\n"
         )
         [print(f"  - {i}") for i in event.no_shows]
 
+    # TODO: make this an Event function
     rows = []
     for h in event.heats.values():
         captain_count = 0
@@ -321,10 +340,17 @@ def main(
         writer.writerows(rows)
         print(f"\n  Worker assignment sheet saved to autologic-export.csv")
 
-    ###########################################################################
-    # this code needs to be cleaned and moved
-    # it has been shamefully left as-is for the time being
-    # but for now it generates a decently nice PDF
+    autologic_rows_to_pdf(rows)
+    print()
+
+
+###########################################################################
+# this code needs to be cleaned and moved
+# it has been shamefully left as-is for the time being
+# but for now it generates a decently nice PDF
+
+
+def autologic_rows_to_pdf(rows: list[dict]):
 
     from reportlab.platypus import (
         SimpleDocTemplate,
@@ -437,7 +463,7 @@ def main(
     ]
 
     doc.build(elements, canvasmaker=NumberedCanvas)
-    print(f"\n  Worker assignment printout saved to autologic-export.pdf\n")
+    print(f"\n  Worker assignment printout saved to autologic-export.pdf")
 
     ###########################################################################
 
