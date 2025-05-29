@@ -1,5 +1,3 @@
-import re
-
 MIN_INSTRUCTOR_PER_HEAT = 3  # this is modified in roles_and_minima()
 MIN_TIMING_PER_HEAT = 2
 MIN_START_PER_HEAT = 1
