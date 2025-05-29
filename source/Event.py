@@ -1,4 +1,5 @@
 import csv
+import random
 import utils
 from Category import Category
 from Group import Group
@@ -18,7 +19,7 @@ class Event(Group):
         self,
         axware_export_tsv: str,
         member_attributes_csv: str,
-        custom_assignments: dict[str, str],
+        custom_assignments: dict[str, str | list[str]],
         number_of_heats: int,
         number_of_stations: int,
     ):
@@ -46,7 +47,7 @@ class Event(Group):
         self,
         axware_export_tsv: str,
         member_attributes_csv: str,
-        custom_assignments: dict[str, str],
+        custom_assignments: dict[str, str | list[str]],
     ):
         """
         Loads participants from `axware_export_tsv`, then gets their possible work assignments from `member_attributes_csv`.
@@ -81,6 +82,13 @@ class Event(Group):
                 )
                 member_attributes = member_attributes_dict.get(axware_row["Member #"])
                 special_assignment = custom_assignments.get(axware_row["Member #"])
+                # special assignment may be a str or a list of strings
+                # if the latter, then randomly choose one
+                special_assignment = (
+                    random.choice(special_assignment)
+                    if type(special_assignment) == list
+                    else special_assignment
+                )
 
                 # scrappy implementation to pivot toward using axware export for now
                 is_novice = False
