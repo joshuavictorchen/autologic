@@ -268,9 +268,9 @@ def main(
                         else:
                             available[0].set_assignment(role)
 
-                # now assign everyone else to worker stations
-                for i, worker in enumerate(h.get_available(role=None)):
-                    worker.set_assignment(f"worker-{i % number_of_stations}")
+                # now assign everyone else to worker role
+                for worker in h.get_available(role=None):
+                    worker.set_assignment("worker")
 
     if not rules_satisfied:
         print(f"\n\n  Could not create heats in {max_iterations} iterations.\n")
@@ -288,14 +288,26 @@ def main(
 
     rows = []
     for h in event.heats.values():
+        captain_count = 0
+        worker_count = 0
         for p in sorted(h.participants, key=lambda p: p.name):
+            # TODO: we're reaching elongated levels of code spaghettification here
+            #       append station number to corner captain assignments in the printout
+            #       same with workers
+            string_modifier = ""
+            if p.assignment == "captain":
+                string_modifier = f"-{captain_count}"
+                captain_count += 1
+            elif p.assignment == "worker":
+                string_modifier = f"-{worker_count % number_of_stations}"
+                worker_count += 1
             rows.append(
                 {
                     "heat": h.number,
                     "name": p.name,
                     "class": p.category_string,
                     "number": p.number,
-                    "assignment": p.assignment,
+                    "assignment": f"{p.assignment}{string_modifier}",
                     "checked_in": "",
                 }
             )

@@ -88,28 +88,28 @@ A CSV export function may be implemented later. For now, it's just this:
     Gray, Avery         assigned to GRID
     Allen, Samuel       assigned to TIMING
     Ellis, Aiden        assigned to TIMING
-    Jones, Ava          assigned to WORKER-0
-    Foster, Theodore    assigned to WORKER-1
-    Hernandez, James    assigned to WORKER-2
-    Wright, Victoria    assigned to WORKER-3
-    Coleman, Hannah     assigned to WORKER-4
-    Romero, James       assigned to WORKER-0
-    Mendoza, David      assigned to WORKER-1
-    Wilson, Amelia      assigned to WORKER-2
-    Hughes, Samuel      assigned to WORKER-3
-    Barnes, Oliver      assigned to WORKER-4
-    Moreno, Abigail     assigned to WORKER-0
-    Scott, Leo          assigned to WORKER-1
-    Chavez, Jackson     assigned to WORKER-2
-    Vasquez, William    assigned to WORKER-3
-    Chavez, Jackson     assigned to WORKER-4
-    Cook, Elijah        assigned to WORKER-0
-    Aguilar, Joseph     assigned to WORKER-1
-    Coleman, Hannah     assigned to WORKER-2
-    West, Daniel        assigned to WORKER-3
-    Cole, Emily         assigned to WORKER-4
-    Richardson, Emily   assigned to WORKER-0
-    Moore, Alexander    assigned to WORKER-1
+    Jones, Ava          assigned to WORKER
+    Foster, Theodore    assigned to WORKER
+    Hernandez, James    assigned to WORKER
+    Wright, Victoria    assigned to WORKER
+    Coleman, Hannah     assigned to WORKER
+    Romero, James       assigned to WORKER
+    Mendoza, David      assigned to WORKER
+    Wilson, Amelia      assigned to WORKER
+    Hughes, Samuel      assigned to WORKER
+    Barnes, Oliver      assigned to WORKER
+    Moreno, Abigail     assigned to WORKER
+    Scott, Leo          assigned to WORKER
+    Chavez, Jackson     assigned to WORKER
+    Vasquez, William    assigned to WORKER
+    Chavez, Jackson     assigned to WORKER
+    Cook, Elijah        assigned to WORKER
+    Aguilar, Joseph     assigned to WORKER
+    Coleman, Hannah     assigned to WORKER
+    West, Daniel        assigned to WORKER
+    Cole, Emily         assigned to WORKER
+    Richardson, Emily   assigned to WORKER
+    Moore, Alexander    assigned to WORKER
 
   Heat 1 (40 total, 10 novices)
   -----------------------------
@@ -136,32 +136,32 @@ A CSV export function may be implemented later. For now, it's just this:
     Howard, Henry       assigned to TIMING
     Reyes, Hannah       assigned to GRID
     Ramos, Evelyn       assigned to GRID
-    Foster, Theodore    assigned to WORKER-0
-    Peterson, Benjamin  assigned to WORKER-1
-    Watson, Matthew     assigned to WORKER-2
-    Herrera, Jackson    assigned to WORKER-3
-    Murphy, Oliver      assigned to WORKER-4
-    King, Grace         assigned to WORKER-0
-    Jimenez, Zoey       assigned to WORKER-1
-    Ruiz, Joseph        assigned to WORKER-2
-    Brooks, Ella        assigned to WORKER-3
-    Martinez, Isabella  assigned to WORKER-4
-    Turner, Elias       assigned to WORKER-0
-    Powell, Nathan      assigned to WORKER-1
-    Castillo, Victoria  assigned to WORKER-2
-    Miller, Elijah      assigned to WORKER-3
-    Ford, Grace         assigned to WORKER-4
-    Thompson, Daniel    assigned to WORKER-0
-    Gonzalez, Benjamin  assigned to WORKER-1
-    Lopez, Charlotte    assigned to WORKER-2
-    Baker, Jack         assigned to WORKER-3
-    Murray, Luna        assigned to WORKER-4
-    Adams, Penelope     assigned to WORKER-0
-    Rodriguez, William  assigned to WORKER-1
-    Stewart, Isaac      assigned to WORKER-2
-    Cooper, Charlotte   assigned to WORKER-3
-    Harris, Michael     assigned to WORKER-4
-    Henderson, Mia      assigned to WORKER-0
+    Foster, Theodore    assigned to WORKER
+    Peterson, Benjamin  assigned to WORKER
+    Watson, Matthew     assigned to WORKER
+    Herrera, Jackson    assigned to WORKER
+    Murphy, Oliver      assigned to WORKER
+    King, Grace         assigned to WORKER
+    Jimenez, Zoey       assigned to WORKER
+    Ruiz, Joseph        assigned to WORKER
+    Brooks, Ella        assigned to WORKER
+    Martinez, Isabella  assigned to WORKER
+    Turner, Elias       assigned to WORKER
+    Powell, Nathan      assigned to WORKER
+    Castillo, Victoria  assigned to WORKER
+    Miller, Elijah      assigned to WORKER
+    Ford, Grace         assigned to WORKER
+    Thompson, Daniel    assigned to WORKER
+    Gonzalez, Benjamin  assigned to WORKER
+    Lopez, Charlotte    assigned to WORKER
+    Baker, Jack         assigned to WORKER
+    Murray, Luna        assigned to WORKER
+    Adams, Penelope     assigned to WORKER
+    Rodriguez, William  assigned to WORKER
+    Stewart, Isaac      assigned to WORKER
+    Cooper, Charlotte   assigned to WORKER
+    Harris, Michael     assigned to WORKER
+    Henderson, Mia      assigned to WORKER
 
   Heat 2 (46 total, 19 novices)
   -----------------------------
@@ -191,35 +191,35 @@ A CSV export function may be implemented later. For now, it's just this:
     Stewart, Isaac      assigned to GRID
     Gray, Avery         assigned to GRID
     Griffin, Evelyn     assigned to START
-    Bailey, Amelia      assigned to WORKER-0
-    Jenkins, Elias      assigned to WORKER-1
-    Morris, Mia         assigned to WORKER-2
-    Long, Jack          assigned to WORKER-3
-    Sullivan, Eleanor   assigned to WORKER-4
-    Russell, Layla      assigned to WORKER-0
-    Sullivan, Eleanor   assigned to WORKER-1
-    Patel, Chloe        assigned to WORKER-2
-    Morgan, James       assigned to WORKER-3
-    Perry, Aria         assigned to WORKER-4
-    Jackson, Harper     assigned to WORKER-0
-    Gutierrez, William  assigned to WORKER-1
-    Kelly, Mia          assigned to WORKER-2
-    Ward, Daniel        assigned to WORKER-3
-    Stevens, Samuel     assigned to WORKER-4
-    Ramos, Evelyn       assigned to WORKER-0
-    Garcia, Liam        assigned to WORKER-1
-    Martinez, Matthew   assigned to WORKER-2
-    Fisher, Sophia      assigned to WORKER-3
-    Miller, Elijah      assigned to WORKER-4
-    Cox, Abigail        assigned to WORKER-0
-    Garcia, Emily       assigned to WORKER-1
-    Rodriguez, Sofia    assigned to WORKER-2
-    Tran, Avery         assigned to WORKER-3
-    Reed, Lucas         assigned to WORKER-4
-    Simmons, Isabella   assigned to WORKER-0
-    Medina, David       assigned to WORKER-1
-    Green, Chloe        assigned to WORKER-2
-    Ortiz, Isabella     assigned to WORKER-3
+    Bailey, Amelia      assigned to WORKER
+    Jenkins, Elias      assigned to WORKER
+    Morris, Mia         assigned to WORKER
+    Long, Jack          assigned to WORKER
+    Sullivan, Eleanor   assigned to WORKER
+    Russell, Layla      assigned to WORKER
+    Sullivan, Eleanor   assigned to WORKER
+    Patel, Chloe        assigned to WORKER
+    Morgan, James       assigned to WORKER
+    Perry, Aria         assigned to WORKER
+    Jackson, Harper     assigned to WORKER
+    Gutierrez, William  assigned to WORKER
+    Kelly, Mia          assigned to WORKER
+    Ward, Daniel        assigned to WORKER
+    Stevens, Samuel     assigned to WORKER
+    Ramos, Evelyn       assigned to WORKER
+    Garcia, Liam        assigned to WORKER
+    Martinez, Matthew   assigned to WORKER
+    Fisher, Sophia      assigned to WORKER
+    Miller, Elijah      assigned to WORKER
+    Cox, Abigail        assigned to WORKER
+    Garcia, Emily       assigned to WORKER
+    Rodriguez, Sofia    assigned to WORKER
+    Tran, Avery         assigned to WORKER
+    Reed, Lucas         assigned to WORKER
+    Simmons, Isabella   assigned to WORKER
+    Medina, David       assigned to WORKER
+    Green, Chloe        assigned to WORKER
+    Ortiz, Isabella     assigned to WORKER
 
   ---
 
