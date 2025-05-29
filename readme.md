@@ -6,9 +6,10 @@ It provides a framework that may be used to assign `Categories` (car classes) to
 
 The default algorithm loads an `Event`, randomly assigns `Categories` to `Heats`, checks against acceptance criteria (can all `Roles` be filled within each `Heat`; do all `Heats` contain a similar number of `Participants`; are Novices evenly distributed across `Heats`; etc.), and keeps iterating until all criteria are met.
 
-**This is a minimum viable prototype product.** The main code is untested semi-hardcoded spaghetti. The documentation is simply this README file. It will be cleaned and made more generally applicable after it's gained some field experience at actual events.
+> [!NOTE]
+> **This is a minimum viable prototype product.** The main code is untested semi-hardcoded spaghetti. The documentation is simply this README file. It will be cleaned and made more generally applicable after it's gained some field experience at actual events.
 
-All names found in the sample files and documentation within this repository are fictional and were randomly generated.
+All names found in the sample files and documentation within this repository are fictional and have been randomly generated.
 
 ## Retrieval and usage
 
