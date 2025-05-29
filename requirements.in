@@ -1,5 +1,4 @@
 click
-pandas
 pydantic
 pyyaml
-weasyprint
+reportlab
