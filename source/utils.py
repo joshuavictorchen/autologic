@@ -1,3 +1,5 @@
+import csv
+
 from reportlab.platypus import (
     SimpleDocTemplate,
     Table,
@@ -111,6 +113,24 @@ def roles_and_minima(number_of_stations, number_of_novices=1, novice_denominator
         "start": MIN_START_PER_HEAT,
         "captain": number_of_stations,
     }
+
+
+def autologic_rows_to_csv(rows: list[dict]):
+    """
+    Takes an Event summary list and makes a CSV of it.
+
+    TODO: flesh out docs
+    """
+
+    with open("autologic-export.csv", "w", newline="") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=["heat", "name", "class", "number", "assignment", "checked_in"],
+        )
+        writer.writeheader()
+        writer.writerows(rows)
+        print(f"\n  Worker assignment sheet saved to autologic-export.csv")
+
 
 def autologic_rows_to_pdf(rows: list[dict]):
     """

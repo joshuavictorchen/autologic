@@ -298,48 +298,9 @@ def main(
 
     print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
 
-    if event.no_shows:
-        print(
-            f"\n  The following individuals have not checked in and are therefore excluded:\n"
-        )
-        [print(f"  - {i}") for i in event.no_shows]
-
-    # TODO: make this an Event function
-    rows = []
-    for h in event.heats.values():
-        captain_count = 0
-        worker_count = 0
-        for p in sorted(h.participants, key=lambda p: p.name):
-            # TODO: we're reaching elongated levels of code spaghettification here
-            #       append station number to corner captain assignments in the printout
-            #       same with workers
-            string_modifier = ""
-            if p.assignment == "captain":
-                string_modifier = f"-{captain_count + 1}"
-                captain_count += 1
-            elif p.assignment == "worker":
-                string_modifier = f"-{(worker_count % number_of_stations) + 1}"
-                worker_count += 1
-            rows.append(
-                {
-                    "heat": h.number,
-                    "name": p.name,
-                    "class": p.axware_category,
-                    "number": p.number,
-                    "assignment": f"{p.assignment}{string_modifier}",
-                    "checked_in": "",
-                }
-            )
-
-    with open("autologic-export.csv", "w", newline="") as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=["heat", "name", "class", "number", "assignment", "checked_in"],
-        )
-        writer.writeheader()
-        writer.writerows(rows)
-        print(f"\n  Worker assignment sheet saved to autologic-export.csv")
-
+    # export data
+    rows = event.export_summary()
+    utils.autologic_rows_to_csv(rows)
     utils.autologic_rows_to_pdf(rows)
     print()
 

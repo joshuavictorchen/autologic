@@ -153,3 +153,39 @@ class Event(Group):
             dict[int, Heat]: Mapping of 1-indexed heat number to Heat objects.
         """
         return {i + 1: Heat(self, i + 1) for i in range(number_of_heats)}
+
+    def export_summary(self):
+
+        if self.no_shows:
+            print(
+                f"\n  The following individuals have not checked in and are therefore excluded:\n"
+            )
+            [print(f"  - {i}") for i in self.no_shows]
+
+        rows = []
+        for h in self.heats.values():
+            captain_count = 0
+            worker_count = 0
+            for p in sorted(h.participants, key=lambda p: p.name):
+                # TODO: we're reaching elongated levels of code spaghettification here
+                #       append station number to corner captain assignments in the printout
+                #       same with workers
+                string_modifier = ""
+                if p.assignment == "captain":
+                    string_modifier = f"-{captain_count + 1}"
+                    captain_count += 1
+                elif p.assignment == "worker":
+                    string_modifier = f"-{(worker_count % self.number_of_stations) + 1}"
+                    worker_count += 1
+                rows.append(
+                    {
+                        "heat": h.number,
+                        "name": p.name,
+                        "class": p.axware_category,
+                        "number": p.number,
+                        "assignment": f"{p.assignment}{string_modifier}",
+                        "checked_in": "",
+                    }
+                )
+
+        return rows
