@@ -50,7 +50,7 @@ All names found in the sample files and documentation within this repository are
   Heat size must be 41 +/- 5
   Novice count must be 14 +/- 5
 
-  Heat 0 rejected: novice count of 8
+  Heat 1 rejected: novice count of 8
 
   ==================================================
 
