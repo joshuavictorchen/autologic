@@ -154,7 +154,7 @@ class Event(Group):
         """
         return {i + 1: Heat(self, i + 1) for i in range(number_of_heats)}
 
-    def get_summary(self):
+    def get_work_assignments(self):
         """
         Returns a list of dicts that describe each participant in the event, and their assignments.
 
@@ -167,7 +167,7 @@ class Event(Group):
             )
             [print(f"  - {i}") for i in self.no_shows]
 
-        rows = []
+        work_assignments = []
         for h in self.heats.values():
             captain_count = 0
             worker_count = 0
@@ -182,7 +182,7 @@ class Event(Group):
                 elif p.assignment == "worker":
                     string_modifier = f"-{(worker_count % self.number_of_stations) + 1}"
                     worker_count += 1
-                rows.append(
+                work_assignments.append(
                     {
                         "heat": h.number,
                         "name": p.name,
@@ -193,4 +193,4 @@ class Event(Group):
                     }
                 )
 
-        return rows
+        return work_assignments

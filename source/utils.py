@@ -115,7 +115,7 @@ def roles_and_minima(number_of_stations, number_of_novices=1, novice_denominator
     }
 
 
-def autologic_rows_to_csv(rows: list[dict]):
+def autologic_event_to_csv(work_assignments: list[dict]):
     """
     Takes an Event summary list and makes a CSV of it.
 
@@ -128,11 +128,11 @@ def autologic_rows_to_csv(rows: list[dict]):
             fieldnames=["heat", "name", "class", "number", "assignment", "checked_in"],
         )
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(work_assignments)
         print(f"\n  Worker assignment sheet saved to autologic-export.csv")
 
 
-def autologic_rows_to_pdf(rows: list[dict]):
+def autologic_event_to_pdf(work_assignments: list[dict]):
     """
     Takes an Event summary list and makes a PDF of it.
 
@@ -143,7 +143,7 @@ def autologic_rows_to_pdf(rows: list[dict]):
     headers = ["heat", "name", "class", "number", "assignment", "checked_in"]
     display_headers = ["Heat", "Name", "Class", "Number", "Assignment", "Checked In"]
     table_data = [display_headers] + [
-        [str(row[h]).upper() for h in headers] for row in rows
+        [str(row[h]).upper() for h in headers] for row in work_assignments
     ]
 
     # custom canvas to support "Page X of Y" footer
