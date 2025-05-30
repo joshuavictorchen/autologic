@@ -1,9 +1,8 @@
 import csv
 import click
-import re
 from pathlib import Path
 
-autologic_member_attribute_keys = ['instructor', 'timing', 'grid', 'start', 'captain', 'gate', 'special']
+autologic_member_attribute_keys = ['instructor', 'timing', 'grid', 'start', 'captain', 'gate']
 
 msr_to_autologic_member_attribute_map = {
    "Timing & Scoring": 'timing',
@@ -13,17 +12,13 @@ msr_to_autologic_member_attribute_map = {
    "Gate": 'gate'
 }
 
-def get_formatted_member_number(member_number_string):
-    return re.sub("[^0-9]", "", member_number_string)
-
 def map_msr_export_work_assignments_to_autologic(name: str, assignments: list[str]):
     return {
         'name': name,
         'instructor': '',
         **{autologic_attribute_value: "TRUE" if msr_assignment_key in assignments else ""
            for msr_assignment_key, autologic_attribute_value in msr_to_autologic_member_attribute_map.items()
-        },
-        'special': '',
+        }
     }
 
 def map_member_attributes_row_to_dictionary(row: dict[str, str]):
@@ -37,9 +32,8 @@ def load_msr_export(msr_export_path) -> dict[str, dict[str, str]]:
     with open(msr_export_path) as msr_export_file:
         for row in csv.DictReader(msr_export_file):
             member_work_assignment_elections = row["Work Assignment"].split(',') if len(row["Work Assignment"]) else []
-
             member_work_assignment_dictionary.setdefault(
-                get_formatted_member_number(row["Member #"]),
+                row["Member #"],
                 map_msr_export_work_assignments_to_autologic(row["Name"], member_work_assignment_elections)
             )
 
@@ -88,9 +82,6 @@ def main(msr_export_dictionary: dict[str, dict[str, str]], member_attribute_dict
             'name': current_member_row.get('name') or msr_export_row.get('name') or '',
             **{attribute_key: attribute_value for attribute_key, attribute_value in merged_member_attributes.items()}
         }
-
-    for key in updated_member_attributes_dictionary:
-        print(f"{key}: {updated_member_attributes_dictionary[key]}")
 
     with open('private_updated_member_attributes.csv', 'w') as updated_member_attributes_file:
         fields = ['id', 'name'] + autologic_member_attribute_keys
