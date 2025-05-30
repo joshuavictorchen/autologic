@@ -2,7 +2,7 @@ import csv
 import click
 from pathlib import Path
 
-autologic_member_attribute_keys = [
+AUTOLOGIC_MEMBER_ATTRIBUTE_KEYS = [
     "instructor",
     "timing",
     "grid",
@@ -11,7 +11,7 @@ autologic_member_attribute_keys = [
     "gate",
 ]
 
-msr_to_autologic_member_attribute_map = {
+MSR_TO_AUTOLOGIC_MEMBER_ATTRIBUTE_MAP = {
     "Timing & Scoring": "timing",
     "Grid": "grid",
     "Starter": "start",
@@ -37,7 +37,7 @@ def map_msr_export_work_assignments_to_autologic(name: str, assignments: list[st
             autologic_attribute_value: (
                 "TRUE" if msr_assignment_key in assignments else ""
             )
-            for msr_assignment_key, autologic_attribute_value in msr_to_autologic_member_attribute_map.items()
+            for msr_assignment_key, autologic_attribute_value in MSR_TO_AUTOLOGIC_MEMBER_ATTRIBUTE_MAP.items()
         },
     }
 
@@ -52,7 +52,7 @@ def map_member_attributes_row_to_dictionary(row: dict[str, str]):
     """
     return {
         "name": row["name"],
-        **{key: "TRUE" if row[key] else "" for key in autologic_member_attribute_keys},
+        **{key: "TRUE" if row[key] else "" for key in AUTOLOGIC_MEMBER_ATTRIBUTE_KEYS},
     }
 
 
@@ -120,7 +120,7 @@ def merge_member_attributes(
             or member_attributes_dictionary.get(attribute_key) == "TRUE"
             else ""
         )
-        for attribute_key in autologic_member_attribute_keys
+        for attribute_key in AUTOLOGIC_MEMBER_ATTRIBUTE_KEYS
     }
 
 
@@ -152,10 +152,10 @@ def main(
     all_member_ids = msr_export_dictionary.keys() | member_attribute_dictionary.keys()
     for member_id in all_member_ids:
         current_member_row = member_attribute_dictionary.get(
-            member_id, {key: "" for key in autologic_member_attribute_keys}
+            member_id, {key: "" for key in AUTOLOGIC_MEMBER_ATTRIBUTE_KEYS}
         )
         msr_export_row = msr_export_dictionary.get(
-            member_id, {key: "" for key in autologic_member_attribute_keys}
+            member_id, {key: "" for key in AUTOLOGIC_MEMBER_ATTRIBUTE_KEYS}
         )
 
         merged_member_attributes = merge_member_attributes(
@@ -173,7 +173,7 @@ def main(
     with open(
         "private_updated_member_attributes.csv", "w"
     ) as updated_member_attributes_file:
-        fields = ["id", "name"] + autologic_member_attribute_keys
+        fields = ["id", "name"] + AUTOLOGIC_MEMBER_ATTRIBUTE_KEYS
         writer = csv.DictWriter(updated_member_attributes_file, fieldnames=fields)
         writer.writeheader()
 
