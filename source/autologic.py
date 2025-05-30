@@ -28,7 +28,7 @@ def randomize_heats(event, number_of_heats):
     categories = list(event.categories.values())
     random.shuffle(categories)
     for i, c in enumerate(categories):
-        c.set_heat(i % number_of_heats)
+        c.set_heat(i % number_of_heats + 1)
 
 
 class Config(BaseModel):
@@ -315,10 +315,10 @@ def main(
             #       same with workers
             string_modifier = ""
             if p.assignment == "captain":
-                string_modifier = f"-{captain_count}"
+                string_modifier = f"-{captain_count + 1}"
                 captain_count += 1
             elif p.assignment == "worker":
-                string_modifier = f"-{worker_count % number_of_stations}"
+                string_modifier = f"-{(worker_count % number_of_stations) + 1}"
                 worker_count += 1
             rows.append(
                 {

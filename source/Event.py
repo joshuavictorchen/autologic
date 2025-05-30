@@ -150,6 +150,6 @@ class Event(Group):
         Creates heat containers for scheduling.
 
         Returns:
-            dict[int, Heat]: Mapping of heat number to Heat objects.
+            dict[int, Heat]: Mapping of 1-indexed heat number to Heat objects.
         """
-        return {i: Heat(self, i) for i in range(number_of_heats)}
+        return {i + 1: Heat(self, i + 1) for i in range(number_of_heats)}
