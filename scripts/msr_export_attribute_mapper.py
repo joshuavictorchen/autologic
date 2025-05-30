@@ -63,7 +63,7 @@ def merge_member_attributes(member_msr_export_attributes: dict[str, str], member
     "--member_attributes_csv",
     type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
     required=True,
-    help="Path to the MSR export csv file.",
+    help="Path to the member attributes csv file.",
 )
 
 def cli(msr_export_csv: Path, member_attributes_csv: Path):
