@@ -13,6 +13,15 @@ msr_to_autologic_member_attribute_map = {
 }
 
 def map_msr_export_work_assignments_to_autologic(name: str, assignments: list[str]):
+    """
+    Converts work assignments from an MSR export to the autologic member attribute names
+
+    Args:
+        name (str): The name of the registrant
+        assignments (list[str]): A list of work assignments they've elected in MSR
+    Returns:
+        dict[str, str]: The autologic member attributes with their name and empty strings for unelected attributes
+    """
     return {
         'name': name,
         'instructor': '',
@@ -22,12 +31,26 @@ def map_msr_export_work_assignments_to_autologic(name: str, assignments: list[st
     }
 
 def map_member_attributes_row_to_dictionary(row: dict[str, str]):
+    """
+    Converts an autologic member attribute row to a dictionary
+    Args:
+        row (dict[str, str]): The autologic member attribute row
+    Returns:
+        dict[str, str]: The autologic member attribute dictionary
+    """
     return {
         'name': row['name'],
         **{key: "TRUE" if row[key] else "" for key in autologic_member_attribute_keys}
     }
 
 def load_msr_export(msr_export_path) -> dict[str, dict[str, str]]:
+    """
+    Loads the MSR export into a dictionary of Member # -> dictionary in the autologic member attribute row format
+    Args:
+        msr_export_path (Path): The path to the MSR export file, passed in by cli argument
+    Returns:
+        dict[str, dict[str, str]]: Format of Member # -> Dictionary of elected work assignments in the autologic member attribute row format
+    """
     member_work_assignment_dictionary = {}
     with open(msr_export_path) as msr_export_file:
         for row in csv.DictReader(msr_export_file):
@@ -40,6 +63,13 @@ def load_msr_export(msr_export_path) -> dict[str, dict[str, str]]:
     return member_work_assignment_dictionary
 
 def load_member_attributes_csv(path) -> dict[str, dict[str, str]]:
+    """
+    Loads the autologic member attributes csv into a dictionary of member # -> dictionary in the autologic member attribute row format
+    Args:
+        path (Path): The path to the autologic member attribute csv file passed in by cli argument
+    Returns:
+        dict[str, dict[str, str]] of member # -> dictionary in the autologic member attribute row format
+    """
     member_attributes_dictionary = {}
     with open(path) as member_attributes_file:
         for row in csv.DictReader(member_attributes_file):
@@ -48,6 +78,17 @@ def load_member_attributes_csv(path) -> dict[str, dict[str, str]]:
     return member_attributes_dictionary
 
 def merge_member_attributes(member_msr_export_attributes: dict[str, str], member_attributes_dictionary: dict[str, str]) -> dict[str, str]:
+    """
+    Consolidates the MSR export work assignment elections with current member attributes into one row, this will add new
+    work attributes but not remove any existing ones.
+
+    Args:
+        member_msr_export_attributes (dict[str, str]): The MSR work assignment elections in autologic member attribute row format
+        member_attributes_dictionary (dict[str, str]): The autologic member attribute row
+
+    Returns:
+        dict[str, str]: The updated autologic member attribute row
+    """
     return {attribute_key: "TRUE" if member_msr_export_attributes.get(attribute_key) == "TRUE" or member_attributes_dictionary.get(attribute_key) == "TRUE" else ""
             for attribute_key in autologic_member_attribute_keys}
 
