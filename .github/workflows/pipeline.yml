@@ -32,7 +32,7 @@ jobs:
 
       - name: Build .exe with PyInstaller
         run: |
-          pyinstaller --onefile source/autologic.py --name autologic
+          pyinstaller --onefile source/cli.py --name autologic
 
       - name: Flatten release files
         run: |
