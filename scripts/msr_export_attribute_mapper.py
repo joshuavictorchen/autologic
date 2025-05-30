@@ -2,15 +2,23 @@ import csv
 import click
 from pathlib import Path
 
-autologic_member_attribute_keys = ['instructor', 'timing', 'grid', 'start', 'captain', 'gate']
+autologic_member_attribute_keys = [
+    "instructor",
+    "timing",
+    "grid",
+    "start",
+    "captain",
+    "gate",
+]
 
 msr_to_autologic_member_attribute_map = {
-   "Timing & Scoring": 'timing',
-   "Grid": 'grid',
-   "Starter": 'start',
-   "Corner Captain": 'captain',
-   "Gate": 'gate'
+    "Timing & Scoring": "timing",
+    "Grid": "grid",
+    "Starter": "start",
+    "Corner Captain": "captain",
+    "Gate": "gate",
 }
+
 
 def map_msr_export_work_assignments_to_autologic(name: str, assignments: list[str]):
     """
@@ -23,12 +31,16 @@ def map_msr_export_work_assignments_to_autologic(name: str, assignments: list[st
         dict[str, str]: The autologic member attributes with their name and empty strings for unelected attributes
     """
     return {
-        'name': name,
-        'instructor': '',
-        **{autologic_attribute_value: "TRUE" if msr_assignment_key in assignments else ""
-           for msr_assignment_key, autologic_attribute_value in msr_to_autologic_member_attribute_map.items()
-        }
+        "name": name,
+        "instructor": "",
+        **{
+            autologic_attribute_value: (
+                "TRUE" if msr_assignment_key in assignments else ""
+            )
+            for msr_assignment_key, autologic_attribute_value in msr_to_autologic_member_attribute_map.items()
+        },
     }
+
 
 def map_member_attributes_row_to_dictionary(row: dict[str, str]):
     """
@@ -39,9 +51,10 @@ def map_member_attributes_row_to_dictionary(row: dict[str, str]):
         dict[str, str]: The autologic member attribute dictionary
     """
     return {
-        'name': row['name'],
-        **{key: "TRUE" if row[key] else "" for key in autologic_member_attribute_keys}
+        "name": row["name"],
+        **{key: "TRUE" if row[key] else "" for key in autologic_member_attribute_keys},
     }
+
 
 def load_msr_export(msr_export_path) -> dict[str, dict[str, str]]:
     """
@@ -54,13 +67,18 @@ def load_msr_export(msr_export_path) -> dict[str, dict[str, str]]:
     member_work_assignment_dictionary = {}
     with open(msr_export_path) as msr_export_file:
         for row in csv.DictReader(msr_export_file):
-            member_work_assignment_elections = row["Work Assignment"].split(',') if len(row["Work Assignment"]) else []
+            member_work_assignment_elections = (
+                row["Work Assignment"].split(",") if len(row["Work Assignment"]) else []
+            )
             member_work_assignment_dictionary.setdefault(
                 row["Member #"],
-                map_msr_export_work_assignments_to_autologic(row["Name"], member_work_assignment_elections)
+                map_msr_export_work_assignments_to_autologic(
+                    row["Name"], member_work_assignment_elections
+                ),
             )
 
     return member_work_assignment_dictionary
+
 
 def load_member_attributes_csv(path) -> dict[str, dict[str, str]]:
     """
@@ -73,11 +91,17 @@ def load_member_attributes_csv(path) -> dict[str, dict[str, str]]:
     member_attributes_dictionary = {}
     with open(path) as member_attributes_file:
         for row in csv.DictReader(member_attributes_file):
-            member_attributes_dictionary.setdefault(row["id"], map_member_attributes_row_to_dictionary(row))
+            member_attributes_dictionary.setdefault(
+                row["id"], map_member_attributes_row_to_dictionary(row)
+            )
 
     return member_attributes_dictionary
 
-def merge_member_attributes(member_msr_export_attributes: dict[str, str], member_attributes_dictionary: dict[str, str]) -> dict[str, str]:
+
+def merge_member_attributes(
+    member_msr_export_attributes: dict[str, str],
+    member_attributes_dictionary: dict[str, str],
+) -> dict[str, str]:
     """
     Consolidates the MSR export work assignment elections with current member attributes into one row, this will add new
     work attributes but not remove any existing ones.
@@ -89,8 +113,15 @@ def merge_member_attributes(member_msr_export_attributes: dict[str, str], member
     Returns:
         dict[str, str]: The updated autologic member attribute row
     """
-    return {attribute_key: "TRUE" if member_msr_export_attributes.get(attribute_key) == "TRUE" or member_attributes_dictionary.get(attribute_key) == "TRUE" else ""
-            for attribute_key in autologic_member_attribute_keys}
+    return {
+        attribute_key: (
+            "TRUE"
+            if member_msr_export_attributes.get(attribute_key) == "TRUE"
+            or member_attributes_dictionary.get(attribute_key) == "TRUE"
+            else ""
+        )
+        for attribute_key in autologic_member_attribute_keys
+    }
 
 
 @click.command(context_settings={"max_content_width": 120})
@@ -106,26 +137,43 @@ def merge_member_attributes(member_msr_export_attributes: dict[str, str], member
     required=True,
     help="Path to the member attributes csv file.",
 )
-
 def cli(msr_export_csv: Path, member_attributes_csv: Path):
-    main(load_msr_export(msr_export_csv), load_member_attributes_csv(member_attributes_csv))
+    main(
+        load_msr_export(msr_export_csv),
+        load_member_attributes_csv(member_attributes_csv),
+    )
 
-def main(msr_export_dictionary: dict[str, dict[str, str]], member_attribute_dictionary: dict[str, dict[str, str]]) -> None:
+
+def main(
+    msr_export_dictionary: dict[str, dict[str, str]],
+    member_attribute_dictionary: dict[str, dict[str, str]],
+) -> None:
     updated_member_attributes_dictionary = {}
     all_member_ids = msr_export_dictionary.keys() | member_attribute_dictionary.keys()
     for member_id in all_member_ids:
-        current_member_row = member_attribute_dictionary.get(member_id, {key: '' for key in autologic_member_attribute_keys})
-        msr_export_row = msr_export_dictionary.get(member_id, {key: '' for key in autologic_member_attribute_keys})
+        current_member_row = member_attribute_dictionary.get(
+            member_id, {key: "" for key in autologic_member_attribute_keys}
+        )
+        msr_export_row = msr_export_dictionary.get(
+            member_id, {key: "" for key in autologic_member_attribute_keys}
+        )
 
-        merged_member_attributes = merge_member_attributes(msr_export_row, current_member_row)
+        merged_member_attributes = merge_member_attributes(
+            msr_export_row, current_member_row
+        )
         updated_member_attributes_dictionary[member_id] = {
-            'id': member_id,
-            'name': current_member_row.get('name') or msr_export_row.get('name') or '',
-            **{attribute_key: attribute_value for attribute_key, attribute_value in merged_member_attributes.items()}
+            "id": member_id,
+            "name": current_member_row.get("name") or msr_export_row.get("name") or "",
+            **{
+                attribute_key: attribute_value
+                for attribute_key, attribute_value in merged_member_attributes.items()
+            },
         }
 
-    with open('private_updated_member_attributes.csv', 'w') as updated_member_attributes_file:
-        fields = ['id', 'name'] + autologic_member_attribute_keys
+    with open(
+        "private_updated_member_attributes.csv", "w"
+    ) as updated_member_attributes_file:
+        fields = ["id", "name"] + autologic_member_attribute_keys
         writer = csv.DictWriter(updated_member_attributes_file, fieldnames=fields)
         writer.writeheader()
 
