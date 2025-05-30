@@ -299,7 +299,7 @@ def main(
     print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
 
     # export data
-    rows = event.export_summary()
+    rows = event.get_summary()
     utils.autologic_rows_to_csv(rows)
     utils.autologic_rows_to_pdf(rows)
     print()

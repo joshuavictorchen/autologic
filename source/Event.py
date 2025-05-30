@@ -154,7 +154,12 @@ class Event(Group):
         """
         return {i + 1: Heat(self, i + 1) for i in range(number_of_heats)}
 
-    def export_summary(self):
+    def get_summary(self):
+        """
+        Returns a list of dicts that describe each participant in the event, and their assignments.
+
+        TODO: flesh out docs
+        """
 
         if self.no_shows:
             print(
