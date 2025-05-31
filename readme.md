@@ -32,7 +32,7 @@ All names found in the sample files and documentation within this repository are
 
 ## Sample PDF output
 
-![sample-report](./docs/images/sample-report.png)
+![sample-report](./docs/images/sample-report.png | width=600)
 
 ## Sample execution
 
