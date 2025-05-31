@@ -23,7 +23,7 @@ heat_size_parity: 25
 novice_size_parity: 10
 
 # Min instructors in heat = novices / denominator.
-novice_denominator: 3
+novice_denominator: 4
 
 # Maximum number of attempts to be made by the program.
 max_iterations: 10000

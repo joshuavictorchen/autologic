@@ -29,6 +29,7 @@ class Event(Group):
         )
         self.categories = self.load_categories()
         self.heats = self.load_heats(number_of_heats)
+        self.number_of_heats = number_of_heats
 
     @property
     def max_name_length(self):
@@ -194,3 +195,20 @@ class Event(Group):
                 )
 
         return work_assignments
+
+    def get_heat_assignments(self):
+
+        work_offset = 2 if self.number_of_heats > 4 else 1
+
+        heat_assignments = []
+        for i, h in enumerate(self.heats.values()):
+
+            running_heat = (i % self.number_of_heats) + 1
+            working_heat = (running_heat + work_offset) % self.number_of_heats + 1
+
+            this_heat = f"Running {running_heat} | Working {working_heat}"
+            these_classes = ", ".join([i.name for i in h.categories])
+
+            heat_assignments.append([this_heat, these_classes])
+
+        return heat_assignments

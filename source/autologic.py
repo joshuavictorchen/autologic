@@ -211,6 +211,9 @@ def main(
 
     # export data
     work_assignments = event.get_work_assignments()
+    heat_assignments = event.get_heat_assignments()
     utils.autologic_event_to_csv(work_assignments)
-    utils.autologic_event_to_pdf(work_assignments)
+    utils.autologic_event_to_pdf(
+        work_assignments=work_assignments, heat_assignments=heat_assignments
+    )
     print()
