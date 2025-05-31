@@ -197,6 +197,11 @@ class Event(Group):
         return work_assignments
 
     def get_heat_assignments(self):
+        """
+        Returns a list of lists that describe each heat in the event, and their categories.
+
+        TODO: flesh out docs
+        """
 
         work_offset = 2 if self.number_of_heats > 4 else 1
 

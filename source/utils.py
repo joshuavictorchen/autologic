@@ -14,6 +14,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
+# TODO: make these configurable
 MIN_INSTRUCTOR_PER_HEAT = 3  # this is modified in roles_and_minima()
 MIN_TIMING_PER_HEAT = 2
 MIN_START_PER_HEAT = 1
@@ -139,6 +140,9 @@ def autologic_event_to_pdf(work_assignments: list[dict], heat_assignments: list[
     TODO: flesh out docs
     """
 
+    # TODO: this last-minute semi-hardcoded function gets the job done but is quite shameful as-is
+    #       it should probably be split between here and the Event class
+
     # define column orders
     headers = ["heat", "name", "class", "number", "assignment", "checked_in"]
     display_headers = ["Heat", "Name", "Class", "Number", "Assignment", "Checked In"]
@@ -230,7 +234,7 @@ def autologic_event_to_pdf(work_assignments: list[dict], heat_assignments: list[
 
     # shoved in at the last minute; standardize and refactor
 
-    # Heat/class table styling
+    # heat/class table styling
     heat_class_rows = [["Heat", "Classes"]] + heat_assignments
 
     heat_col_widths = compute_scaled_col_widths(
