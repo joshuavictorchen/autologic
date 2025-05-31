@@ -29,6 +29,7 @@ class Event(Group):
         )
         self.categories = self.load_categories()
         self.heats = self.load_heats(number_of_heats)
+        self.number_of_heats = number_of_heats
 
     @property
     def max_name_length(self):
@@ -154,7 +155,7 @@ class Event(Group):
         """
         return {i + 1: Heat(self, i + 1) for i in range(number_of_heats)}
 
-    def get_summary(self):
+    def get_work_assignments(self):
         """
         Returns a list of dicts that describe each participant in the event, and their assignments.
 
@@ -167,7 +168,7 @@ class Event(Group):
             )
             [print(f"  - {i}") for i in self.no_shows]
 
-        rows = []
+        work_assignments = []
         for h in self.heats.values():
             captain_count = 0
             worker_count = 0
@@ -182,7 +183,7 @@ class Event(Group):
                 elif p.assignment == "worker":
                     string_modifier = f"-{(worker_count % self.number_of_stations) + 1}"
                     worker_count += 1
-                rows.append(
+                work_assignments.append(
                     {
                         "heat": h.number,
                         "name": p.name,
@@ -193,4 +194,21 @@ class Event(Group):
                     }
                 )
 
-        return rows
+        return work_assignments
+
+    def get_heat_assignments(self):
+
+        work_offset = 2 if self.number_of_heats > 4 else 1
+
+        heat_assignments = []
+        for i, h in enumerate(self.heats.values()):
+
+            running_heat = (i % self.number_of_heats) + 1
+            working_heat = (running_heat + work_offset) % self.number_of_heats + 1
+
+            this_heat = f"Running {running_heat} | Working {working_heat}"
+            these_classes = ", ".join([i.name for i in h.categories])
+
+            heat_assignments.append([this_heat, these_classes])
+
+        return heat_assignments

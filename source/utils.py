@@ -115,7 +115,7 @@ def roles_and_minima(number_of_stations, number_of_novices=1, novice_denominator
     }
 
 
-def autologic_rows_to_csv(rows: list[dict]):
+def autologic_event_to_csv(work_assignments: list[dict]):
     """
     Takes an Event summary list and makes a CSV of it.
 
@@ -128,11 +128,11 @@ def autologic_rows_to_csv(rows: list[dict]):
             fieldnames=["heat", "name", "class", "number", "assignment", "checked_in"],
         )
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(work_assignments)
         print(f"\n  Worker assignment sheet saved to autologic-export.csv")
 
 
-def autologic_rows_to_pdf(rows: list[dict]):
+def autologic_event_to_pdf(work_assignments: list[dict], heat_assignments: list[list]):
     """
     Takes an Event summary list and makes a PDF of it.
 
@@ -143,7 +143,7 @@ def autologic_rows_to_pdf(rows: list[dict]):
     headers = ["heat", "name", "class", "number", "assignment", "checked_in"]
     display_headers = ["Heat", "Name", "Class", "Number", "Assignment", "Checked In"]
     table_data = [display_headers] + [
-        [str(row[h]).upper() for h in headers] for row in rows
+        [str(row[h]).upper() for h in headers] for row in work_assignments
     ]
 
     # custom canvas to support "Page X of Y" footer
@@ -228,9 +228,39 @@ def autologic_rows_to_pdf(rows: list[dict]):
         )
     )
 
+    # shoved in at the last minute; standardize and refactor
+
+    # Heat/class table styling
+    heat_class_rows = [["Heat", "Classes"]] + heat_assignments
+
+    heat_col_widths = compute_scaled_col_widths(
+        data=heat_class_rows,
+        font_name="Courier",
+        font_size=9,
+        padding=12,
+        total_width=available_width,
+    )
+
+    heat_class_table = Table(heat_class_rows, colWidths=heat_col_widths, repeatRows=1)
+
+    heat_class_table.setStyle(
+        TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                ("ALIGN", (0, 0), (0, -1), "LEFT"),  # Left column left
+                ("ALIGN", (1, 0), (1, -1), "LEFT"),  # Right column left
+                ("FONTNAME", (0, 0), (-1, 0), "Courier-Bold"),  # Only header row bold
+                ("FONTNAME", (0, 1), (-1, -1), "Courier"),  # Body rows normal
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ]
+        )
+    )
+
     # build document
     elements = [
         Paragraph("Autologic Worker Assignments", styles["Title"]),
+        heat_class_table,
         Spacer(1, 6),
         table,
     ]

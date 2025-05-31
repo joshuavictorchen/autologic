@@ -210,7 +210,10 @@ def main(
     print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
 
     # export data
-    rows = event.get_summary()
-    utils.autologic_rows_to_csv(rows)
-    utils.autologic_rows_to_pdf(rows)
+    work_assignments = event.get_work_assignments()
+    heat_assignments = event.get_heat_assignments()
+    utils.autologic_event_to_csv(work_assignments)
+    utils.autologic_event_to_pdf(
+        work_assignments=work_assignments, heat_assignments=heat_assignments
+    )
     print()
