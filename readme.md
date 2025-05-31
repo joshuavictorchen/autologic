@@ -9,8 +9,6 @@ The default algorithm loads an `Event`, randomly assigns `Categories` to `Heats`
 > [!NOTE]
 > **This is a minimum viable prototype product.** The main code is untested spaghetti. The documentation is simply this README file. It will be cleaned and made more generally applicable after it's gained some field experience at actual events.
 
-All names found in the sample files and documentation within this repository are fictional and have been randomly generated.
-
 ## Retrieval and usage
 
 1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/).
@@ -30,11 +28,16 @@ All names found in the sample files and documentation within this repository are
 
 - Novice distribution across heats is constrained to `mean_novice_count` of the `Event` +/- a `max_novice_delta`, which can be tuned in the configuration file.
 
-## Sample PDF output
+## Examples
+
+> [!NOTE]
+> All names in this project are fictional and randomly generated.
+
+### PDF output
 
 <img src="./docs/images/sample-report.png" width="600">
 
-## Sample execution
+### Code execution
 
 ```powershell
 (autologic) PS C:\codes\autologic> .\dist\autologic.exe --config .\dist\sample_event_config.yaml
