@@ -50,6 +50,7 @@ class Participant:
         )
 
         # hotfix: don't allow novices to have specialized roles
+        # TODO: clean this or add warnings
         if self.novice:
             self.grid = False
             self.instructor = False

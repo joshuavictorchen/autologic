@@ -1,4 +1,5 @@
 click
 pydantic
 pyyaml
+pyinstaller
 reportlab
