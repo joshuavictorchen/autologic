@@ -24,9 +24,9 @@ The default algorithm loads an `Event`, randomly assigns `Categories` to `Heats`
   - The minimum number of instructors in a heat is equal to `number_of_novices` divided `novice_denominator`, or `MIN_INSTRUCTOR_PER_HEAT`, whichever is greater.
   - The minimum number of corner captains in a heat is equal to `number_of_stations`.
 
-- Heat sizes are constrained to `mean_group_size` of the `Event` +/- a `max_group_delta`, which can be tuned in the configuration file.
+- Heat sizes are constrained to `mean_heat_size` of the `Event` +/- a `max_heat_size_delta`, which can be tuned in the configuration file.
 
-- Novice distribution across heats is constrained to `mean_novice_count` of the `Event` +/- a `max_novice_delta`, which can be tuned in the configuration file.
+- Novice distribution across heats is constrained to `mean_heat_novice_count` of the `Event` +/- a `max_heat_novice_delta`, which can be tuned in the configuration file.
 
 ## Examples
 

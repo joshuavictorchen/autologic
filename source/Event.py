@@ -13,6 +13,7 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
 import csv
+import math
 import random
 import utils
 from Category import Category
@@ -36,6 +37,9 @@ class Event(Group):
         custom_assignments: dict[str, str | list[str]],
         number_of_heats: int,
         number_of_stations: int,
+        heat_size_parity: int,
+        novice_size_parity: int,
+        novice_denominator: int,
     ):
         self.number_of_stations = number_of_stations
         self.participants, self.no_shows = self.load_participants(
@@ -44,6 +48,23 @@ class Event(Group):
         self.categories = self.load_categories()
         self.heats = self.load_heats(number_of_heats)
         self.number_of_heats = number_of_heats
+        self.heat_size_parity = heat_size_parity
+        self.novice_size_parity = novice_size_parity
+        self.novice_denominator = novice_denominator
+
+        # raise an error if event does not have enough qualified participants to fill each role
+        self.check_role_minima()
+
+        # calculate heat size restrictions for total participants and novices
+        self.mean_heat_size = round(len(self.participants) / number_of_heats)
+        self.max_heat_size_delta = math.ceil(len(self.participants) / heat_size_parity)
+
+        self.mean_heat_novice_count = round(
+            len(self.get_participants_by_attribute("novice")) / number_of_heats
+        )
+        self.max_heat_novice_delta = math.ceil(
+            len(self.get_participants_by_attribute("novice")) / novice_size_parity
+        )
 
     @property
     def max_name_length(self):
@@ -169,6 +190,31 @@ class Event(Group):
         """
         return {i + 1: Heat(self, i + 1) for i in range(number_of_heats)}
 
+    def check_role_minima(self):
+
+        # check if the event has enough qualified participants to fill each role
+        print("\n  Role minimums")
+        print("  -------------")
+        insufficient = False
+        for role, minimum in utils.roles_and_minima(
+            number_of_stations=self.number_of_stations,
+            number_of_novices=len(self.get_participants_by_attribute("novice"))
+            / self.number_of_heats,
+            novice_denominator=self.novice_denominator,
+        ).items():
+            qualified = len(self.get_participants_by_attribute(role))
+            required = minimum * self.number_of_heats
+            warning = (
+                " <-- NOT ENOUGH QUALIFIED WORKERS" if qualified < required else ""
+            )
+            if qualified < required:
+                insufficient = True
+            print(
+                f"  {role.rjust(10)}: {str(qualified).rjust(2)} / {required}{warning}"
+            )
+        if insufficient:
+            raise ValueError("Not enough qualified workers for role(s).")
+
     def get_work_assignments(self):
         """
         Returns a list of dicts that describe each participant in the event, and their assignments.
@@ -177,12 +223,6 @@ class Event(Group):
 
         TODO: flesh out docs
         """
-
-        if self.no_shows:
-            print(
-                f"\n  The following individuals have not checked in and are therefore excluded:\n"
-            )
-            [print(f"  - {i}") for i in self.no_shows]
 
         work_assignments = []
         for h in self.heats.values():
@@ -263,7 +303,6 @@ class Event(Group):
         """
 
         # TODO: this last-minute semi-hardcoded function gets the job done but is quite shameful as-is
-        #       it should probably be split between here and the Event class
 
         # define column orders
         headers = ["heat", "name", "class", "number", "assignment", "checked_in"]

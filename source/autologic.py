@@ -1,4 +1,3 @@
-import math
 import random
 
 import utils
@@ -46,39 +45,9 @@ def main(
         },  # ensure all keys are str
         number_of_heats=number_of_heats,
         number_of_stations=number_of_stations,
-    )
-
-    # check if the event has enough qualified participants to fill each role
-    print("\n  Role minimums")
-    print("  -------------")
-    insufficient = False
-    role_ratios = {}
-    for role, minimum in utils.roles_and_minima(
-        number_of_stations=number_of_stations,
-        number_of_novices=len(event.get_participants_by_attribute("novice"))
-        / number_of_heats,
+        heat_size_parity=heat_size_parity,
+        novice_size_parity=novice_size_parity,
         novice_denominator=novice_denominator,
-    ).items():
-        qualified = len(event.get_participants_by_attribute(role))
-        required = minimum * number_of_heats
-        role_ratios[role] = (
-            qualified / required if required > 0 else 100
-        )  # arbitrarily large
-        warning = " <-- NOT ENOUGH QUALIFIED WORKERS" if qualified < required else ""
-        if qualified < required:
-            insufficient = True
-        print(f"  {role.rjust(10)}: {str(qualified).rjust(2)} / {required}{warning}")
-    if insufficient:
-        raise ValueError("Not enough qualified workers for role(s).")
-
-    # calculate heat size restrictions for total participants and novices
-    mean_group_size = round(len(event.participants) / number_of_heats)
-    max_group_delta = math.ceil(len(event.participants) / heat_size_parity)
-    mean_novice_count = round(
-        len(event.get_participants_by_attribute("novice")) / number_of_heats
-    )
-    max_novice_delta = math.ceil(
-        len(event.get_participants_by_attribute("novice")) / novice_size_parity
     )
 
     # keep randomizing heats until all criteria are met (lol)
@@ -95,8 +64,12 @@ def main(
 
         randomize_heats(event, number_of_heats)
 
-        print(f"\n  Heat size must be {mean_group_size} +/- {max_group_delta}")
-        print(f"  Novice count must be {mean_novice_count} +/- {max_novice_delta}")
+        print(
+            f"\n  Heat size must be {event.mean_heat_size} +/- {event.max_heat_size_delta}"
+        )
+        print(
+            f"  Novice count must be {event.mean_heat_novice_count} +/- {event.max_heat_novice_delta}"
+        )
 
         # clear assignments from the previous iteration
         # TODO: make a p.clear_assignment() function that handles this and other logic trees
@@ -112,7 +85,7 @@ def main(
 
             # check total heat size constraints
             heat_size = len(h.participants)
-            if abs(mean_group_size - heat_size) > max_group_delta:
+            if abs(event.mean_heat_size - heat_size) > event.max_heat_size_delta:
                 rules_satisfied = False
                 skip_iteration = True
                 print(f"\n  Heat {h} rejected: participant count of {heat_size}")
@@ -120,7 +93,10 @@ def main(
 
             # check heat novice count constraints
             novice_count = len(h.get_participants_by_attribute("novice"))
-            if abs(mean_novice_count - novice_count) > max_novice_delta:
+            if (
+                abs(event.mean_heat_novice_count - novice_count)
+                > event.max_heat_novice_delta
+            ):
                 rules_satisfied = False
                 skip_iteration = True
                 print(f"\n  Heat {h} rejected: novice count of {novice_count}")
@@ -208,6 +184,12 @@ def main(
         exit(1)
 
     print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
+
+    if event.no_shows:
+        print(
+            f"\n  The following individuals have not checked in and are therefore excluded:\n"
+        )
+        [print(f"  - {i}") for i in event.no_shows]
 
     # export data
     event.to_csv()
