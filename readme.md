@@ -6,20 +6,6 @@ It provides a framework that may be used to assign `Categories` (car classes) to
 
 The default algorithm loads an `Event`, randomly assigns `Categories` to `Heats`, checks against acceptance criteria (can all `Roles` be filled within each `Heat`; do all `Heats` contain a similar number of `Participants`; are Novices evenly distributed across `Heats`; etc.), and keeps iterating until all criteria are met.
 
-> [!NOTE]
-> **This is a minimum viable prototype product.** The main code is untested spaghetti. The documentation is simply this README file. It will be cleaned and made more generally applicable after it's gained some field experience at actual events.
-
-## Retrieval and usage
-
-1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/).
-
-2. Open a terminal window and execute `.\path\to\autologic.exe --config .\path\to\config_file.yaml` to generate heat and worker assignments for a set of configured parameters.
-
-### Notes
-
-- See [sample_event_config.yaml](./tests/sample_event_config.yaml) for an example of a configuration file.
-  - See [sample_axware_export.tsv](./tests/sample_axware_export.tsv) (pulled from AXWare) and [sample_member_attributes.csv](./tests/sample_member_attributes.csv) (maintained by worker coordinators) for examples of the expected input data structures.
-
 - The dictionary of roles and their minimum requirements per heat is semi-hardcoded in [utils.py](./source/utils.py)'s `roles_and_minima` definition:
   - The minimum number of instructors in a heat is equal to `number_of_novices` divided `novice_denominator`, or `MIN_INSTRUCTOR_PER_HEAT`, whichever is greater.
   - The minimum number of corner captains in a heat is equal to `number_of_stations`.
@@ -27,6 +13,31 @@ The default algorithm loads an `Event`, randomly assigns `Categories` to `Heats`
 - Heat sizes are constrained to `mean_heat_size` of the `Event` +/- a `max_heat_size_delta`, which can be tuned in the configuration file.
 
 - Novice distribution across heats is constrained to `mean_heat_novice_count` of the `Event` +/- a `max_heat_novice_delta`, which can be tuned in the configuration file.
+
+> [!NOTE]
+> **This is a minimum viable prototype product.** The documentation is simply this README file. It will be cleaned and made more generally applicable after it's gained some field experience at actual events.
+
+## Retrieval and usage
+
+1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/).
+
+2. Open a terminal window and execute `.\path\to\autologic.exe --config .\path\to\config_file.yaml --algorithm name_of_module` to generate heat and worker assignments for a set of configured parameters.
+
+    - See [sample_event_config.yaml](./tests/sample_event_config.yaml) for an example of a configuration file.
+    - See [sample_axware_export.tsv](./tests/sample_axware_export.tsv) (pulled from AXWare) and [sample_member_attributes.csv](./tests/sample_member_attributes.csv) (maintained by worker coordinators) for examples of the expected input data structures.
+    - If no `--algorithm` argument is provided, [randomize.py](./source/algorithms/randomize.py) is used by default.
+
+## Contributing
+
+We've made it easy to add your own algorithms:
+
+- Algorithms receive a pre-instantiated `Event` and must assign `Categories` to `Heats`, and assign roles to all `Participants` by mutating the `Event` within a `generate()` function.
+
+  - See how the `generate()` function is called in [autologic.py](./source/autologic.py).
+
+- Any class in `./source/algorithms` decorated with `@register` is auto-discovered and exposed as an `--algorithm` choice in the CLI.
+
+  - See [example.py](./source/algorithms/example.py) for a sample scaffold.
 
 ## Examples
 

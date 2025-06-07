@@ -1,9 +1,8 @@
 import click
-import csv
 import yaml
 
 import autologic
-import utils
+from algorithms import get_algorithms
 
 from pathlib import Path
 from pydantic import BaseModel, Field, ValidationError
@@ -70,9 +69,15 @@ def load_config(ctx, param, value: Path) -> Config:
     required=True,
     help="Path to event configuration file.",
 )
-def cli(config: dict):
+@click.option(
+    "--algorithm",
+    type=click.Choice(list(get_algorithms().keys())),
+    default="randomize",
+    help="Which heat generation algorithm to use.",
+)
+def cli(config: dict, algorithm: str):
 
-    autologic.main(**config.model_dump())
+    autologic.main(algorithm=algorithm, **config.model_dump())
 
 
 if __name__ == "__main__":

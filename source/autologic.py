@@ -1,7 +1,9 @@
 from Event import Event
+from algorithms import get_algorithms
 
 
 def main(
+    algorithm,
     axware_export_tsv,
     member_attributes_csv,
     number_of_heats,
@@ -27,11 +29,12 @@ def main(
         novice_denominator=novice_denominator,
     )
 
-    # TODO: add hooks here and have the algorithm module supplied as an arg
-    # for now, just hard-code as if it's a regular import
-    from algorithms import randomize
-
-    randomize.generate_heats(event, max_iterations)
+    # get the algorithms
+    algos = get_algorithms()
+    if algorithm not in algos:
+        raise ValueError(f"Unknown algorithm: {algorithm}")
+    this_algorithm = algos[algorithm]()  # instantiate
+    this_algorithm.generate(event, max_iterations)
 
     # export data
     if event.no_shows:
