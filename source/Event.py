@@ -203,7 +203,7 @@ class Event(Group):
         TODO: flesh out docs
         """
 
-        work_offset = 2 if self.number_of_heats > 4 else 1
+        work_offset = 5 if self.number_of_heats >= 4 else 3
 
         heat_assignments = []
         for i, h in enumerate(self.heats.values()):
