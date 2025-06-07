@@ -52,7 +52,7 @@ jobs:
 
       - name: Build .exe with PyInstaller
         run: |
-          pyinstaller --onefile --collect-submodules=algorithms --name autologic source/cli.py
+          pyinstaller --onefile source/cli.py --name autologic
 
       - name: Flatten release files
         run: |
