@@ -203,13 +203,13 @@ class Event(Group):
         TODO: flesh out docs
         """
 
-        work_offset = 2 if self.number_of_heats > 4 else 1
+        work_offset = 5 if self.number_of_heats >= 4 else 3
 
         heat_assignments = []
         for i, h in enumerate(self.heats.values()):
 
             running_heat = (i % self.number_of_heats) + 1
-            working_heat = (running_heat + work_offset) % self.number_of_heats + 1
+            working_heat = abs(running_heat + work_offset) % self.number_of_heats + 1
 
             this_heat = f"Running {running_heat} | Working {working_heat}"
             these_classes = ", ".join([i.name for i in h.categories])

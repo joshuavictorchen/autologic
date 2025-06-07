@@ -88,8 +88,17 @@ def cli(config: Optional[dict], to_pdf: Optional[Path]):
         autologic.main(**config.model_dump())
     elif to_pdf:
         with open(to_pdf, newline="", encoding="utf-8-sig") as file:
+
+            # TODO: save heats to yaml and load heats from yaml
+            heats = [
+                ["Running 1 | Working 3", "this is a placeholder"],
+                ["Running 2 | Working 4", "it needs to be implemented"],
+                ["Running 3 | Working 1", "this is what you're seeing for now"],
+                ["Running 4 | Working 2", "shame shame shame"],
+            ]
+
             rows = csv.DictReader(file)
-            utils.autologic_rows_to_pdf(rows)
+            utils.autologic_event_to_pdf(rows, heats)
             print()
 
 
