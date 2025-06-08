@@ -1,13 +1,11 @@
 import click
-import csv
 import yaml
 
 import autologic
-import utils
+from algorithms import get_algorithms
 
 from pathlib import Path
 from pydantic import BaseModel, Field, ValidationError
-from typing import Optional
 
 
 class Config(BaseModel):
@@ -68,38 +66,18 @@ def load_config(ctx, param, value: Path) -> Config:
     "--config",
     type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
     callback=load_config,
-    required=False,
+    required=True,
     help="Path to event configuration file.",
 )
 @click.option(
-    "--to-pdf",
-    type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
-    required=False,
-    help="Path to autologic-export.csv file for conversion to PDF. Useful for making manual tweaks and then printing.",
+    "--algorithm",
+    type=click.Choice(list(get_algorithms().keys())),
+    default="randomize",
+    help="Which heat generation algorithm to use.",
 )
-def cli(config: Optional[dict], to_pdf: Optional[Path]):
+def cli(config: dict, algorithm: str):
 
-    if not config and not to_pdf:
-        raise click.UsageError("You must provide either --config or --to-pdf.")
-    if config and to_pdf:
-        raise click.UsageError("Only one of --config or --to-pdf can be used.")
-
-    if config:
-        autologic.main(**config.model_dump())
-    elif to_pdf:
-        with open(to_pdf, newline="", encoding="utf-8-sig") as file:
-
-            # TODO: save heats to yaml and load heats from yaml
-            heats = [
-                ["Running 1 | Working 3", "this is a placeholder"],
-                ["Running 2 | Working 4", "it needs to be implemented"],
-                ["Running 3 | Working 1", "this is what you're seeing for now"],
-                ["Running 4 | Working 2", "shame shame shame"],
-            ]
-
-            rows = csv.DictReader(file)
-            utils.autologic_event_to_pdf(rows, heats)
-            print()
+    autologic.main(algorithm=algorithm, **config.model_dump())
 
 
 if __name__ == "__main__":
