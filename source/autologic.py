@@ -27,6 +27,7 @@ def main(
         heat_size_parity=heat_size_parity,
         novice_size_parity=novice_size_parity,
         novice_denominator=novice_denominator,
+        max_iterations=max_iterations,
     )
 
     # get the algorithms
@@ -34,7 +35,10 @@ def main(
     if algorithm not in algos:
         raise ValueError(f"Unknown algorithm: {algorithm}")
     this_algorithm = algos[algorithm]()  # instantiate
-    this_algorithm.generate(event, max_iterations)
+    this_algorithm.generate(event)
+
+    # run checks
+    event.validate()
 
     # export data
     if event.no_shows:

@@ -4,7 +4,7 @@ from algorithms import HeatGenerator, register
 @register
 class AnExampleAlgorithm(HeatGenerator):
 
-    def generate(self, event, max_iterations):
+    def generate(self, event):
         """
         This is an example algorithm. It does nothing and is just a scaffold as an example.
 
