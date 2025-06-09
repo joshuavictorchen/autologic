@@ -8,7 +8,7 @@ class HeatGenerator(ABC):
     """
 
     @abstractmethod
-    def generate(self, event: Event, max_iterations: int) -> None:
+    def generate(self, event: Event) -> None:
         """
         Mutate `event` by assigning heats & roles.
         """

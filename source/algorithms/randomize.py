@@ -13,7 +13,7 @@ from algorithms import HeatGenerator, register
 @register
 class Randomizer(HeatGenerator):
 
-    def generate(self, event, max_iterations):
+    def generate(self, event):
         """
         Randomly assign categories (car classes) to heats.
         """
@@ -21,7 +21,7 @@ class Randomizer(HeatGenerator):
         # keep randomizing heats until all criteria are met (lol)
         rules_satisfied = False
         iteration = -1
-        while not rules_satisfied and iteration < max_iterations:
+        while not rules_satisfied and iteration < event.max_iterations:
 
             iteration += 1
             rules_satisfied = True
@@ -150,7 +150,9 @@ class Randomizer(HeatGenerator):
                         worker.set_assignment("worker")
 
         if not rules_satisfied:
-            print(f"\n\n  Could not create heats in {max_iterations} iterations.\n")
+            print(
+                f"\n\n  Could not create heats in {event.max_iterations} iterations.\n"
+            )
             exit(1)
 
         print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
