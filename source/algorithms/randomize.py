@@ -53,21 +53,16 @@ class Randomizer(HeatGenerator):
 
                 # check total heat size constraints
                 heat_size = len(h.participants)
-                if abs(event.mean_heat_size - heat_size) > event.max_heat_size_delta:
+                if not h.valid_size:
                     rules_satisfied = False
                     skip_iteration = True
-                    print(f"\n  Heat {h} rejected: participant count of {heat_size}")
                     break
 
                 # check heat novice count constraints
                 novice_count = len(h.get_participants_by_attribute("novice"))
-                if (
-                    abs(event.mean_heat_novice_count - novice_count)
-                    > event.max_heat_novice_delta
-                ):
+                if not h.valid_novice_count:
                     rules_satisfied = False
                     skip_iteration = True
-                    print(f"\n  Heat {h} rejected: novice count of {novice_count}")
                     break
 
                 header = f"Heat {h} ({heat_size} total, {novice_count} novices)"

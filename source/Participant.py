@@ -55,7 +55,7 @@ class Participant:
             self.grid = False
             self.instructor = False
             self.timing = False
-            self.captian = False
+            self.captain = False
             self.start = False
 
     def __repr__(self):

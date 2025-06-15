@@ -38,7 +38,11 @@ def main(
     this_algorithm.generate(event)
 
     # run checks
-    event.validate()
+    is_valid = event.validate()
+    if not is_valid:
+        raise ValueError(
+            f"Invalid event configuration. See console output for details."
+        )
 
     # export data
     if event.no_shows:
