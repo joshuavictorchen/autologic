@@ -40,6 +40,7 @@ class Event(Group):
         heat_size_parity: int,
         novice_size_parity: int,
         novice_denominator: int,
+        max_iterations: int,
     ):
         self.number_of_stations = number_of_stations
         self.participants, self.no_shows = self.load_participants(
@@ -51,6 +52,7 @@ class Event(Group):
         self.heat_size_parity = heat_size_parity
         self.novice_size_parity = novice_size_parity
         self.novice_denominator = novice_denominator
+        self.max_iterations = max_iterations
 
         # raise an error if event does not have enough qualified participants to fill each role
         self.check_role_minima()
@@ -118,8 +120,10 @@ class Event(Group):
                 )
                 member_attributes = member_attributes_dict.get(axware_row["Member #"])
                 special_assignment = custom_assignments.get(axware_row["Member #"])
+
                 # special assignment may be a str or a list of strings
                 # if the latter, then randomly choose one
+                # TODO: outsource this to the algorithm (don't do this here)
                 special_assignment = (
                     random.choice(special_assignment)
                     if type(special_assignment) == list
@@ -127,6 +131,7 @@ class Event(Group):
                 )
 
                 # scrappy implementation to pivot toward using axware export for now
+                # TODO: clean and functionalize
                 is_novice = False
                 axware_category = axware_row["Class"].upper()
                 if axware_category.startswith("NOV"):
@@ -214,6 +219,29 @@ class Event(Group):
             )
         if insufficient:
             raise ValueError("Not enough qualified workers for role(s).")
+
+    def validate(self):
+
+        if any(
+            not (h.valid_size and h.valid_novice_count and h.valid_role_fulfillment)
+            for h in self.heats.values()
+        ):
+            return False
+
+        bad_novice_assignment = False
+        prefix = "\n"
+        for n in self.get_participants_by_attribute("novice"):
+            if n.assignment not in ("worker", "special"):
+                bad_novice_assignment = True
+                print(
+                    f"{prefix}  Novice assignment violation: {n} assigned to {n.assignment} (worker or special expected)"
+                )
+                prefix = ""
+
+        if bad_novice_assignment:
+            return False
+
+        return True
 
     def get_work_assignments(self):
         """

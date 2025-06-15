@@ -13,7 +13,7 @@ from algorithms import HeatGenerator, register
 @register
 class Randomizer(HeatGenerator):
 
-    def generate(self, event, max_iterations):
+    def generate(self, event):
         """
         Randomly assign categories (car classes) to heats.
         """
@@ -21,7 +21,7 @@ class Randomizer(HeatGenerator):
         # keep randomizing heats until all criteria are met (lol)
         rules_satisfied = False
         iteration = -1
-        while not rules_satisfied and iteration < max_iterations:
+        while not rules_satisfied and iteration < event.max_iterations:
 
             iteration += 1
             rules_satisfied = True
@@ -53,21 +53,16 @@ class Randomizer(HeatGenerator):
 
                 # check total heat size constraints
                 heat_size = len(h.participants)
-                if abs(event.mean_heat_size - heat_size) > event.max_heat_size_delta:
+                if not h.valid_size:
                     rules_satisfied = False
                     skip_iteration = True
-                    print(f"\n  Heat {h} rejected: participant count of {heat_size}")
                     break
 
                 # check heat novice count constraints
                 novice_count = len(h.get_participants_by_attribute("novice"))
-                if (
-                    abs(event.mean_heat_novice_count - novice_count)
-                    > event.max_heat_novice_delta
-                ):
+                if not h.valid_novice_count:
                     rules_satisfied = False
                     skip_iteration = True
-                    print(f"\n  Heat {h} rejected: novice count of {novice_count}")
                     break
 
                 header = f"Heat {h} ({heat_size} total, {novice_count} novices)"
@@ -150,7 +145,9 @@ class Randomizer(HeatGenerator):
                         worker.set_assignment("worker")
 
         if not rules_satisfied:
-            print(f"\n\n  Could not create heats in {max_iterations} iterations.\n")
+            print(
+                f"\n\n  Could not create heats in {event.max_iterations} iterations.\n"
+            )
             exit(1)
 
         print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")

@@ -71,7 +71,7 @@ def get_max_role_str_length():
     return max_length
 
 
-def roles_and_minima(number_of_stations, number_of_novices=1, novice_denominator=3):
+def roles_and_minima(number_of_stations=4, number_of_novices=1, novice_denominator=3):
     """
     Roles and their minimum required number of individuals per heat.
 
