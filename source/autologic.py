@@ -2,33 +2,8 @@ from Event import Event
 from algorithms import get_algorithms
 
 
-def main(
-    algorithm,
-    axware_export_tsv,
-    member_attributes_csv,
-    number_of_heats,
-    custom_assignments,
-    number_of_stations,
-    heat_size_parity,
-    novice_size_parity,
-    novice_denominator,
-    max_iterations,
-):
+def main(algorithm, event):
     """Parse event participants and generate heat assignments with role coverage and balanced sizes."""
-
-    event = Event(
-        axware_export_tsv=axware_export_tsv,
-        member_attributes_csv=member_attributes_csv,
-        custom_assignments={
-            str(key): value for key, value in custom_assignments.items()
-        },  # ensure all keys are str
-        number_of_heats=number_of_heats,
-        number_of_stations=number_of_stations,
-        heat_size_parity=heat_size_parity,
-        novice_size_parity=novice_size_parity,
-        novice_denominator=novice_denominator,
-        max_iterations=max_iterations,
-    )
 
     # get the algorithms
     algos = get_algorithms()
@@ -53,4 +28,34 @@ def main(
 
     event.to_csv()
     event.to_pdf()
+    event.to_pickle()
     print()
+
+
+def load_event(
+    name,
+    axware_export_tsv,
+    member_attributes_csv,
+    number_of_heats,
+    custom_assignments,
+    number_of_stations,
+    heat_size_parity,
+    novice_size_parity,
+    novice_denominator,
+    max_iterations,
+):
+
+    return Event(
+        name=name,
+        axware_export_tsv=axware_export_tsv,
+        member_attributes_csv=member_attributes_csv,
+        custom_assignments={
+            str(key): value for key, value in custom_assignments.items()
+        },  # ensure all keys are str
+        number_of_heats=number_of_heats,
+        number_of_stations=number_of_stations,
+        heat_size_parity=heat_size_parity,
+        novice_size_parity=novice_size_parity,
+        novice_denominator=novice_denominator,
+        max_iterations=max_iterations,
+    )

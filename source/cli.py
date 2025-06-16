@@ -1,4 +1,5 @@
 import click
+import pickle
 import yaml
 
 import autologic
@@ -9,6 +10,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 
 class Config(BaseModel):
+    name: str = Field("autologic-event", description="Name of the autocross event.")
     axware_export_tsv: Path = Field(..., description="Path to AXWare export TSV file.")
     member_attributes_csv: Path = Field(
         ..., description="Path to member attribute CSV file."
@@ -66,7 +68,6 @@ def load_config(ctx, param, value: Path) -> Config:
     "--config",
     type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
     callback=load_config,
-    required=True,
     help="Path to event configuration file.",
 )
 @click.option(
@@ -75,9 +76,54 @@ def load_config(ctx, param, value: Path) -> Config:
     default="randomize",
     help="Which heat generation algorithm to use.",
 )
-def cli(config: dict, algorithm: str):
+@click.option(
+    "--load",
+    "pickle_file",
+    type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
+    help="Path to a previously-saved Event state.",
+)
+def cli(config: dict, algorithm: str, pickle_file: str):
 
-    autologic.main(algorithm=algorithm, **config.model_dump())
+    if config is None and pickle_file is None:
+        raise click.BadParameter("Must supply either --config or --load.")
+    if config is not None and pickle_file is not None:
+        raise click.BadParameter("Cannot use --config and --load together.")
+
+    if config:
+        event = autologic.load_event(**config.model_dump())
+        autologic.main(algorithm=algorithm, event=event)
+        return
+
+    # at this point, we're loading a file and doing things interactively
+    with open(pickle_file, "rb") as f:
+        event = pickle.load(f)
+
+    print(f"\nEvent loaded: {event.name}")
+
+    choices = {
+        "1": "Move a Class to a different Heat",
+        "2": "Swap run/work groups between Heats",
+        "3": "Update assignment for a Participant",
+        "4": "Run Event validation checks",
+        "5": "Save and export",  # TODO: ensure no inadvertent overwriting
+        "6": "Exit",
+    }
+
+    while True:
+
+        print(f"\n---\n")
+        for k, v in choices.items():
+            print(f"[{k}] {v}")
+
+        choice = click.prompt(
+            "\nSelection",
+            type=click.Choice(list(choices.keys())),
+            show_choices=False,
+        )
+
+        if choice == "6":
+            print(f"\nProgram terminated\n")
+            return
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 
 import csv
 import math
+import pickle
 import random
 import utils
 from Category import Category
@@ -32,6 +33,7 @@ class Event(Group):
 
     def __init__(
         self,
+        name: str,
         axware_export_tsv: str,
         member_attributes_csv: str,
         custom_assignments: dict[str, str | list[str]],
@@ -42,6 +44,7 @@ class Event(Group):
         novice_denominator: int,
         max_iterations: int,
     ):
+        self.name = name
         self.number_of_stations = number_of_stations
         self.participants, self.no_shows = self.load_participants(
             axware_export_tsv, member_attributes_csv, custom_assignments
@@ -67,6 +70,9 @@ class Event(Group):
         self.max_heat_novice_delta = math.ceil(
             len(self.get_participants_by_attribute("novice")) / novice_size_parity
         )
+
+    def __repr__(self):
+        return f"{self.name}"
 
     @property
     def max_name_length(self):
@@ -243,6 +249,15 @@ class Event(Group):
 
         return True
 
+    def to_pickle(self):
+
+        with open(f"{self.name}.pkl", "wb") as f:
+            pickle.dump(self, f)
+
+        print(f"\n  Event state saved to {self.name}.pkl")
+
+    # =========================================================================
+
     def get_work_assignments(self):
         """
         Returns a list of dicts that describe each participant in the event, and their assignments.
@@ -309,7 +324,7 @@ class Event(Group):
         TODO: flesh out docs
         """
 
-        with open("autologic-export.csv", "w", newline="") as f:
+        with open(f"{self.name}.csv", "w", newline="") as f:
             writer = csv.DictWriter(
                 f,
                 fieldnames=[
@@ -323,7 +338,7 @@ class Event(Group):
             )
             writer.writeheader()
             writer.writerows(self.get_work_assignments())
-            print(f"\n  Worker assignment sheet saved to autologic-export.csv")
+            print(f"\n  Worker assignment sheet saved to {self.name}.csv")
 
     def to_pdf(self):
         """
@@ -375,7 +390,7 @@ class Event(Group):
 
         # build document
         doc = SimpleDocTemplate(
-            "autologic-export.pdf", pagesize=letter, topMargin=0.75 * inch
+            f"{self.name}.pdf", pagesize=letter, topMargin=0.75 * inch
         )
 
         # dynamically compute relative column widths
@@ -467,11 +482,11 @@ class Event(Group):
 
         # build document
         elements = [
-            Paragraph("Autologic Worker Assignments", styles["Title"]),
+            Paragraph(f"{self.name}", styles["Title"]),
             heat_class_table,
             Spacer(1, 6),
             table,
         ]
 
         doc.build(elements, canvasmaker=NumberedCanvas)
-        print(f"\n  Worker assignment printout saved to autologic-export.pdf")
+        print(f"\n  Worker assignment printout saved to {self.name}.pdf")
