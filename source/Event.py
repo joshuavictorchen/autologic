@@ -46,6 +46,7 @@ class Event(Group):
     ):
         self.name = name
         self.number_of_stations = number_of_stations
+        self.participants = []
         self.participants, self.no_shows = self.load_participants(
             axware_export_tsv, member_attributes_csv, custom_assignments
         )
@@ -197,9 +198,9 @@ class Event(Group):
         Creates heat containers for scheduling.
 
         Returns:
-            dict[int, Heat]: Mapping of 1-indexed heat number to Heat objects.
+            list[Heat]: Heat objects with 1-indexed numbers.
         """
-        return {i + 1: Heat(self, i + 1) for i in range(number_of_heats)}
+        return [Heat(self) for i in range(number_of_heats)]
 
     def check_role_minima(self):
 
@@ -228,26 +229,48 @@ class Event(Group):
 
     def validate(self):
 
-        if any(
-            not (h.valid_size and h.valid_novice_count and h.valid_role_fulfillment)
-            for h in self.heats.values()
-        ):
-            return False
+        is_valid = True
 
-        bad_novice_assignment = False
-        prefix = "\n"
+        print(
+            f"\n  Heat size must be {self.mean_heat_size} +/- {self.max_heat_size_delta}"
+        )
+        print(
+            f"  Novice count must be {self.mean_heat_novice_count} +/- {self.max_heat_novice_delta}"
+        )
+
+        for h in self.heats:
+
+            header = f"Heat {h} ({len(h.participants)} total, {len(h.get_participants_by_attribute("novice"))} novices)"
+            print(f"\n  {header}")
+            print(f"  {'-' * len(header)}\n")
+            print(f"    Car classes: {h.categories}\n")
+
+            # check if number of qualified participants for each role exceed the minima required
+            for role, minimum in utils.roles_and_minima(
+                number_of_stations=self.number_of_stations,
+                number_of_novices=len(h.get_participants_by_attribute("novice")),
+                novice_denominator=self.novice_denominator,
+            ).items():
+                assigned = len(h.get_participants_by_attribute("assignment", role))
+                print(f"    {assigned} of {minimum} {role}s assigned")
+
+        print(f"\n  Summary\n  -------\n")
+        for h in self.heats:
+            is_valid = min(
+                is_valid, h.valid_size, h.valid_novice_count, h.valid_role_fulfillment
+            )
+
         for n in self.get_participants_by_attribute("novice"):
             if n.assignment not in ("worker", "special"):
-                bad_novice_assignment = True
+                is_valid = False
                 print(
-                    f"{prefix}  Novice assignment violation: {n} assigned to {n.assignment} (worker or special expected)"
+                    f"    Novice assignment violation: {n} assigned to {n.assignment} (worker or special expected)"
                 )
-                prefix = ""
 
-        if bad_novice_assignment:
-            return False
+        if is_valid:
+            print(f"    All checks passed.")
 
-        return True
+        return is_valid
 
     def to_pickle(self):
 
@@ -268,7 +291,7 @@ class Event(Group):
         """
 
         work_assignments = []
-        for h in self.heats.values():
+        for h in self.heats:
             captain_count = 0
             worker_count = 0
             for p in sorted(h.participants, key=lambda p: p.name):
@@ -295,7 +318,7 @@ class Event(Group):
 
         return work_assignments
 
-    def get_heat_assignments(self):
+    def get_heat_assignments(self, verbose=False):
         """
         Returns a list of lists that describe each heat in the event, and their categories.
 
@@ -307,7 +330,7 @@ class Event(Group):
         work_offset = 5 if self.number_of_heats >= 4 else 3
 
         heat_assignments = []
-        for i, h in enumerate(self.heats.values()):
+        for i, h in enumerate(self.heats):
 
             running_heat = (i % self.number_of_heats) + 1
             working_heat = (running_heat + work_offset) % self.number_of_heats + 1
@@ -316,6 +339,9 @@ class Event(Group):
             these_classes = ", ".join([i.name for i in h.categories])
 
             heat_assignments.append([this_heat, these_classes])
+
+        if verbose:
+            [print(f"Heat {h.number} | {i[0]} | {i[1]}") for i in heat_assignments]
 
         return heat_assignments
 

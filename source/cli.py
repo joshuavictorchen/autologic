@@ -102,11 +102,11 @@ def cli(config: dict, algorithm: str, pickle_file: str):
 
     choices = {
         "1": "Move a Class to a different Heat",
-        "2": "Swap run/work groups between Heats",
-        "3": "Update assignment for a Participant",
+        "2": "Rotate Heat run/work groups",
+        "3": "Update a Participant assignment",
         "4": "Run Event validation checks",
-        "5": "Save and export",  # TODO: ensure no inadvertent overwriting
-        "6": "Exit",
+        "5": "Export data",
+        "Q": "Quit",
     }
 
     while True:
@@ -117,12 +117,93 @@ def cli(config: dict, algorithm: str, pickle_file: str):
 
         choice = click.prompt(
             "\nSelection",
-            type=click.Choice(list(choices.keys())),
+            type=click.Choice(list(choices.keys()), case_sensitive=False),
             show_choices=False,
         )
 
-        if choice == "6":
-            print(f"\nProgram terminated\n")
+        print(f"\n---")
+
+        if choice == "1":
+
+            category = click.prompt(
+                f"\nClass",
+                type=click.Choice(list(event.categories.keys()), case_sensitive=False),
+                show_choices=False,
+            ).upper()
+
+            heat = click.prompt(
+                f"Assign to Heat",
+                type=click.Choice([h.name for h in event.heats]),
+                show_choices=False,
+            )
+
+            print()
+            event.categories[category].set_heat(heat, verbose=True)
+
+        if choice == "2":
+
+            offset = click.prompt(
+                f"\nApply a run/work group offset",
+                type=int,
+                show_choices=False,
+            )
+
+            offset = offset % event.number_of_heats
+            event.heats[:] = event.heats[-offset:] + event.heats[:-offset]
+
+            print()
+            event.get_heat_assignments(verbose=True)
+
+        if choice == "3":
+
+            # TODO: use questionary
+            participant = click.prompt(
+                f"\nParticipant",
+                type=click.Choice(list(event.participants), case_sensitive=False),
+                show_choices=False,
+            ).name.upper()
+
+            role = click.prompt(
+                f"Assign to role",
+                type=click.Choice(
+                    [
+                        "special",
+                        "instructor",
+                        "timing",
+                        "grid",
+                        "start",
+                        "captain",
+                        "worker",
+                    ],
+                    case_sensitive=False,
+                ),  # TODO: clean
+                show_choices=False,
+            ).lower()
+
+            print()
+            event.get_participant_by_name(participant).set_assignment(
+                role, show_previous=True, manual_override=True
+            )
+
+        if choice == "4":
+
+            event.validate()
+
+        if choice == "5":
+
+            print(f"\nFiles with the same Event name will be overwritten!")
+            new_name = input("\nSave Event as: ")
+
+            event.name = new_name
+
+            event.to_csv()
+            event.to_pdf()
+            event.to_pickle()
+            print()
+            return
+
+        if choice.lower() == "q":
+            print(f"\nProgram terminated.\n")
             return
 
 
