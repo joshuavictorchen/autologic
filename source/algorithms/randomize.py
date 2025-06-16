@@ -45,7 +45,7 @@ class Randomizer(HeatGenerator):
                 p.assignment = p.special_assignment if p.special_assignment else None
 
             # check if heat constraints are satisfied (size, role fulfillments)
-            for h in event.heats.values():
+            for h in event.heats:
 
                 # skip this loop if a prior heat failed checks
                 if skip_iteration:
