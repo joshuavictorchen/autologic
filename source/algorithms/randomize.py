@@ -159,4 +159,4 @@ class Randomizer(HeatGenerator):
         categories = list(event.categories.values())
         random.shuffle(categories)
         for i, c in enumerate(categories):
-            c.set_heat(i % event.number_of_heats + 1)
+            c.set_heat(event.get_heat(i % event.number_of_heats + 1))

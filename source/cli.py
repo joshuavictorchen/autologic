@@ -131,14 +131,16 @@ def cli(config: dict, algorithm: str, pickle_file: str):
                 show_choices=False,
             ).upper()
 
-            heat = click.prompt(
+            heat_number = click.prompt(
                 f"Assign to Heat",
                 type=click.Choice([h.name for h in event.heats]),
                 show_choices=False,
             )
 
             print()
-            event.categories[category].set_heat(heat, verbose=True)
+            event.categories[category].set_heat(
+                event.get_heat(heat_number), verbose=True
+            )
 
         if choice == "2":
 

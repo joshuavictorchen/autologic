@@ -31,7 +31,9 @@ class Heat(Group):
         Returns:
             list[Category]: Matching categories from the event.
         """
-        return [c for c in self.event.categories.values() if c.heat == self.number]
+        return [
+            c for c in self.event.categories.values() if c.heat.number == self.number
+        ]
 
     @property
     def participants(self):

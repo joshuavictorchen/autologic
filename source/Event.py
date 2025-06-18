@@ -198,9 +198,13 @@ class Event(Group):
         Creates heat containers for scheduling.
 
         Returns:
-            list[Heat]: Heat objects with 1-indexed numbers.
+            list[Heat]: Heat objects for this Event.
         """
         return [Heat(self) for i in range(number_of_heats)]
+
+    def get_heat(self, heat_number: int):
+
+        return self.heats[heat_number - 1]
 
     def check_role_minima(self):
 
@@ -335,13 +339,16 @@ class Event(Group):
             running_heat = (i % self.number_of_heats) + 1
             working_heat = (running_heat + work_offset) % self.number_of_heats + 1
 
-            this_heat = f"Running {running_heat} | Working {working_heat}"
+            this_heat_run_work = f"Running {running_heat} | Working {working_heat}"
             these_classes = ", ".join([i.name for i in h.categories])
 
-            heat_assignments.append([this_heat, these_classes])
+            heat_assignments.append([this_heat_run_work, these_classes])
 
         if verbose:
-            [print(f"Heat {h.number} | {i[0]} | {i[1]}") for i in heat_assignments]
+            [
+                print(f"Heat {i + 1} | {assignment[0]} | {assignment[1]}")
+                for i, assignment in enumerate(heat_assignments)
+            ]
 
         return heat_assignments
 

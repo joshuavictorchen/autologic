@@ -31,7 +31,7 @@ class Category(Group):
         Assigns the category to a heat.
 
         Args:
-            heat (int): The heat number.
+            heat (Heat): The Heat object.
         """
         previous_heat = self.heat
         self.heat = heat
