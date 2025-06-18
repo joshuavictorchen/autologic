@@ -89,6 +89,12 @@ def cli(config: dict, algorithm: str, pickle_file: str):
     if config is not None and pickle_file is not None:
         raise click.BadParameter("Cannot use --config and --load together.")
 
+    # =============================================================================
+    # TODO: refactor for sanity and flexibility
+    #       this should be split out into separate functions
+    #       left as-is for quick prototype development
+    # =============================================================================
+
     if config:
         event = autologic.load_event(**config.model_dump())
         autologic.main(algorithm=algorithm, event=event)

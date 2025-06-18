@@ -22,7 +22,7 @@ heat_size_parity: 25
 # Smaller values enforce tighter novice balance across heats.
 novice_size_parity: 10
 
-# Min instructors in heat = novices / denominator.
+# Min instructors required per heat = number of novices / novice_denominator.
 novice_denominator: 4
 
 # Maximum number of attempts to be made by the program.
