@@ -101,7 +101,7 @@ def cli(config: dict, algorithm: str, pickle_file: str):
     print(f"\nEvent loaded: {event.name}")
 
     choices = {
-        "1": "Move a Class to a different Heat",
+        "1": "Move a Category to a different Heat",
         "2": "Rotate Heat run/work groups",
         "3": "Update a Participant assignment",
         "4": "Run Event validation checks",
