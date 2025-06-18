@@ -1,33 +1,23 @@
 # Autologic
 
+> [!NOTE]
+> **This is a minimum viable prototype product.** The documentation is simply this README file. It will be cleaned and made more generally applicable after it's gained some field experience at actual events.
+
 This program generates heat + worker assignments for autocross events.
 
 It provides a framework that may be used to assign `Categories` (car classes) to `Heats`, and `Participants` to `Roles` (specialized work assignments).
 
 The default algorithm loads an `Event`, randomly assigns `Categories` to `Heats`, checks against acceptance criteria (can all `Roles` be filled within each `Heat`; do all `Heats` contain a similar number of `Participants`; are Novices evenly distributed across `Heats`; etc.), and keeps iterating until all criteria are met.
 
-- The dictionary of roles and their minimum requirements per heat is semi-hardcoded in [utils.py](./source/utils.py)'s `roles_and_minima` definition:
-  - The minimum number of instructors in a heat is equal to `number_of_novices` divided `novice_denominator`, or `MIN_INSTRUCTOR_PER_HEAT`, whichever is greater.
-  - The minimum number of corner captains in a heat is equal to `number_of_stations`.
+**We've made it easy to contribute your own algorithms:**
 
-- Heat sizes are constrained to `mean_heat_size` of the `Event` +/- a `max_heat_size_delta`, which can be tuned in the configuration file.
+- Any class decorated with `@register` in `./source/algorithms/your_module_here.py` is auto-discovered and exposed as an `--algorithm` choice in the CLI.
 
-- Novice distribution across heats is constrained to `mean_heat_novice_count` of the `Event` +/- a `max_heat_novice_delta`, which can be tuned in the configuration file.
-
-> [!NOTE]
-> **This is a minimum viable prototype product.** The documentation is simply this README file. It will be cleaned and made more generally applicable after it's gained some field experience at actual events.
-
-## Contributing
-
-We've made it easy to add your own algorithms:
+  - See [example.py](./source/algorithms/example.py) for a sample scaffold.
 
 - Algorithms receive a pre-instantiated `Event` and must assign `Categories` to `Heats`, and assign roles to all `Participants` by mutating the `Event` within a `generate()` function.
 
   - See how the `generate()` function is called in [autologic.py](./source/autologic.py).
-
-- Any class in `./source/algorithms` decorated with `@register` is auto-discovered and exposed as an `--algorithm` choice in the CLI.
-
-  - See [example.py](./source/algorithms/example.py) for a sample scaffold.
 
 ## Retrieval and use
 
