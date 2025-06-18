@@ -150,6 +150,7 @@ def cli(config: dict, algorithm: str, pickle_file: str):
                 show_choices=False,
             )
 
+            # TODO: make the run/work groups attributes of Heat
             offset = offset % event.number_of_heats
             event.heats[:] = event.heats[-offset:] + event.heats[:-offset]
 

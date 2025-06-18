@@ -244,7 +244,7 @@ class Event(Group):
 
         for h in self.heats:
 
-            header = f"Heat {h} ({len(h.participants)} total, {len(h.get_participants_by_attribute("novice"))} novices)"
+            header = f"Heat {h} ({len(h.participants)} total, {len(h.get_participants_by_attribute('novice'))} novices)"
             print(f"\n  {header}")
             print(f"  {'-' * len(header)}\n")
             print(f"    Car classes: {h.categories}\n")
