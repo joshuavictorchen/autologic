@@ -506,10 +506,80 @@ class Event(Group):
             )
         )
 
+        # another shoved-in item - heat summary / role fulfillments
+
+        roles = [
+            "instructor",
+            "timing",
+            "grid",
+            "start",
+            "captain",
+            "worker",
+            "special",
+        ]
+        summary_data = [
+            [
+                "Heat",
+                "Instructor",
+                "Timing",
+                "Grid",
+                "Start",
+                "Captain",
+                "Worker",
+                "Special",
+                "Total",
+            ]
+        ]
+
+        for idx, heat in enumerate(self.heats, start=1):
+            novices = sum(1 for p in heat.participants if p.novice)
+            counts = {role: 0 for role in roles}
+            for p in heat.participants:
+                if p.assignment in counts:
+                    counts[p.assignment] += 1
+
+            summary_data.append(
+                [
+                    str(idx),
+                    str(counts["instructor"]),
+                    str(counts["timing"]),
+                    str(counts["grid"]),
+                    str(counts["start"]),
+                    str(counts["captain"]),
+                    str(counts["worker"]),
+                    str(counts["special"]),
+                    f"{str(len(heat.participants))} ({novices} Novices)",
+                ]
+            )
+
+        summary_col_widths = compute_scaled_col_widths(
+            data=summary_data,
+            font_name="Courier",
+            font_size=9,
+            padding=12,
+            total_width=available_width,
+        )
+        summary_table = Table(summary_data, colWidths=summary_col_widths, repeatRows=1)
+        summary_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+                    ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Courier-Bold"),
+                    ("FONTNAME", (0, 1), (-1, -1), "Courier"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ]
+            )
+        )
+
         # build document
         elements = [
             Paragraph(f"{self.name}", styles["Title"]),
             heat_class_table,
+            Spacer(1, 6),
+            summary_table,
             Spacer(1, 6),
             table,
         ]
