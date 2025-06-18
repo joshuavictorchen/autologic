@@ -37,6 +37,18 @@ class Group:
                 return p
         raise ValueError(f"Participant ID {id} not found")
 
+    def get_participant_by_name(self, name):
+        """
+        Returns the participant with the specified name.
+
+        Raises:
+            ValueError if no participant with the given name is found.
+        """
+        for p in self.participants:
+            if p.name.upper() == name.upper():
+                return p
+        raise ValueError(f"Participant name {name.upper()} not found")
+
     def get_available(self, role, has_sole_role=False):
         """
         Returns participants who are eligible for a role and not yet assigned.

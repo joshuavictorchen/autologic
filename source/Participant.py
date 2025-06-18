@@ -87,7 +87,9 @@ class Participant:
                 role_found = True
         return role_found
 
-    def set_assignment(self, assignment, verbose=True):
+    def set_assignment(
+        self, assignment, verbose=True, show_previous=False, manual_override=False
+    ):
         """
         Assigns a role to this participant if they are qualified for it.
 
@@ -95,11 +97,20 @@ class Participant:
             assignment (str): The role to assign.
         """
 
-        if verbose:
-            assignment_string = f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
-            special_string = "" if assignment == "special" else "(custom assignment)"
+        assignment_string = f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
+        special_string = "" if assignment == "special" else "(custom assignment)"
+        suffix = (
+            f" (previously: {self.assignment.upper() if self.assignment else 'NONE'})"
+            if show_previous
+            else ""
+        )
 
-        # special assignments take precedence no matter what
+        if manual_override:
+            print(f"{assignment_string}{suffix}") if verbose else None
+            self.assignment = assignment.lower()
+            return
+
+        # special assignments take precedence
         # TODO: eliminate redundancy in this function
         if self.special_assignment:
             if assignment == self.special_assignment:
@@ -118,13 +129,6 @@ class Participant:
                 f"    {self} was attemped to be assigned to {assignment.upper()}, but is not qualified"
             )
         else:
-            (
-                print(
-                    assignment_string
-                    # uncomment if interactive mode is implemented
-                    # f" (previously: {self.assignment.upper() if self.assignment else None})"
-                )
-                if verbose
-                else None
-            )
+            if verbose:
+                print(f"{assignment_string}{suffix}")
             self.assignment = assignment

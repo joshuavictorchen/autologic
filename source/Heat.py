@@ -11,13 +11,17 @@ class Heat(Group):
         number (int): Heat identifier.
     """
 
-    def __init__(self, event, number):
+    def __init__(self, event):
         self.event = event
-        self.number = number
         self.assigned_categories = []
 
     def __repr__(self):
         return f"{self.number}"
+
+    @property
+    def number(self):
+
+        return self.event.heats.index(self) + 1
 
     @property
     def categories(self):
@@ -27,7 +31,9 @@ class Heat(Group):
         Returns:
             list[Category]: Matching categories from the event.
         """
-        return [c for c in self.event.categories.values() if c.heat == self.number]
+        return [
+            c for c in self.event.categories.values() if c.heat.number == self.number
+        ]
 
     @property
     def participants(self):
@@ -49,7 +55,7 @@ class Heat(Group):
         )
 
         if not is_valid:
-            print(f"\n  Heat {self} violation: participant count of {heat_size}")
+            print(f"\n    Heat {self} violation: participant count of {heat_size}")
 
         return is_valid
 
@@ -64,12 +70,14 @@ class Heat(Group):
         )
 
         if not is_valid:
-            print(f"\n  Heat {self} violation: novice count of {novice_count}")
+            print(f"    Heat {self} violation: novice count of {novice_count}")
 
         return is_valid
 
     @property
     def valid_role_fulfillment(self):
+
+        is_valid = True
 
         for role, minimum in utils.roles_and_minima(
             number_of_stations=self.event.number_of_stations,
@@ -84,9 +92,9 @@ class Heat(Group):
                 fulfilled != minimum and not role == "instructor"
             ) or fulfilled < minimum:
                 print(
-                    f"\n  Heat {self} violation: {fulfilled} assignments for {role} ({minimum} expected)"
+                    f"    Heat {self} violation: {fulfilled} assignments for {role} ({minimum} expected)"
                 )
-                return False
+                is_valid = False
 
         for p in self.participants:
 
@@ -95,8 +103,8 @@ class Heat(Group):
 
             if not p.assignment in valid_roles:
                 print(
-                    f"\n  Heat {self} violation: {p} assignment of {p.assignment} is not not valid (one of {valid_roles} expected)"
+                    f"    Heat {self} violation: {p} assignment of {p.assignment} is not not valid (one of {valid_roles} expected)"
                 )
-                return False
+                is_valid = False
 
-        return True
+        return is_valid

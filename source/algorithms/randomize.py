@@ -45,7 +45,7 @@ class Randomizer(HeatGenerator):
                 p.assignment = p.special_assignment if p.special_assignment else None
 
             # check if heat constraints are satisfied (size, role fulfillments)
-            for h in event.heats.values():
+            for h in event.heats:
 
                 # skip this loop if a prior heat failed checks
                 if skip_iteration:
@@ -159,4 +159,4 @@ class Randomizer(HeatGenerator):
         categories = list(event.categories.values())
         random.shuffle(categories)
         for i, c in enumerate(categories):
-            c.set_heat(i % event.number_of_heats + 1)
+            c.set_heat(event.get_heat(i % event.number_of_heats + 1))

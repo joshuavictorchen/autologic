@@ -14,6 +14,7 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 
 import csv
 import math
+import pickle
 import random
 import utils
 from Category import Category
@@ -32,6 +33,7 @@ class Event(Group):
 
     def __init__(
         self,
+        name: str,
         axware_export_tsv: str,
         member_attributes_csv: str,
         custom_assignments: dict[str, str | list[str]],
@@ -42,7 +44,9 @@ class Event(Group):
         novice_denominator: int,
         max_iterations: int,
     ):
+        self.name = name
         self.number_of_stations = number_of_stations
+        self.participants = []
         self.participants, self.no_shows = self.load_participants(
             axware_export_tsv, member_attributes_csv, custom_assignments
         )
@@ -67,6 +71,9 @@ class Event(Group):
         self.max_heat_novice_delta = math.ceil(
             len(self.get_participants_by_attribute("novice")) / novice_size_parity
         )
+
+    def __repr__(self):
+        return f"{self.name}"
 
     @property
     def max_name_length(self):
@@ -191,9 +198,13 @@ class Event(Group):
         Creates heat containers for scheduling.
 
         Returns:
-            dict[int, Heat]: Mapping of 1-indexed heat number to Heat objects.
+            list[Heat]: Heat objects for this Event.
         """
-        return {i + 1: Heat(self, i + 1) for i in range(number_of_heats)}
+        return [Heat(self) for i in range(number_of_heats)]
+
+    def get_heat(self, heat_number: int):
+
+        return self.heats[heat_number - 1]
 
     def check_role_minima(self):
 
@@ -222,26 +233,62 @@ class Event(Group):
 
     def validate(self):
 
-        if any(
-            not (h.valid_size and h.valid_novice_count and h.valid_role_fulfillment)
-            for h in self.heats.values()
-        ):
-            return False
+        print(
+            f"\n  =============================================================================="
+        )
+        print(f"\n  [Event validation checks]")
 
-        bad_novice_assignment = False
-        prefix = "\n"
+        is_valid = True
+
+        print(
+            f"\n  Heat size must be {self.mean_heat_size} +/- {self.max_heat_size_delta}"
+        )
+        print(
+            f"  Novice count must be {self.mean_heat_novice_count} +/- {self.max_heat_novice_delta}"
+        )
+
+        for h in self.heats:
+
+            header = f"Heat {h} ({len(h.participants)} total, {len(h.get_participants_by_attribute('novice'))} novices)"
+            print(f"\n  {header}")
+            print(f"  {'-' * len(header)}\n")
+            print(f"    Car classes: {h.categories}\n")
+
+            # check if number of qualified participants for each role exceed the minima required
+            for role, minimum in utils.roles_and_minima(
+                number_of_stations=self.number_of_stations,
+                number_of_novices=len(h.get_participants_by_attribute("novice")),
+                novice_denominator=self.novice_denominator,
+            ).items():
+                assigned = len(h.get_participants_by_attribute("assignment", role))
+                print(f"    {assigned} of {minimum} {role}s assigned")
+
+        print(f"\n  Summary\n  -------\n")
+        for h in self.heats:
+            is_valid = min(
+                is_valid, h.valid_size, h.valid_novice_count, h.valid_role_fulfillment
+            )
+
         for n in self.get_participants_by_attribute("novice"):
             if n.assignment not in ("worker", "special"):
-                bad_novice_assignment = True
+                is_valid = False
                 print(
-                    f"{prefix}  Novice assignment violation: {n} assigned to {n.assignment} (worker or special expected)"
+                    f"    Novice assignment violation: {n} assigned to {n.assignment} (worker or special expected)"
                 )
-                prefix = ""
 
-        if bad_novice_assignment:
-            return False
+        if is_valid:
+            print(f"    All checks passed.")
 
-        return True
+        return is_valid
+
+    def to_pickle(self):
+
+        with open(f"{self.name}.pkl", "wb") as f:
+            pickle.dump(self, f)
+
+        print(f"\n  Event state saved to {self.name}.pkl")
+
+    # =========================================================================
 
     def get_work_assignments(self):
         """
@@ -253,34 +300,22 @@ class Event(Group):
         """
 
         work_assignments = []
-        for h in self.heats.values():
-            captain_count = 0
-            worker_count = 0
+        for h in self.heats:
             for p in sorted(h.participants, key=lambda p: p.name):
-                # TODO: we're reaching elongated levels of code spaghettification here
-                #       append station number to corner captain assignments in the printout
-                #       same with workers
-                string_modifier = ""
-                if p.assignment == "captain":
-                    string_modifier = f"-{captain_count + 1}"
-                    captain_count += 1
-                elif p.assignment == "worker":
-                    string_modifier = f"-{(worker_count % self.number_of_stations) + 1}"
-                    worker_count += 1
                 work_assignments.append(
                     {
                         "heat": h.number,
                         "name": p.name,
                         "class": p.axware_category,
                         "number": p.number,
-                        "assignment": f"{p.assignment}{string_modifier}",
+                        "assignment": f"{p.assignment}",
                         "checked_in": "",
                     }
                 )
 
         return work_assignments
 
-    def get_heat_assignments(self):
+    def get_heat_assignments(self, verbose=False):
         """
         Returns a list of lists that describe each heat in the event, and their categories.
 
@@ -292,15 +327,21 @@ class Event(Group):
         work_offset = 5 if self.number_of_heats >= 4 else 3
 
         heat_assignments = []
-        for i, h in enumerate(self.heats.values()):
+        for i, h in enumerate(self.heats):
 
             running_heat = (i % self.number_of_heats) + 1
             working_heat = (running_heat + work_offset) % self.number_of_heats + 1
 
-            this_heat = f"Running {running_heat} | Working {working_heat}"
+            this_heat_run_work = f"Running {running_heat} | Working {working_heat}"
             these_classes = ", ".join([i.name for i in h.categories])
 
-            heat_assignments.append([this_heat, these_classes])
+            heat_assignments.append([this_heat_run_work, these_classes])
+
+        if verbose:
+            [
+                print(f"Heat {i + 1} | {assignment[0]} | {assignment[1]}")
+                for i, assignment in enumerate(heat_assignments)
+            ]
 
         return heat_assignments
 
@@ -309,7 +350,7 @@ class Event(Group):
         TODO: flesh out docs
         """
 
-        with open("autologic-export.csv", "w", newline="") as f:
+        with open(f"{self.name}.csv", "w", newline="") as f:
             writer = csv.DictWriter(
                 f,
                 fieldnames=[
@@ -323,7 +364,7 @@ class Event(Group):
             )
             writer.writeheader()
             writer.writerows(self.get_work_assignments())
-            print(f"\n  Worker assignment sheet saved to autologic-export.csv")
+            print(f"\n  Worker assignment sheet saved to {self.name}.csv")
 
     def to_pdf(self):
         """
@@ -375,7 +416,7 @@ class Event(Group):
 
         # build document
         doc = SimpleDocTemplate(
-            "autologic-export.pdf", pagesize=letter, topMargin=0.75 * inch
+            f"{self.name}.pdf", pagesize=letter, topMargin=0.75 * inch
         )
 
         # dynamically compute relative column widths
@@ -467,11 +508,11 @@ class Event(Group):
 
         # build document
         elements = [
-            Paragraph("Autologic Worker Assignments", styles["Title"]),
+            Paragraph(f"{self.name}", styles["Title"]),
             heat_class_table,
             Spacer(1, 6),
             table,
         ]
 
         doc.build(elements, canvasmaker=NumberedCanvas)
-        print(f"\n  Worker assignment printout saved to autologic-export.pdf")
+        print(f"\n  Worker assignment printout saved to {self.name}.pdf")

@@ -1,4 +1,5 @@
 import click
+import pickle
 import yaml
 
 import autologic
@@ -9,6 +10,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 
 class Config(BaseModel):
+    name: str = Field("autologic-event", description="Name of the autocross event.")
     axware_export_tsv: Path = Field(..., description="Path to AXWare export TSV file.")
     member_attributes_csv: Path = Field(
         ..., description="Path to member attribute CSV file."
@@ -66,7 +68,6 @@ def load_config(ctx, param, value: Path) -> Config:
     "--config",
     type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
     callback=load_config,
-    required=True,
     help="Path to event configuration file.",
 )
 @click.option(
@@ -75,9 +76,138 @@ def load_config(ctx, param, value: Path) -> Config:
     default="randomize",
     help="Which heat generation algorithm to use.",
 )
-def cli(config: dict, algorithm: str):
+@click.option(
+    "--load",
+    "pickle_file",
+    type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
+    help="Path to a previously-saved Event state.",
+)
+def cli(config: dict, algorithm: str, pickle_file: str):
 
-    autologic.main(algorithm=algorithm, **config.model_dump())
+    if config is None and pickle_file is None:
+        raise click.BadParameter("Must supply either --config or --load.")
+    if config is not None and pickle_file is not None:
+        raise click.BadParameter("Cannot use --config and --load together.")
+
+    if config:
+        event = autologic.load_event(**config.model_dump())
+        autologic.main(algorithm=algorithm, event=event)
+        return
+
+    # at this point, we're loading a file and doing things interactively
+    with open(pickle_file, "rb") as f:
+        event = pickle.load(f)
+
+    print(f"\nEvent loaded: {event.name}")
+
+    choices = {
+        "1": "Move a Category to a different Heat",
+        "2": "Rotate Heat run/work groups",
+        "3": "Update a Participant assignment",
+        "4": "Run Event validation checks",
+        "5": "Export data",
+        "Q": "Quit",
+    }
+
+    while True:
+
+        print(f"\n---\n")
+        for k, v in choices.items():
+            print(f"[{k}] {v}")
+
+        choice = click.prompt(
+            "\nSelection",
+            type=click.Choice(list(choices.keys()), case_sensitive=False),
+            show_choices=False,
+        )
+
+        print(f"\n---")
+
+        if choice == "1":
+
+            category = click.prompt(
+                f"\nClass",
+                type=click.Choice(list(event.categories.keys()), case_sensitive=False),
+                show_choices=False,
+            ).upper()
+
+            heat_number = click.prompt(
+                f"Assign to Heat",
+                type=click.Choice([h.name for h in event.heats]),
+                show_choices=False,
+            )
+
+            print()
+            event.categories[category].set_heat(
+                event.get_heat(heat_number), verbose=True
+            )
+
+        if choice == "2":
+
+            offset = click.prompt(
+                f"\nApply a run/work group offset",
+                type=int,
+                show_choices=False,
+            )
+
+            # TODO: make the run/work groups attributes of Heat
+            offset = offset % event.number_of_heats
+            event.heats[:] = event.heats[-offset:] + event.heats[:-offset]
+
+            print()
+            event.get_heat_assignments(verbose=True)
+
+        if choice == "3":
+
+            # TODO: use questionary
+            participant = click.prompt(
+                f"\nParticipant",
+                type=click.Choice(list(event.participants), case_sensitive=False),
+                show_choices=False,
+            ).name.upper()
+
+            role = click.prompt(
+                f"Assign to role",
+                type=click.Choice(
+                    [
+                        "special",
+                        "instructor",
+                        "timing",
+                        "grid",
+                        "start",
+                        "captain",
+                        "worker",
+                    ],
+                    case_sensitive=False,
+                ),  # TODO: clean
+                show_choices=False,
+            ).lower()
+
+            print()
+            event.get_participant_by_name(participant).set_assignment(
+                role, show_previous=True, manual_override=True
+            )
+
+        if choice == "4":
+
+            event.validate()
+
+        if choice == "5":
+
+            print(f"\nFiles with the same Event name will be overwritten!")
+            new_name = input("\nSave Event as: ")
+
+            event.name = new_name
+
+            event.to_csv()
+            event.to_pdf()
+            event.to_pickle()
+            print()
+            return
+
+        if choice.lower() == "q":
+            print(f"\nProgram terminated.\n")
+            return
 
 
 if __name__ == "__main__":

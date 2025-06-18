@@ -26,14 +26,17 @@ class Category(Group):
         """Adds a participant to the category."""
         self.participants.append(participant)
 
-    def set_heat(self, heat):
+    def set_heat(self, heat, verbose=False):
         """
         Assigns the category to a heat.
 
         Args:
-            heat (int): The heat number.
+            heat (Heat): The Heat object.
         """
         previous_heat = self.heat
         self.heat = heat
-        # uncomment if interactive mode is implemented
-        # print(f"  Class {self} assigned to heat {heat} (previously: {previous_heat})")
+
+        if verbose:
+            print(
+                f"  Class {self} assigned to heat {heat} (previously: {previous_heat})"
+            )
