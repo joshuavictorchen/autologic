@@ -100,7 +100,7 @@ class Participant:
         assignment_string = f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
         special_string = "" if assignment == "special" else "(custom assignment)"
         suffix = (
-            f" (previously: {self.assignment.upper() if self.assignment else "NONE"})"
+            f" (previously: {self.assignment.upper() if self.assignment else 'NONE'})"
             if show_previous
             else ""
         )
