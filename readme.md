@@ -9,7 +9,7 @@ It provides a framework that can be used to programmatically assign `Categories`
 
 ## Contributions
 
-Modules placed in [./source/algorithms/](./source/algorithms/) are auto-discovered and exposed as an `--algorithm` choice in the CLI, provided they define exactly one subclass of [HeatGenerator](./source/algorithms/_base.py) that is decorated with [@register](./source/algorithms/_registry.py).
+Modules placed in the [./source/algorithms/](./source/algorithms/) directory are auto-discovered and exposed as an `--algorithm` choice in the CLI, provided they define exactly one subclass of [HeatGenerator](./source/algorithms/_base.py) that is decorated with [@register](./source/algorithms/_registry.py).
 
 - See [example.py](./source/algorithms/example.py) for a sample scaffold.
 
