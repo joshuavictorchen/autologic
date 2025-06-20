@@ -240,7 +240,6 @@ class Event(Group):
             print(f"  {'-' * len(header)}\n")
             print(f"    Car classes: {h.categories}\n")
 
-            # check if number of qualified participants for each role exceed the minima required
             for role, minimum in utils.roles_and_minima(
                 number_of_stations=self.number_of_stations,
                 number_of_novices=len(h.get_participants_by_attribute("novice")),

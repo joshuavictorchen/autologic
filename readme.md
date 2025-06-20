@@ -7,29 +7,21 @@ It provides a framework that can be used to programmatically assign `Categories`
 > [!NOTE]
 > **This is a minimum viable prototype product.** It will be cleaned, documented, de-spaghettified, and made more generally applicable after it's gained some field experience at actual events.
 
-## Contributions
-
-Modules placed in the [./source/algorithms/](./source/algorithms/) directory are auto-discovered and exposed as an `--algorithm` choice in the CLI, provided they define exactly one subclass of [HeatGenerator](./source/algorithms/_base.py) that is decorated with [@register](./source/algorithms/_registry.py).
-
-- See [example.py](./source/algorithms/example.py) for a sample scaffold.
-
-Each plugin’s `generate()` method is given a fully initialized `Event` object. Inside it, the plugin must assign all `Categories` to `Heats`, and assign all `Participants` to roles, by mutating the `Event` in place.
-
-- See how the `generate()` method is called in [autologic.py](./source/autologic.py).
-
-Once the `Event` is returned, `Event.validate()` is called to perform a series of validation checks (are all role requirements fulfilled within each `Heat`; do all `Heats` contain a similar number of `Participants`; are Novices evenly distributed across `Heats`; etc.). If the checks pass, then the `Event` is saved and outputs are generated.
-
-## Retrieval and use
+## Use
 
 1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/).
 
 2. Open a terminal window and execute `.\path\to\autologic.exe --config .\path\to\config_file.yaml --algorithm name_of_module` to generate heat and worker assignments for a set of configured parameters.
 
-    - See [sample_event_config.yaml](./tests/sample_event_config.yaml) for an example of a configuration file.
-    - See [sample_axware_export.tsv](./tests/sample_axware_export.tsv) (pulled from AXWare) and [sample_member_attributes.csv](./tests/sample_member_attributes.csv) (maintained by worker coordinators) for examples of the expected input data structures.
+    - | Sample input file | Description |
+      | - | - |
+      | [sample_event_config.yaml](./tests/sample_event_config.yaml) | Configurable event parameters (number of heats, number of worker stations, custom assignments, etc.) |
+      | [sample_member_attributes.csv](./tests/sample_member_attributes.csv) | Worker qualification table maintained by worker coordinators |
+      | [sample_axware_export.tsv](./tests/sample_axware_export.tsv) | Data dump from AXWare |
+
     - If no `--algorithm` argument is provided, [randomize.py](./source/algorithms/randomize.py) is used by default.
 
-3. Load an `Event` configuration and manipulate it by executing `.\path\to\autologic.exe --load .\path\to\event.pkl` and follow the prompts to:
+3. Optionally load an `Event` configuration and manipulate it by executing `.\path\to\autologic.exe --load .\path\to\event.pkl` and follow the prompts to:
 
     - Move a `Category` to a different `Heat`
     - Rotate `Heat` run/work groups
@@ -37,7 +29,43 @@ Once the `Event` is returned, `Event.validate()` is called to perform a series o
     - Run `Event` validation checks
     - Export data
 
-## Examples
+## Contribute
+
+Modules placed in the [./source/algorithms/](./source/algorithms/) directory  are auto-discovered and exposed as an `--algorithm` choice in the CLI, provided they define exactly one subclass of [HeatGenerator](./source/algorithms/_base.py) that is decorated with [@register](./source/algorithms/_registry.py).
+
+- See [example.py](./source/algorithms/example.py) for a sample scaffold.
+
+Each plugin’s `generate()` method is given a fully initialized `Event` object. Inside it, the plugin must assign all `Categories` to `Heats`, and assign all `Participants` to roles, by mutating the `Event` in place.
+
+- See how the `generate()` method is called in [autologic.py](./source/autologic.py).
+
+Once the `Event` is returned, `Event.validate()` is called to perform a series of validation checks. If the checks pass, then the `Event` is saved and outputs are generated.
+
+## Validate
+
+> [!NOTE]
+> This is a pilot list of generic requirements written in plain English. Algorithm-specific requirements may be enforced at the plugin level.
+
+- Heat size must be within `[(number of participants in event) ÷ (number of heats)] ± (heat size delta)`
+  - Where heat size delta is equal to `(number of participants in event) ÷ (heat size parity)`
+    - Where heat size parity is a configurable parameter
+- The number of novices within a heat must be within `[(number of novices in event) ÷ (number of heats)] ± (novice size delta)`
+  - Where novice size delta is equal to `(number of novices in event) ÷ (novice size parity)`
+    - Where novice size parity is a configurable parameter
+- All specialized roles must be filled within each heat:
+
+  | Role | Required per heat |
+  | - | - |
+  | Instructor | ≥ `(number of novices in heat) ÷ (novice denominator)` |
+  | Timing     | = 2 |
+  | Grid       | = 2 |
+  | Start      | = 1 |
+  | Captain    | = `(number of worker stations on course)` |
+
+  - Where novice denominator and number of stations are configurable parameters
+- Novices may be assigned to special roles (if qualified), but the program logs a warning for each of these assignments
+
+## Sample
 
 > [!NOTE]
 > All names in this project are fictional and randomly generated.
