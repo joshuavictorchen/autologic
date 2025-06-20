@@ -10,6 +10,6 @@ class HeatGenerator(ABC):
     @abstractmethod
     def generate(self, event: Event) -> None:
         """
-        Mutate `event` by assigning heats & roles.
+        Mutate `event` by assigning `Categories` to `Heats`, and roles to `Participants`.
         """
         raise NotImplementedError

@@ -1,23 +1,25 @@
 # Autologic
 
-> [!NOTE]
-> **This is a minimum viable prototype product.** The documentation is simply this README file. It will be cleaned and made more generally applicable after it's gained some field experience at actual events.
-
 This program generates heat + worker assignments for autocross events.
 
-It provides a framework that may be used to assign `Categories` (car classes) to `Heats`, and `Participants` to `Roles` (specialized work assignments).
+It provides a framework that can be used to programmatically assign `Categories` (car classes) to `Heats`, and `Participants` to roles (work assignments), for a given `Event`.
 
-The default algorithm loads an `Event`, randomly assigns `Categories` to `Heats`, checks against acceptance criteria (can all `Roles` be filled within each `Heat`; do all `Heats` contain a similar number of `Participants`; are Novices evenly distributed across `Heats`; etc.), and keeps iterating until all criteria are met.
+> [!NOTE]
+> **This is a minimum viable prototype product.** It will be cleaned, documented, de-spaghettified, and made more generally applicable after it's gained some field experience at actual events.
 
-**We've made it easy to contribute your own algorithms:**
+## Contributions
 
-- Any class decorated with `@register` in `./source/algorithms/your_module_here.py` is auto-discovered and exposed as an `--algorithm` choice in the CLI.
+Modules placed in [./source/algorithms/](./source/algorithms/) are auto-discovered and exposed as an `--algorithm` choice in the CLI, provided they:
 
-  - See [example.py](./source/algorithms/example.py) for a sample scaffold.
+- Define exactly one subclass of `HeatGenerator` (in [_base.py](./source/algorithms/_base.py))
+- Are decorated with `@register` (in [_registry.py](./source/algorithms/_registry.py))
 
-- Algorithms receive a pre-instantiated `Event` and must assign `Categories` to `Heats`, and assign roles to all `Participants` by mutating the `Event` within a `generate()` function.
+Each plugin’s `generate()` method is given a fully initialized `Event` object. Inside it, the plugin must assign all `Categories` to `Heats`, and assign all `Participants` to roles, by mutating the `Event` in place.
 
-  - See how the `generate()` function is called in [autologic.py](./source/autologic.py).
+- See [example.py](./source/algorithms/example.py) for a sample scaffold.
+- See how the `generate()` method is called in [autologic.py](./source/autologic.py).
+
+Once the `Event` is returned, `Event.validate()` is called to perform a series of validation checks (are all role requirements fulfilled within each `Heat`; do all `Heats` contain a similar number of `Participants`; are Novices evenly distributed across `Heats`; etc.). If the checks pass, then the `Event` is saved and run/work group outputs are generated.
 
 ## Retrieval and use
 

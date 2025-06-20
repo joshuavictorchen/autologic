@@ -1,17 +1,3 @@
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Table,
-    TableStyle,
-    Paragraph,
-    Spacer,
-)
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import inch
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase.pdfmetrics import stringWidth
-
 import csv
 import math
 import pickle
@@ -376,6 +362,20 @@ class Event(Group):
         """
 
         # TODO: this last-minute semi-hardcoded function gets the job done but is quite shameful as-is
+
+        from reportlab.platypus import (
+            SimpleDocTemplate,
+            Table,
+            TableStyle,
+            Paragraph,
+            Spacer,
+        )
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.lib.units import inch
+        from reportlab.pdfgen import canvas
+        from reportlab.pdfbase.pdfmetrics import stringWidth
 
         # define column orders
         headers = ["heat", "name", "class", "number", "assignment", "checked_in"]
