@@ -269,12 +269,16 @@ class Event(Group):
                 is_valid, h.valid_size, h.valid_novice_count, h.valid_role_fulfillment
             )
 
+        specialized_novices = False
         for n in self.get_participants_by_attribute("novice"):
             if n.assignment not in ("worker", "special"):
-                is_valid = False
+                # allow novices to have special assignments, but log a warning
+                # is_valid = False
+                specialized_novices = True
                 print(
-                    f"    Novice assignment violation: {n} assigned to {n.assignment} (worker or special expected)"
+                    f"    Novice assignment warning: {n.name.ljust(self.max_name_length)} assigned to {n.assignment}"
                 )
+        print() if specialized_novices else None
 
         if is_valid:
             print(f"    All checks passed.")

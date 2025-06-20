@@ -49,15 +49,6 @@ class Participant:
             else None
         )
 
-        # hotfix: don't allow novices to have specialized roles
-        # TODO: clean this or add warnings
-        if self.novice:
-            self.grid = False
-            self.instructor = False
-            self.timing = False
-            self.captain = False
-            self.start = False
-
     def __repr__(self):
         return f"{self.name}"
 
