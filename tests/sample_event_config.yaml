@@ -17,10 +17,10 @@ custom_assignments:
   SAMPLE-105: instructor  # i.e. a novice coordinator - Noah Johnson
   SAMPLE-549: special     # i.e. someone who made an automated worker assignment program (kidding) - Henry Taylor
 
-# Smaller values enforce tighter heat size balance.
+# Larger values enforce tighter heat size balance.
 heat_size_parity: 25
 
-# Smaller values enforce tighter novice balance across heats.
+# Larger values enforce tighter novice balance across heats.
 novice_size_parity: 10
 
 # Min instructors required per heat = number of novices / novice_denominator.

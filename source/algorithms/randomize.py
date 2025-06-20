@@ -160,3 +160,16 @@ class Randomizer(HeatGenerator):
         random.shuffle(categories)
         for i, c in enumerate(categories):
             c.set_heat(event.get_heat(i % event.number_of_heats + 1))
+
+        # hotfix: make CAM classes run together, if both exist
+        def cams_in_same_heat(categories):
+            cams = {
+                name: cat for name, cat in categories.items() if name.startswith("CAM-")
+            }
+            cam_heats = [c.heat.number for c in cams.values()]
+            return len(set(cam_heats)) <= 1
+
+        while not (cams_in_same_heat):
+            random.shuffle(categories)
+            for i, c in enumerate(categories):
+                c.set_heat(event.get_heat(i % event.number_of_heats + 1))
