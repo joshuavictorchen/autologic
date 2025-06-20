@@ -11,8 +11,8 @@ It provides a framework that can be used to programmatically assign `Categories`
 
 Modules placed in [./source/algorithms/](./source/algorithms/) are auto-discovered and exposed as an `--algorithm` choice in the CLI, provided they:
 
-- Define exactly one subclass of `HeatGenerator` (in [_base.py](./source/algorithms/_base.py))
-- Are decorated with `@register` (in [_registry.py](./source/algorithms/_registry.py))
+- Define exactly one subclass of `HeatGenerator` (see: [_base.py](./source/algorithms/_base.py))
+- Are decorated with `@register` (see: [_registry.py](./source/algorithms/_registry.py))
 
 Each plugin’s `generate()` method is given a fully initialized `Event` object. Inside it, the plugin must assign all `Categories` to `Heats`, and assign all `Participants` to roles, by mutating the `Event` in place.
 
