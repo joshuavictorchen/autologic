@@ -13,8 +13,12 @@ It provides a framework that can be used to programmatically assign `Categories`
 
 2. Open a terminal window and execute `.\path\to\autologic.exe --config .\path\to\config_file.yaml --algorithm name_of_module` to generate heat and worker assignments for a set of configured parameters.
 
-    - See [sample_event_config.yaml](./tests/sample_event_config.yaml) for an example of a configuration file and the available configurable parameters (number of heats, number of worker stations, custom assignments, etc.).
-    - See [sample_axware_export.tsv](./tests/sample_axware_export.tsv) (pulled from AXWare) and [sample_member_attributes.csv](./tests/sample_member_attributes.csv) (maintained by worker coordinators) for examples of the expected input data structures.
+    - | Sample input file | Description |
+      | - | - |
+      | [sample_event_config.yaml](./tests/sample_event_config.yaml) | Configurable event parameters (number of heats, number of worker stations, custom assignments, etc.) |
+      | [sample_member_attributes.csv](./tests/sample_member_attributes.csv) | Worker qualification table maintained by worker coordinators |
+      | [sample_axware_export.tsv](./tests/sample_axware_export.tsv) | Data dump from AXWare |
+
     - If no `--algorithm` argument is provided, [randomize.py](./source/algorithms/randomize.py) is used by default.
 
 3. Optionally load an `Event` configuration and manipulate it by executing `.\path\to\autologic.exe --load .\path\to\event.pkl` and follow the prompts to:
