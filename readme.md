@@ -11,9 +11,10 @@ It provides a framework that can be used to programmatically assign `Categories`
 
 Modules placed in [./source/algorithms/](./source/algorithms/) are auto-discovered and exposed as an `--algorithm` choice in the CLI, provided they define exactly one subclass of [HeatGenerator](./source/algorithms/_base.py) that is decorated with [@register](./source/algorithms/_registry.py).
 
+- See [example.py](./source/algorithms/example.py) for a sample scaffold.
+
 Each plugin’s `generate()` method is given a fully initialized `Event` object. Inside it, the plugin must assign all `Categories` to `Heats`, and assign all `Participants` to roles, by mutating the `Event` in place.
 
-- See [example.py](./source/algorithms/example.py) for a sample scaffold.
 - See how the `generate()` method is called in [autologic.py](./source/autologic.py).
 
 Once the `Event` is returned, `Event.validate()` is called to perform a series of validation checks (are all role requirements fulfilled within each `Heat`; do all `Heats` contain a similar number of `Participants`; are Novices evenly distributed across `Heats`; etc.). If the checks pass, then the `Event` is saved and run/work group outputs are generated.
