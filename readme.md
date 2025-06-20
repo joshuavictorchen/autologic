@@ -17,7 +17,7 @@ Each plugin’s `generate()` method is given a fully initialized `Event` object.
 
 - See how the `generate()` method is called in [autologic.py](./source/autologic.py).
 
-Once the `Event` is returned, `Event.validate()` is called to perform a series of validation checks (are all role requirements fulfilled within each `Heat`; do all `Heats` contain a similar number of `Participants`; are Novices evenly distributed across `Heats`; etc.). If the checks pass, then the `Event` is saved and run/work group outputs are generated.
+Once the `Event` is returned, `Event.validate()` is called to perform a series of validation checks (are all role requirements fulfilled within each `Heat`; do all `Heats` contain a similar number of `Participants`; are Novices evenly distributed across `Heats`; etc.). If the checks pass, then the `Event` is saved and outputs are generated.
 
 ## Retrieval and use
 
