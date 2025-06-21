@@ -54,7 +54,7 @@ class Heat(Group):
             abs(self.event.mean_heat_size - heat_size) <= self.event.max_heat_size_delta
         )
 
-        if not is_valid:
+        if self.event.verbose and not is_valid:
             print(f"\n    Heat {self} violation: participant count of {heat_size}")
 
         return is_valid

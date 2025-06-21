@@ -30,7 +30,10 @@ class Randomizer(HeatGenerator):
                 f"\n  ==================================================\n\n  [Iteration {iteration}]"
             )
 
+            event.verbose = False
+            print()
             self.randomize_heats(event)
+            event.verbose = True
 
             print(
                 f"\n  Heat size must be {event.mean_heat_size} +/- {event.max_heat_size_delta}"
@@ -154,12 +157,9 @@ class Randomizer(HeatGenerator):
 
     def randomize_heats(self, event):
 
-        # TODO: This is overly restrictive! It works for now but should be updated in the future.
-        # Categories are EVENLY DISTRIBUTED across heats even though category size may vary significantly.
         categories = list(event.categories.values())
-        random.shuffle(categories)
-        for i, c in enumerate(categories):
-            c.set_heat(event.get_heat(i % event.number_of_heats + 1))
+        for c in categories:
+            c.set_heat(random.choice(event.heats))
 
         # hotfix: make CAM classes run together, if any exist
         def cams_in_same_heat(categories):
@@ -167,7 +167,14 @@ class Randomizer(HeatGenerator):
             cam_heats = [c.heat.number for c in cams]
             return len(set(cam_heats)) <= 1
 
-        while not (cams_in_same_heat(categories)):
-            random.shuffle(categories)
-            for i, c in enumerate(categories):
-                c.set_heat(event.get_heat(i % event.number_of_heats + 1))
+        def valid_heat_sizes(heats):
+            return not any(not h.valid_size for h in heats)
+
+        count = 0
+        while not (cams_in_same_heat(categories) and valid_heat_sizes(event.heats)):
+            for c in categories:
+                c.set_heat(random.choice(event.heats))
+            count += 1
+            print(f"  Internal iteration: {count}", end="\r")
+
+        print(f"  Internal iteration: {count}")
