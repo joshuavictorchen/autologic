@@ -2,4 +2,5 @@ click
 pydantic
 pyyaml
 pyinstaller
+questionary
 reportlab

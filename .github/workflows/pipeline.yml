@@ -87,7 +87,7 @@ jobs:
       # very non-deterministic... just a sanity check here
       # TODO: use mocking in Pytest instead, and add unit tests
       - name: Run autologic.exe with sample_event_config.yaml
-        run: .\autologic.exe --config .\sample_event_config.yaml
+        run: .\autologic.exe --config .\sample_event_config.yaml --interactive false
 
   release:
     needs: test
