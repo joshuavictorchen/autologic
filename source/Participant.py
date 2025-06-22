@@ -41,13 +41,10 @@ class Participant:
 
         # dynamically assign additional role flags (e.g., instructor=True)
         [setattr(self, key, value) for key, value in kwargs.items()]
+        self.special = None  # also set special as a "role" for consistency
 
         # if participant has a special assignment, assign them immediately
-        (
-            self.set_assignment(special_assignment, verbose=False)
-            if special_assignment
-            else None
-        )
+        (self.set_assignment(special_assignment) if special_assignment else None)
 
     def __repr__(self):
         return f"{self.name}"
@@ -89,7 +86,6 @@ class Participant:
         """
 
         assignment_string = f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
-        special_string = "" if assignment == "special" else "(custom assignment)"
         suffix = (
             f" (previously: {self.assignment.upper() if self.assignment else 'NONE'})"
             if show_previous
@@ -106,7 +102,13 @@ class Participant:
         if self.special_assignment:
             if assignment == self.special_assignment:
                 self.assignment = assignment
-                print(f"{assignment_string} {special_string}") if verbose else None
+                print(f"{assignment_string}") if verbose else None
+                # automatically qualify the Participant for this role
+                if not hasattr(self, assignment):
+                    raise ValueError(
+                        f"{self} was attempted to be assigned to {assignment}, which is not recognized."
+                    )
+                setattr(self, assignment, True)
             else:
                 raise ValueError(
                     f"{self} was attempted to be reassigned from their special assignment of {self.special_assignment.upper()}"
