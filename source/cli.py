@@ -98,7 +98,7 @@ def cli(config: dict, algorithm: str, pickle_file: str):
 
     if config:
         event = autologic.load_event(**config.model_dump())
-        autologic.main(algorithm=algorithm, event=event)
+        autologic.main(algorithm=algorithm, event=event, interactive=True)
         return
 
     # at this point, we're loading a file and doing things interactively
