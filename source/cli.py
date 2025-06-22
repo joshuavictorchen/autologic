@@ -83,7 +83,13 @@ def load_config(ctx, param, value: Path) -> Config:
     type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
     help="Path to a previously-saved Event state.",
 )
-def cli(config: dict, algorithm: str, pickle_file: str):
+@click.option(
+    "--interactive",
+    type=click.BOOL,
+    default=True,
+    help="Enable interactive mode for main function.",
+)
+def cli(config: dict, algorithm: str, pickle_file: str, interactive: bool):
 
     if config is None and pickle_file is None:
         raise click.BadParameter("Must supply either --config or --load.")
@@ -98,7 +104,7 @@ def cli(config: dict, algorithm: str, pickle_file: str):
 
     if config:
         event = autologic.load_event(**config.model_dump())
-        autologic.main(algorithm=algorithm, event=event, interactive=True)
+        autologic.main(algorithm=algorithm, event=event, interactive=interactive)
         return
 
     # at this point, we're loading a file and doing things interactively
