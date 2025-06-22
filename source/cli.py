@@ -1,5 +1,6 @@
 import click
 import pickle
+import questionary
 import yaml
 
 import autologic
@@ -106,76 +107,84 @@ def cli(config: dict, algorithm: str, pickle_file: str):
 
     print(f"\nEvent loaded: {event.name}")
 
-    choices = {
-        "1": "Move a Category to a different Heat",
-        "2": "Rotate Heat run/work groups",
-        "3": "Update a Participant assignment",
-        "4": "Run Event validation checks",
-        "5": "Export data",
-        "Q": "Quit",
-    }
+    choices = [
+        "Move a Category to a different Heat",
+        "Rotate Heat run/work groups",
+        "Update a Participant assignment",
+        "Run Event validation checks",
+        "Export data",
+        "Quit",
+    ]
 
     while True:
 
-        print(f"\n---\n")
-        for k, v in choices.items():
-            print(f"[{k}] {v}")
-
-        choice = click.prompt(
-            "\nSelection",
-            type=click.Choice(list(choices.keys()), case_sensitive=False),
-            show_choices=False,
-        )
-
         print(f"\n---")
 
-        if choice == "1":
+        choice = questionary.select(
+            "\nAction:",
+            choices=choices,
+            qmark="",
+            instruction=" ",
+        ).ask()
 
-            category = click.prompt(
-                f"\nClass",
-                type=click.Choice(list(event.categories.keys()), case_sensitive=False),
-                show_choices=False,
-            ).upper()
+        if choice == "Move a Category to a different Heat":
 
-            heat_number = click.prompt(
-                f"Assign to Heat",
-                type=click.Choice([h.name for h in event.heats]),
-                show_choices=False,
+            category = (
+                questionary.autocomplete(
+                    "\nClass:",
+                    choices=list(event.categories.keys()),
+                    qmark="",
+                    ignore_case=True,
+                )
+                .ask()
+                .upper()
             )
+
+            heat_number = questionary.select(
+                "\nAssign to Heat",
+                choices=[str(h.number) for h in event.heats],
+                qmark="",
+                instruction=" ",
+            ).ask()
+            heat_number = int(heat_number)
 
             print()
             event.categories[category].set_heat(
                 event.get_heat(heat_number), verbose=True
             )
 
-        if choice == "2":
+        if choice == "Rotate Heat run/work groups":
 
-            offset = click.prompt(
-                f"\nApply a run/work group offset",
-                type=int,
-                show_choices=False,
-            )
+            offset_str = questionary.text(
+                "\nApply a run/work group offset:",
+                qmark="",
+                validate=lambda val: val.isdigit(),
+            ).ask()
 
             # TODO: make the run/work groups attributes of Heat
-            offset = offset % event.number_of_heats
+            offset = int(offset_str) % event.number_of_heats
             event.heats[:] = event.heats[-offset:] + event.heats[:-offset]
 
             print()
             event.get_heat_assignments(verbose=True)
 
-        if choice == "3":
+        if choice == "Update a Participant assignment":
+            participant_names = [p.name for p in event.participants]
+            participant = (
+                questionary.autocomplete(
+                    "\nParticipant:",
+                    choices=participant_names,
+                    qmark="",
+                    ignore_case=True,
+                )
+                .ask()
+                .upper()
+            )
 
-            # TODO: use questionary
-            participant = click.prompt(
-                f"\nParticipant",
-                type=click.Choice(list(event.participants), case_sensitive=False),
-                show_choices=False,
-            ).name.upper()
-
-            role = click.prompt(
-                f"Assign to role",
-                type=click.Choice(
-                    [
+            role = (
+                questionary.select(
+                    "\nAssign to role:",
+                    choices=[
                         "special",
                         "instructor",
                         "timing",
@@ -184,21 +193,23 @@ def cli(config: dict, algorithm: str, pickle_file: str):
                         "captain",
                         "worker",
                     ],
-                    case_sensitive=False,
-                ),  # TODO: clean
-                show_choices=False,
-            ).lower()
+                    qmark="",
+                    instruction=" ",
+                )
+                .ask()
+                .lower()
+            )
 
             print()
             event.get_participant_by_name(participant).set_assignment(
                 role, show_previous=True, manual_override=True
             )
 
-        if choice == "4":
+        if choice == "Run Event validation checks":
 
             event.validate()
 
-        if choice == "5":
+        if choice == "Export data":
 
             print(f"\nFiles with the same Event name will be overwritten!")
             new_name = input("\nSave Event as: ")
@@ -211,7 +222,7 @@ def cli(config: dict, algorithm: str, pickle_file: str):
             print()
             return
 
-        if choice.lower() == "q":
+        if choice == "Quit":
             print(f"\nProgram terminated.\n")
             return
 

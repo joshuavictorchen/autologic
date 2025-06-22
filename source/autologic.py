@@ -1,9 +1,21 @@
+import questionary
 from Event import Event
 from algorithms import get_algorithms
 
 
 def main(algorithm, event):
     """Parse event participants and generate heat assignments with role coverage and balanced sizes."""
+
+    choice = questionary.select(
+        "\nAction:",
+        choices=["Continue", "Quit"],
+        qmark="",
+        instruction=" ",
+    ).ask()
+
+    if choice != "Continue":
+        print()
+        return
 
     # get the algorithms
     algos = get_algorithms()
