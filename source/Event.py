@@ -70,7 +70,7 @@ class Event(Group):
         Returns:
             int: Length of the longest name in the event.
         """
-        max_length = 0
+        max_length = 0 if self.participants else 20
         for p in self.participants:
             max_length = len(p.name) if len(p.name) > max_length else max_length
         return max_length
@@ -99,6 +99,9 @@ class Event(Group):
             for member_row in member_data:
                 member_attributes_dict[member_row["id"]] = member_row
 
+        print(f"\n  Custom assignments")
+        print(f"  ------------------\n")
+        has_special_assignments = False
         participants = []
         no_shows = []
         with open(axware_export_tsv, newline="", encoding="utf-8-sig") as file:
@@ -122,6 +125,10 @@ class Event(Group):
                     random.choice(special_assignment)
                     if type(special_assignment) == list
                     else special_assignment
+                )
+
+                has_special_assignments = (
+                    True if special_assignment else has_special_assignments
                 )
 
                 # scrappy implementation to pivot toward using axware export for now
@@ -163,6 +170,9 @@ class Event(Group):
                     no_shows.append(participant)
                 else:
                     participants.append(participant)
+
+        if not has_special_assignments:
+            print("    No special assignments.")
 
         return participants, no_shows
 
