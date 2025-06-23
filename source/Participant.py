@@ -96,6 +96,7 @@ class Participant:
             ).ask()
 
             if choice == f"Continue without {self}":
+                print()
                 return
             else:
                 print()
