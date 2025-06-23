@@ -1,3 +1,5 @@
+import questionary
+import sys
 import utils
 
 WORKER_ASSIGNMENT = "worker"
@@ -84,6 +86,20 @@ class Participant:
         Args:
             assignment (str): The role to assign.
         """
+
+        if not self.event:
+            choice = questionary.select(
+                f"\nWARNING: {self} has custom assignment {assignment.upper()} but has not checked in:",
+                choices=["Continue", "Quit"],
+                qmark="",
+                instruction=" ",
+            ).ask()
+
+            if choice == "Continue":
+                return
+            else:
+                print()
+                sys.exit()
 
         assignment_string = f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
         suffix = (
