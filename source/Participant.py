@@ -90,12 +90,12 @@ class Participant:
         if not self.event:
             choice = questionary.select(
                 f"\nWARNING: {self} has custom assignment {assignment.upper()} but has not checked in:",
-                choices=["Continue", "Quit"],
+                choices=[f"Continue without {self}", "Quit"],
                 qmark="",
                 instruction=" ",
             ).ask()
 
-            if choice == "Continue":
+            if choice == f"Continue without {self}":
                 return
             else:
                 print()
