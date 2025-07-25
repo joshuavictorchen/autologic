@@ -78,11 +78,12 @@ def roles_and_minima(number_of_stations=4, number_of_novices=1, novice_denominat
     The minimum number of corner captains in a heat is equal to `number_of_stations`.
 
     The minimum number of instructors in a heat is equal to `number_of_novices`
-    divided `novice_denominator`, or `MIN_INSTRUCTOR_PER_HEAT`, whichever is greater.
+    divided `novice_denominator` for the complimentary heat (running while this one is working),
+    or `MIN_INSTRUCTOR_PER_HEAT`, whichever is greater.
 
     Args:
         number_of_stations (int): Number of worker stations for the course.
-        number_of_novices (int): Number of novices in the heat.
+        number_of_novices (int): Number of novices in the complimentary heat.
         novice_denominator (int): Ratio of novices to instructors.
 
     Returns:

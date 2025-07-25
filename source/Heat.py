@@ -81,7 +81,9 @@ class Heat(Group):
 
         for role, minimum in utils.roles_and_minima(
             number_of_stations=self.event.number_of_stations,
-            number_of_novices=len(self.get_participants_by_attribute("novice")),
+            number_of_novices=len(
+                self.compliment.get_participants_by_attribute("novice")
+            ),
             novice_denominator=self.event.novice_denominator,
         ).items():
 
@@ -108,3 +110,23 @@ class Heat(Group):
                 is_valid = False
 
         return is_valid
+
+    @property
+    def running(self):
+        # somewhat redundant, but provides an explicit method for when the heat is running
+        return self.number
+
+    @property
+    def working(self):
+
+        work_offset = 5 if self.event.number_of_heats >= 4 else 3
+        return (self.running + work_offset) % self.event.number_of_heats + 1
+
+    @property
+    def compliment(self):
+        # heat that is running while self is working
+        for h in self.event.heats:
+            if h.running == self.working:
+                return h
+
+        raise ValueError(f"Heat {self} has no compliment")

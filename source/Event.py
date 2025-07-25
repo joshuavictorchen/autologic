@@ -253,7 +253,9 @@ class Event(Group):
 
             for role, minimum in utils.roles_and_minima(
                 number_of_stations=self.number_of_stations,
-                number_of_novices=len(h.get_participants_by_attribute("novice")),
+                number_of_novices=len(
+                    h.compliment.get_participants_by_attribute("novice")
+                ),
                 novice_denominator=self.novice_denominator,
             ).items():
                 assigned = len(h.get_participants_by_attribute("assignment", role))
@@ -315,6 +317,14 @@ class Event(Group):
 
         return work_assignments
 
+    def get_working_i_heat(self, i):
+
+        for h in enumerate(self.heats):
+            if h.working == i:
+                return h
+
+        raise ValueError(f"No heats assigned to work group {i}")
+
     def get_heat_assignments(self, verbose=False):
         """
         Returns a list of lists that describe each heat in the event, and their categories.
@@ -324,15 +334,10 @@ class Event(Group):
         TODO: flesh out docs
         """
 
-        work_offset = 5 if self.number_of_heats >= 4 else 3
-
         heat_assignments = []
         for i, h in enumerate(self.heats):
 
-            running_heat = (i % self.number_of_heats) + 1
-            working_heat = (running_heat + work_offset) % self.number_of_heats + 1
-
-            this_heat_run_work = f"Running {running_heat} | Working {working_heat}"
+            this_heat_run_work = f"Running {h.running} | Working {h.working}"
             these_classes = ", ".join([i.name for i in h.categories])
 
             heat_assignments.append([this_heat_run_work, these_classes])
