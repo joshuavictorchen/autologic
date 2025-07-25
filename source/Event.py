@@ -302,11 +302,12 @@ class Event(Group):
         """
 
         work_assignments = []
-        for h in self.heats:
+        for i in range(self.number_of_heats):
+            h = self.get_working_i_heat(i + 1)
             for p in sorted(h.participants, key=lambda p: p.name):
                 work_assignments.append(
                     {
-                        "heat": h.number,
+                        "heat": h.working,
                         "name": p.name,
                         "class": p.axware_category,
                         "number": p.number,
@@ -317,9 +318,33 @@ class Event(Group):
 
         return work_assignments
 
+    def get_run_assignments(self):
+        """
+        Returns a list of dicts that describe each participant in the event, and their run group.
+
+        Return format is for input to to_pdf.
+
+        TODO: flesh out docs
+        """
+
+        run_assignments = []
+        for h in self.heats:
+            for p in sorted(h.participants, key=lambda p: p.name):
+                run_assignments.append(
+                    {
+                        "heat": h.running,
+                        "name": p.name,
+                        "class": p.axware_category,
+                        "number": p.number,
+                        "tally": "",
+                    }
+                )
+
+        return run_assignments
+
     def get_working_i_heat(self, i):
 
-        for h in enumerate(self.heats):
+        for h in self.heats:
             if h.working == i:
                 return h
 
@@ -338,7 +363,9 @@ class Event(Group):
         for i, h in enumerate(self.heats):
 
             this_heat_run_work = f"Running {h.running} | Working {h.working}"
-            these_classes = ", ".join([i.name for i in h.categories])
+            these_classes = ", ".join(
+                sorted([i.name for i in h.categories], key=str.lower)
+            )
 
             heat_assignments.append([this_heat_run_work, these_classes])
 
@@ -382,12 +409,14 @@ class Event(Group):
             SimpleDocTemplate,
             Table,
             TableStyle,
+            PageBreak,
             Paragraph,
             Spacer,
         )
         from reportlab.lib.pagesizes import letter
         from reportlab.lib import colors
-        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.lib.enums import TA_CENTER
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.lib.units import inch
         from reportlab.pdfgen import canvas
         from reportlab.pdfbase.pdfmetrics import stringWidth
@@ -395,7 +424,7 @@ class Event(Group):
         # define column orders
         headers = ["heat", "name", "class", "number", "assignment", "checked_in"]
         display_headers = [
-            "Heat",
+            "Working",
             "Name",
             "Class",
             "Number",
@@ -432,6 +461,11 @@ class Event(Group):
 
         # get styles
         styles = getSampleStyleSheet()
+        centered_heading = ParagraphStyle(
+            name="CenteredHeading",
+            parent=styles["Heading2"],
+            alignment=TA_CENTER,
+        )
 
         # build document
         doc = SimpleDocTemplate(
@@ -538,7 +572,7 @@ class Event(Group):
         ]
         summary_data = [
             [
-                "Heat",
+                "Group",
                 "Instructor",
                 "Timing",
                 "Grid",
@@ -593,6 +627,58 @@ class Event(Group):
             )
         )
 
+        # grid worker table: sorted by class and number, without assignment
+
+        grid_worker_headers = ["heat", "name", "class", "number", "tally"]
+        display_grid_worker_headers = [
+            "Running",
+            "Name",
+            "Class",
+            "Number",
+            "Run Tally",
+        ]
+
+        sorted_assignments = sorted(
+            self.get_run_assignments(),
+            key=lambda row: (row["heat"], row["class"], row["number"]),
+        )
+
+        grid_worker_table_data = [display_grid_worker_headers] + [
+            [str(row[h]).upper() for h in grid_worker_headers]
+            for row in sorted_assignments
+        ]
+
+        grid_worker_col_widths = compute_scaled_col_widths(
+            data=grid_worker_table_data,
+            font_name="Courier",
+            font_size=9,
+            padding=12,
+            total_width=available_width,
+        )
+
+        grid_worker_table = Table(
+            grid_worker_table_data,
+            colWidths=grid_worker_col_widths,
+            repeatRows=1,
+        )
+
+        name_idx_cn = grid_worker_headers.index("name")
+
+        grid_worker_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+                    ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("ALIGN", (name_idx_cn, 1), (name_idx_cn, -1), "LEFT"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Courier-Bold"),
+                    ("FONTNAME", (0, 1), (-1, -1), "Courier"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ]
+            )
+        )
+
         # build document
         elements = [
             Paragraph(f"{self.name}", styles["Title"]),
@@ -600,7 +686,11 @@ class Event(Group):
             Spacer(1, 6),
             summary_table,
             Spacer(1, 6),
+            Paragraph("Worker Tracking", centered_heading),
             table,
+            PageBreak(),
+            Paragraph("Grid Tracking", centered_heading),
+            grid_worker_table,
         ]
 
         doc.build(elements, canvasmaker=NumberedCanvas)
