@@ -56,7 +56,7 @@ Once the `Event` is returned, `Event.validate()` is called to perform a series o
 
   | Role | Required per heat |
   | - | - |
-  | Instructor | ≥ `(number of novices in heat) ÷ (novice denominator)` |
+  | Instructor | ≥ `(number of novices in complimentary heat) ÷ (novice denominator)` |
   | Timing     | = 2 |
   | Grid       | = 2 |
   | Start      | = 1 |
