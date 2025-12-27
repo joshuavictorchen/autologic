@@ -1,5 +1,5 @@
 import utils
-from Group import Group
+from group import Group
 
 
 class Heat(Group):

@@ -3,10 +3,10 @@ import math
 import pickle
 import random
 import utils
-from Category import Category
-from Group import Group
-from Heat import Heat
-from Participant import Participant
+from category import Category
+from group import Group
+from heat import Heat
+from participant import Participant
 from pdf_report import generate_event_pdf
 
 
@@ -401,5 +401,5 @@ class Event(Group):
 
     def to_pdf(self):
         """Generate the worker/grid tracking PDF."""
-        
+
         generate_event_pdf(self)

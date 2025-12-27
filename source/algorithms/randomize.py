@@ -13,6 +13,9 @@ from algorithms import HeatGenerator, register
 @register
 class Randomizer(HeatGenerator):
 
+    def __init__(self):
+        super().__init__()
+
     def generate(self, event):
         """
         Randomly assign categories (car classes) to heats.
@@ -21,6 +24,7 @@ class Randomizer(HeatGenerator):
         # keep randomizing heats until all criteria are met (lol)
         rules_satisfied = False
         iteration = -1
+        self._notify("start", {"max_iterations": event.max_iterations})
         while not rules_satisfied and iteration < event.max_iterations:
 
             iteration += 1
@@ -29,6 +33,7 @@ class Randomizer(HeatGenerator):
             print(
                 f"\n  ==================================================\n\n  [Iteration {iteration}]"
             )
+            self._notify("iteration_start", {"iteration": iteration})
 
             event.verbose = False
             print()
@@ -94,6 +99,14 @@ class Randomizer(HeatGenerator):
                         print(
                             f"\n    Heat {h} rejected: unable to fill {role.upper()} role(s)"
                         )
+                        self._notify(
+                            "heat_rejected",
+                            {
+                                "iteration": iteration,
+                                "heat": h.number,
+                                "reason": f"unable to fill {role.upper()} role(s)",
+                            },
+                        )
                         break
 
                 if rules_satisfied:
@@ -154,9 +167,14 @@ class Randomizer(HeatGenerator):
             print(
                 f"\n\n  Could not create heats in {event.max_iterations} iterations.\n"
             )
+            self._notify(
+                "max_iterations_exceeded",
+                {"max_iterations": event.max_iterations},
+            )
             exit(1)
 
         print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
+        self._notify("accepted", {"iteration": iteration})
 
     def randomize_heats(self, event):
 

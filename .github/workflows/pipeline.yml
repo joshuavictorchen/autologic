@@ -49,13 +49,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller
 
-      - name: Build .exe with PyInstaller
+      - name: Build CLI .exe with PyInstaller
         run: |
-          pyinstaller --onefile --name autologic --collect-submodules=algorithms --additional-hooks-dir=source source/cli.py
+          pyinstaller --onefile --name autologic-cli --collect-submodules=algorithms --additional-hooks-dir=source source/cli.py
+
+      - name: Build GUI .exe with PyInstaller
+        run: |
+          pyinstaller --onefile --name autologic-gui --collect-submodules=algorithms --additional-hooks-dir=source source/gui.py
 
       - name: Flatten release files
         run: |
-          cp dist/autologic.exe .
+          cp dist/autologic-cli.exe .
+          cp dist/autologic-gui.exe .
           cp tests/sample_axware_export.tsv .
           cp tests/sample_member_attributes.csv .
           cp tests/sample_event_config.yaml .
@@ -65,7 +70,8 @@ jobs:
         with:
           name: autologic
           path: |
-            autologic.exe
+            autologic-cli.exe
+            autologic-gui.exe
             sample_axware_export.tsv
             sample_member_attributes.csv
             sample_event_config.yaml
@@ -86,7 +92,7 @@ jobs:
       # very non-deterministic... just a sanity check here
       # TODO: use mocking in Pytest instead, and add unit tests
       - name: Run autologic.exe with sample_event_config.yaml
-        run: .\autologic.exe --config .\sample_event_config.yaml --interactive false
+        run: .\autologic-cli.exe --config .\sample_event_config.yaml --interactive false
 
   release:
     needs: test
@@ -103,7 +109,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            autologic.exe
+            autologic-cli.exe
+            autologic-gui.exe
             sample_axware_export.tsv
             sample_member_attributes.csv
             sample_event_config.yaml

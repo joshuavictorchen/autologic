@@ -1,9 +1,9 @@
 import questionary
-from Event import Event
+from event import Event
 from algorithms import get_algorithms
 
 
-def main(algorithm, event, interactive=False):
+def main(algorithm, event, interactive=False, observer=None):
     """Parse event participants and generate heat assignments with role coverage and balanced sizes."""
 
     if interactive:
@@ -24,6 +24,8 @@ def main(algorithm, event, interactive=False):
     if algorithm not in algos:
         raise ValueError(f"Unknown algorithm: {algorithm}")
     this_algorithm = algos[algorithm]()  # instantiate
+    if observer and hasattr(this_algorithm, "add_observer"):
+        this_algorithm.add_observer(observer)
     this_algorithm.generate(event)
 
     # run checks
