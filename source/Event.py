@@ -400,7 +400,7 @@ class Event(Group):
 
     def to_pdf(self):
         """
-        TODO: flesh out docs... and untangle this GPT-enabled mess
+        TODO: flesh out docs... and untangle this mess
         """
 
         # TODO: this last-minute semi-hardcoded function gets the job done but is quite shameful as-is
