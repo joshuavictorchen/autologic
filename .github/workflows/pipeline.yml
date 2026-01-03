@@ -23,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install Black
         run: pip install black
@@ -42,7 +42,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
@@ -51,11 +51,11 @@ jobs:
 
       - name: Build CLI .exe with PyInstaller
         run: |
-          pyinstaller --onefile --name autologic-cli --collect-submodules=algorithms --additional-hooks-dir=source source/cli.py
+          pyinstaller --onefile --name autologic-cli --collect-submodules=autologic.algorithms --additional-hooks-dir=autologic autologic/cli.py
 
       - name: Build GUI .exe with PyInstaller
         run: |
-          pyinstaller --onefile --name autologic-gui --collect-submodules=algorithms --additional-hooks-dir=source source/gui.py
+          pyinstaller --onefile --name autologic-gui --collect-submodules=autologic.algorithms --additional-hooks-dir=autologic gui/gui.py
 
       - name: Flatten release files
         run: |
@@ -84,15 +84,56 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.in
+          pip install -e .
+
+      - name: Run pytest with coverage
+        run: python -m pytest --cov=autologic --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+
       - name: Download .exe artifact
         uses: actions/download-artifact@v4
         with:
           name: autologic
 
-      # very non-deterministic... just a sanity check here
-      # TODO: use mocking in Pytest instead, and add unit tests
       - name: Run autologic.exe with sample_event_config.yaml
-        run: .\autologic-cli.exe --config .\sample_event_config.yaml --interactive false
+        run: .\autologic-cli.exe --config .\sample_event_config.yaml --algorithm randomize --interactive false --seed 1337
+
+      - name: Validate .exe outputs
+        shell: pwsh
+        run: |
+          $files = @(
+            "autologic-event.csv",
+            "autologic-event.pdf",
+            "autologic-event.pkl"
+          )
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) {
+              Write-Error "Missing $file"
+              exit 1
+            }
+            if ((Get-Item $file).Length -le 0) {
+              Write-Error "Empty $file"
+              exit 1
+            }
+          }
+          $header = Get-Content autologic-event.csv -TotalCount 1
+          if ($header -ne "heat,name,class,number,assignment,checked_in") {
+            Write-Error "Unexpected CSV header: $header"
+            exit 1
+          }
 
   release:
     needs: test

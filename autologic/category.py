@@ -1,5 +1,5 @@
-from group import Group
-from participant import Participant
+from autologic.group import Group
+from autologic.participant import Participant
 
 
 class Category(Group):

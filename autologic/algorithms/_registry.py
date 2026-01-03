@@ -1,8 +1,9 @@
-import pkgutil
 import importlib
-import algorithms
-from typing import Type, Dict
-from algorithms import HeatGenerator
+import pkgutil
+from typing import Dict, Type
+
+from autologic import algorithms
+from autologic.algorithms._base import HeatGenerator
 
 _registry: Dict[str, Type[HeatGenerator]] = {}
 

@@ -1,6 +1,6 @@
 import questionary
 import sys
-import utils
+from autologic import utils
 
 WORKER_ASSIGNMENT = "worker"
 

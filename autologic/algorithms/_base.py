@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from event import Event
+from autologic.event import Event
 
 
 class HeatGenerator(ABC):

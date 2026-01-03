@@ -2,12 +2,12 @@ import csv
 import math
 import pickle
 import random
-import utils
-from category import Category
-from group import Group
-from heat import Heat
-from participant import Participant
-from pdf import generate_event_pdf
+from autologic import utils
+from autologic.category import Category
+from autologic.group import Group
+from autologic.heat import Heat
+from autologic.participant import Participant
+from autologic.pdf import generate_event_pdf
 
 
 class Event(Group):

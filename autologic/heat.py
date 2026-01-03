@@ -1,5 +1,5 @@
-import utils
-from group import Group
+from autologic import utils
+from autologic.group import Group
 
 
 class Heat(Group):

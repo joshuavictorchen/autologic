@@ -1,7 +1,7 @@
 import random
-import utils
+from autologic import utils
 
-from algorithms import HeatGenerator, register
+from autologic.algorithms import HeatGenerator, register
 
 # =============================================================================
 # TODO: refactor for sanity and flexibility

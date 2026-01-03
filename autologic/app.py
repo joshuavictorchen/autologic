@@ -1,6 +1,7 @@
+import random
 import questionary
-from event import Event
-from algorithms import get_algorithms
+from autologic.algorithms import get_algorithms
+from autologic.event import Event
 
 
 def main(algorithm, event, interactive=False, observer=None):
@@ -59,7 +60,29 @@ def load_event(
     novice_size_parity,
     novice_denominator,
     max_iterations,
+    seed: int | None = None,
 ):
+    """Build an Event with optional deterministic seeding.
+
+    Args:
+        name: Event name.
+        axware_export_tsv: Path to the AXWare TSV export.
+        member_attributes_csv: Path to the member attributes CSV.
+        number_of_heats: Number of heats to schedule.
+        custom_assignments: Mapping of member IDs to fixed role assignments.
+        number_of_stations: Number of worker stations for the course.
+        heat_size_parity: Heat size balance control value.
+        novice_size_parity: Novice balance control value.
+        novice_denominator: Novices per instructor ratio.
+        max_iterations: Max number of algorithm iterations.
+        seed: Optional RNG seed for deterministic assignments.
+
+    Returns:
+        Event: The initialized event instance.
+    """
+
+    if seed is not None:
+        random.seed(seed)
 
     return Event(
         name=name,

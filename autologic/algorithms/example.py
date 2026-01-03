@@ -1,4 +1,4 @@
-from algorithms import HeatGenerator, register
+from autologic.algorithms import HeatGenerator, register
 
 
 @register

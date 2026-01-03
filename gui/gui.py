@@ -4,10 +4,10 @@ from tkinter import filedialog, messagebox, simpledialog, ttk
 
 import yaml
 
-import autologic
-from event import Event
-from algorithms import get_algorithms
-from cli import Config
+from autologic.algorithms import get_algorithms
+from autologic.cli import Config
+from autologic.app import load_event, main
+from autologic.event import Event
 
 
 class AutologicGUI:
@@ -448,10 +448,8 @@ class AutologicGUI:
             self.root.update_idletasks()
 
         try:
-            event = autologic.load_event(**config.model_dump())
-            autologic.main(
-                algorithm=algorithm, event=event, interactive=False, observer=observer
-            )
+            event = load_event(**config.model_dump())
+            main(algorithm=algorithm, event=event, interactive=False, observer=observer)
             self._set_status("Generation completed")
             self._append_status("Generation completed successfully")
         except Exception as exc:
