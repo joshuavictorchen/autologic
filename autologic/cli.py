@@ -3,8 +3,8 @@ import pickle
 import questionary
 import yaml
 
-import autologic
-from algorithms import get_algorithms
+from autologic.algorithms import get_algorithms
+from autologic.app import load_event, main
 
 from pathlib import Path
 from pydantic import BaseModel, Field, ValidationError
@@ -78,6 +78,12 @@ def load_config(ctx, param, value: Path) -> Config:
     help="Which heat generation algorithm to use.",
 )
 @click.option(
+    "--seed",
+    type=int,
+    default=None,
+    help="Optional RNG seed for deterministic assignments.",
+)
+@click.option(
     "--load",
     "pickle_file",
     type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
@@ -89,7 +95,9 @@ def load_config(ctx, param, value: Path) -> Config:
     default=True,
     help="Enable interactive mode for main function.",
 )
-def cli(config: dict, algorithm: str, pickle_file: str, interactive: bool):
+def cli(
+    config: dict, algorithm: str, seed: int | None, pickle_file: str, interactive: bool
+):
 
     if config is None and pickle_file is None:
         raise click.BadParameter("Must supply either --config or --load.")
@@ -103,8 +111,8 @@ def cli(config: dict, algorithm: str, pickle_file: str, interactive: bool):
     # =============================================================================
 
     if config:
-        event = autologic.load_event(**config.model_dump())
-        autologic.main(algorithm=algorithm, event=event, interactive=interactive)
+        event = load_event(**config.model_dump(), seed=seed)
+        main(algorithm=algorithm, event=event, interactive=interactive)
         return
 
     # at this point, we're loading a file and doing things interactively

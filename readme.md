@@ -1,5 +1,9 @@
 # Autologic
 
+[![Pipeline](https://github.com/joshuavictorchen/autologic/actions/workflows/pipeline.yml/badge.svg)](https://github.com/joshuavictorchen/autologic/actions/workflows/pipeline.yml)
+[![Release](https://img.shields.io/github/v/release/joshuavictorchen/autologic)](https://github.com/joshuavictorchen/autologic/releases)
+[![Coverage](https://img.shields.io/codecov/c/github/joshuavictorchen/autologic)](https://codecov.io/gh/joshuavictorchen/autologic)
+
 This program generates heat + worker assignments for autocross events.
 
 It provides a framework that can be used to programmatically assign `Categories` (car classes) to `Heats`, and `Participants` to roles (work assignments), for a given `Event`.
@@ -19,7 +23,7 @@ It provides a framework that can be used to programmatically assign `Categories`
       | [sample_member_attributes.csv](./tests/sample_member_attributes.csv) | Worker qualification table maintained by worker coordinators |
       | [sample_axware_export.tsv](./tests/sample_axware_export.tsv) | Data dump from AXWare |
 
-    - If no `--algorithm` argument is provided, [randomize.py](./source/algorithms/randomize.py) is used by default.
+    - If no `--algorithm` argument is provided, [randomize.py](./autologic/algorithms/randomize.py) is used by default.
 
 3. Optionally load an `Event` configuration and manipulate it by executing `.\path\to\autologic.exe --load .\path\to\event.pkl` and follow the prompts to:
 
@@ -31,13 +35,13 @@ It provides a framework that can be used to programmatically assign `Categories`
 
 ## Contribute
 
-Modules placed in the [./source/algorithms/](./source/algorithms/) directory  are auto-discovered and exposed as an `--algorithm` choice in the CLI, provided they define exactly one subclass of [HeatGenerator](./source/algorithms/_base.py) that is decorated with [@register](./source/algorithms/_registry.py).
+Modules placed in the [./autologic/algorithms/](./autologic/algorithms/) directory  are auto-discovered and exposed as an `--algorithm` choice in the CLI, provided they define exactly one subclass of [HeatGenerator](./autologic/algorithms/_base.py) that is decorated with [@register](./autologic/algorithms/_registry.py).
 
-- See [example.py](./source/algorithms/example.py) for a sample scaffold.
+- See [example.py](./autologic/algorithms/example.py) for a sample scaffold.
 
 Each plugin’s `generate()` method is given a fully initialized `Event` object. Inside it, the plugin must assign all `Categories` to `Heats`, and assign all `Participants` to roles, by mutating the `Event` in place.
 
-- See how the `generate()` method is called in [autologic.py](./source/autologic.py).
+- See how the `generate()` method is called in [app.py](./autologic/app.py).
 
 Once the `Event` is returned, `Event.validate()` is called to perform a series of validation checks. If the checks pass, then the `Event` is saved and outputs are generated.
 
@@ -57,10 +61,10 @@ Once the `Event` is returned, `Event.validate()` is called to perform a series o
   | Role | Required per heat |
   | - | - |
   | Instructor | ≥ `(number of novices in complimentary heat) ÷ (novice denominator)` |
-  | Timing     | = 2 |
-  | Grid       | = 2 |
-  | Start      | = 1 |
-  | Captain    | = `(number of worker stations on course)` |
+  | Timing | = 2 |
+  | Grid | = 2 |
+  | Start | = 1 |
+  | Captain | = `(number of worker stations on course)` |
 
   - Where novice denominator and number of stations are configurable parameters
 - Novices may be assigned to special roles (if qualified), but the program logs a warning for each of these assignments

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autologic"
+version = "0.0.0"
+description = "Autologic event heat and worker assignment generator"
+readme = "readme.md"
+requires-python = ">=3.12"
+dependencies = [
+  "click",
+  "pydantic",
+  "pyyaml",
+  "pyinstaller",
+  "questionary",
+  "reportlab",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["autologic*"]

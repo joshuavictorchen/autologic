@@ -1,11 +1,11 @@
-from Group import Group
-from Participant import Participant
+from autologic.group import Group
+from autologic.participant import Participant
 
 
 class Category(Group):
     """
     Represents a group of participants in the same competition category.
-    Inherits from Group to reuse filtering and availability logic.
+    Inherits from group to reuse filtering and availability logic.
 
     Attributes:
         event (Event): The parent event object.
