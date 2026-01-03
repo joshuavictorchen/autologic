@@ -8,12 +8,9 @@ number_of_stations: 5
 # A dictionary of member IDs to their fixed role assignments.
 # Values must be drawn from the columns in the `member_attributes` CSV, or marked as 'special'.
 # Members marked as 'special' are reserved and will not be assigned to any other role.
-# A list of values may also be provided. If so, the member will be assigned to ONE of those roles.
 custom_assignments:
   SAMPLE-499: special     # i.e. a gate worker - Mia Thomas
-  SAMPLE-797:             # i.e. someone who should have a non-worker role - Jackson Clark
-    - instructor          #      he will be assigned to ONE of these roles randomly
-    - captain
+  SAMPLE-797: instructor  # i.e. someone who should have a non-worker role - Jackson Clark
   SAMPLE-105: instructor  # i.e. a novice coordinator - Noah Johnson
   SAMPLE-549: special     # i.e. someone who made an automated worker assignment program (kidding) - Henry Taylor
 

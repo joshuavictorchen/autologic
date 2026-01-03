@@ -1,7 +1,6 @@
 import csv
 import math
 import pickle
-import random
 from autologic import utils
 from autologic.category import Category
 from autologic.group import Group
@@ -23,7 +22,7 @@ class Event(Group):
         name: str,
         axware_export_tsv: str,
         member_attributes_csv: str,
-        custom_assignments: dict[str, str | list[str]],
+        custom_assignments: dict[str, str],
         number_of_heats: int,
         number_of_stations: int,
         heat_size_parity: int,
@@ -80,7 +79,7 @@ class Event(Group):
         self,
         axware_export_tsv: str,
         member_attributes_csv: str,
-        custom_assignments: dict[str, str | list[str]],
+        custom_assignments: dict[str, str],
     ):
         """
         Loads participants from `axware_export_tsv`, then gets their possible work assignments from `member_attributes_csv`.
@@ -118,15 +117,8 @@ class Event(Group):
                 )
                 member_attributes = member_attributes_dict.get(axware_row["Member #"])
                 special_assignment = custom_assignments.get(axware_row["Member #"])
-
-                # special assignment may be a str or a list of strings
-                # if the latter, then randomly choose one
-                # TODO: outsource this to the algorithm (don't do this here)
-                special_assignment = (
-                    random.choice(special_assignment)
-                    if type(special_assignment) == list
-                    else special_assignment
-                )
+                if isinstance(special_assignment, list):
+                    raise ValueError("Custom assignments must be a single role string.")
 
                 has_special_assignments = (
                     True if special_assignment else has_special_assignments

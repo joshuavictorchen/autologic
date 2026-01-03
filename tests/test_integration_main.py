@@ -1,7 +1,6 @@
 import csv
 import os
 import pickle
-import random
 import tempfile
 import unittest
 from contextlib import contextmanager
@@ -98,13 +97,9 @@ class TestIntegrationMain(unittest.TestCase):
                 self.assertEqual(len(matches), 1)
                 self.assertEqual(matches[0][4], "special")
 
-                # derive expected choice without consuming global RNG
-                expected_choice = random.Random(SEED).choice(
-                    config_data["custom_assignments"]["SAMPLE-797"]
-                )
                 matches = [row for row in rows if row[1] == "Clark, Jackson"]
                 self.assertEqual(len(matches), 1)
-                self.assertEqual(matches[0][4], expected_choice)
+                self.assertEqual(matches[0][4], "instructor")
 
                 with pdf_path.open("rb") as handle:
                     self.assertEqual(handle.read(4), b"%PDF")

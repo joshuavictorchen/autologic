@@ -4,8 +4,16 @@ from autologic.algorithms import get_algorithms
 from autologic.event import Event
 
 
-def main(algorithm, event, interactive=False, observer=None):
-    """Parse event participants and generate heat assignments with role coverage and balanced sizes."""
+def main(algorithm, event, interactive=False, observer=None, export=True):
+    """Parse event participants and generate heat assignments with role coverage and balanced sizes.
+
+    Args:
+        algorithm: Algorithm name to run.
+        event: Event instance to mutate.
+        interactive: Whether to prompt between steps.
+        observer: Optional callback for algorithm progress updates.
+        export: Whether to write CSV/PDF/PKL outputs after validation.
+    """
 
     if interactive:
 
@@ -36,17 +44,18 @@ def main(algorithm, event, interactive=False, observer=None):
             f"Invalid event configuration. See console output for details."
         )
 
-    # export data
-    if event.no_shows:
-        print(
-            f"\n  The following individuals have not checked in and are therefore excluded:\n"
-        )
-        [print(f"  - {i}") for i in event.no_shows]
+    if export:
+        # export data
+        if event.no_shows:
+            print(
+                "\n  The following individuals have not checked in and are therefore excluded:\n"
+            )
+            [print(f"  - {i}") for i in event.no_shows]
 
-    event.to_csv()
-    event.to_pdf()
-    event.to_pickle()
-    print()
+        event.to_csv()
+        event.to_pdf()
+        event.to_pickle()
+        print()
 
 
 def load_event(
