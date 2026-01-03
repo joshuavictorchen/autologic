@@ -1,6 +1,7 @@
 import importlib
 import pkgutil
-from typing import Dict, Type
+from importlib import resources
+from typing import Dict, Iterable, Type
 
 from autologic import algorithms
 from autologic.algorithms._base import HeatGenerator
@@ -9,12 +10,13 @@ _registry: Dict[str, Type[HeatGenerator]] = {}
 
 
 def register(cls: Type[HeatGenerator]) -> Type[HeatGenerator]:
-    """
-    Decorator to register a HeatGenerator under its module name.
+    """Register a HeatGenerator under its module name.
 
-    Usage:
-       @register
-       class MyAlgo(HeatGenerator): ...
+    Args:
+        cls: HeatGenerator subclass to register.
+
+    Returns:
+        Type[HeatGenerator]: The registered class.
     """
     # module_name = filename without “.py”
     module_name = cls.__module__.rsplit(".", 1)[-1]
@@ -22,13 +24,40 @@ def register(cls: Type[HeatGenerator]) -> Type[HeatGenerator]:
     return cls
 
 
-def _discover_algorithms() -> None:
+def _iter_algorithm_module_names() -> Iterable[str]:
+    """Yield algorithm module names within the algorithms package.
+
+    Returns:
+        Iterable[str]: Module names without package prefixes.
     """
-    Import every .py in algorithms/ so that @register runs.
-    """
+    module_names: set[str] = set()
     pkg = algorithms
-    for _, module_name, _ in pkgutil.iter_modules(pkg.__path__):
-        if module_name in ("_base", "_registry"):
+
+    # use importlib.resources first because pkgutil can miss modules in frozen apps
+    try:
+        for entry in resources.files(pkg).iterdir():
+            if entry.name.startswith("_"):
+                continue
+            if entry.is_file() and entry.name.endswith(".py"):
+                module_names.add(entry.name[:-3])
+    except Exception:
+        module_names = set()
+
+    if not module_names:
+        try:
+            for _, module_name, _ in pkgutil.iter_modules(pkg.__path__):
+                module_names.add(module_name)
+        except Exception:
+            module_names = set()
+
+    return sorted(module_names)
+
+
+def _discover_algorithms() -> None:
+    """Import algorithm modules so that @register runs."""
+    pkg = algorithms
+    for module_name in _iter_algorithm_module_names():
+        if module_name in ("_base", "_registry", "__init__"):
             continue
         importlib.import_module(f"{pkg.__name__}.{module_name}")
 
