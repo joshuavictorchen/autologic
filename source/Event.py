@@ -7,7 +7,7 @@ from category import Category
 from group import Group
 from heat import Heat
 from participant import Participant
-from pdf_report import generate_event_pdf
+from pdf import generate_event_pdf
 
 
 class Event(Group):
