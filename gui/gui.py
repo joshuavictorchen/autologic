@@ -1,4 +1,5 @@
 import csv
+import os
 import pickle
 import queue
 import sys
@@ -20,7 +21,7 @@ from autologic.event import Event
 ASSIGNMENT_OPTIONS = ["instructor", "timing", "grid", "start", "captain", "special"]
 ROLE_OPTIONS = ASSIGNMENT_OPTIONS + ["worker"]
 SUMMARY_COLUMNS = [
-    "Group",
+    "Heat",
     "Instructor",
     "Timing",
     "Grid",
@@ -32,8 +33,10 @@ SUMMARY_COLUMNS = [
 ]
 PALETTE = {
     "background": "#EAEFF3",
-    "panel": "#F6F8FA",
+    "panel": "#EFF1F3",
     "header": "#D4DEE7",
+    "field": "#F2F4F7",
+    "text": "#111111",
     "accent": "#3F627D",
 }
 
@@ -42,11 +45,44 @@ class GenerationCancelled(Exception):
     """Raised when a GUI generation run is cancelled."""
 
 
+class EventUnpickler(pickle.Unpickler):
+    """Unpickler with legacy module name support."""
+
+    MODULE_ALIASES = {
+        "Event": "autologic.event",
+        "event": "autologic.event",
+        "Heat": "autologic.heat",
+        "heat": "autologic.heat",
+        "Category": "autologic.category",
+        "category": "autologic.category",
+        "Participant": "autologic.participant",
+        "participant": "autologic.participant",
+        "Group": "autologic.group",
+        "group": "autologic.group",
+    }
+
+    CLASS_MODULES = {
+        "Event": "autologic.event",
+        "Heat": "autologic.heat",
+        "Category": "autologic.category",
+        "Participant": "autologic.participant",
+        "Group": "autologic.group",
+    }
+
+    def find_class(self, module: str, name: str):
+        module_alias = self.MODULE_ALIASES.get(module)
+        if module_alias:
+            module = module_alias
+        elif module == "__main__" and name in self.CLASS_MODULES:
+            module = self.CLASS_MODULES[name]
+        return super().find_class(module, name)
+
+
 class AutologicGUI:
     def __init__(self):
         self.root = ttk.Window(themename="flatly")
         self.root.title("Autologic")
-        self.root.geometry("1400x900")
+        self.root.geometry("1800x1200")
         self.root.minsize(1200, 800)
 
         self.algorithms = {k: v for k, v in get_algorithms().items() if k != "example"}
@@ -59,14 +95,21 @@ class AutologicGUI:
         self.worker_sort_column: str | None = None
         self.worker_sort_descending = False
         self.assignment_use_state: dict[str, bool] = {}
+        self.assignment_add_row_id: str | None = None
         self.is_generating = False
         self.generation_thread: threading.Thread | None = None
         self.generation_cancel_requested = threading.Event()
         self.generation_result_queue: queue.Queue[
             tuple[Event | None, Exception | None]
         ] = queue.Queue()
+        self.assignment_editor: ttk.Combobox | None = None
+        self.assignment_context_menu: tk.Menu | None = None
 
         self.application_directory = self._get_application_directory()
+        self.resource_root = self._get_resource_root()
+        self.icon_path = self._get_icon_path()
+        self.icon_photo_path = self._get_icon_photo_path()
+        self.icon_photo_image: tk.PhotoImage | None = None
         self.default_config_path = self.application_directory / "autologic.yaml"
         self.config_path = self.default_config_path
 
@@ -78,6 +121,7 @@ class AutologicGUI:
         self._ensure_default_config_file()
         self._load_config_from_path(self.default_config_path)
         self._update_unsaved_indicator()
+        self._apply_window_icon(self.root)
 
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
@@ -85,6 +129,141 @@ class AutologicGUI:
         if getattr(sys, "frozen", False):
             return Path(sys.executable).resolve().parent
         return Path(__file__).resolve().parent
+
+    def _get_resource_root(self) -> Path:
+        """Return the base directory for bundled resources."""
+        if getattr(sys, "frozen", False):
+            return Path(getattr(sys, "_MEIPASS", self.application_directory))
+        return Path(__file__).resolve().parents[1]
+
+    def _get_icon_path(self) -> Path | None:
+        """Return the icon path if available."""
+        candidates = [
+            self.resource_root / "docs" / "images" / "autologic-icon.ico",
+            self.application_directory / "autologic-icon.ico",
+        ]
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+        return None
+
+    def _get_icon_photo_path(self) -> Path | None:
+        """Return the icon PNG path if available."""
+        candidates = [
+            self.resource_root / "docs" / "images" / "autologic-icon.png",
+            self.application_directory / "autologic-icon.png",
+        ]
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+        return None
+
+    def _apply_window_icon(self, window: tk.Misc) -> None:
+        """Set the window icon if the icon file is available."""
+        if self.icon_path:
+            try:
+                window.iconbitmap(str(self.icon_path))
+            except tk.TclError:
+                pass
+        if not self.icon_photo_path:
+            return
+        try:
+            if not self.icon_photo_image:
+                self.icon_photo_image = tk.PhotoImage(
+                    master=self.root,
+                    file=str(self.icon_photo_path),
+                )
+            window.iconphoto(True, self.icon_photo_image)
+        except tk.TclError:
+            return
+
+    def _prepare_dialog(self, dialog: tk.Toplevel) -> None:
+        """Configure shared dialog attributes."""
+        dialog.title("")
+        dialog.configure(background=PALETTE["panel"])
+        dialog.transient(self.root)
+        dialog.resizable(False, False)
+        self._apply_window_icon(dialog)
+
+    def _get_tree_column_name(self, tree: ttk.Treeview, column_id: str) -> str | None:
+        """Return the column name for a Treeview column id."""
+        if column_id == "#0":
+            return None
+        try:
+            index = int(column_id[1:]) - 1
+        except ValueError:
+            return None
+        columns = list(tree["columns"])
+        if 0 <= index < len(columns):
+            return columns[index]
+        return None
+
+    def _clear_assignment_editor(self) -> None:
+        """Remove any active inline assignment editor."""
+        if self.assignment_editor:
+            self.assignment_editor.destroy()
+            self.assignment_editor = None
+
+    def _is_combobox_popdown_visible(self, combobox: ttk.Combobox) -> bool:
+        """Return True if the combobox popdown window is visible."""
+        try:
+            popdown = combobox.tk.call("ttk::combobox::PopdownWindow", combobox)
+            return bool(int(combobox.tk.call("winfo", "viewable", popdown)))
+        except tk.TclError:
+            return False
+
+    def _show_assignment_editor(
+        self,
+        tree: ttk.Treeview,
+        item_id: str,
+        column_id: str,
+        options: list[str],
+        on_commit,
+    ) -> None:
+        """Show an inline combobox editor for assignment columns."""
+        self._clear_assignment_editor()
+        bbox = tree.bbox(item_id, column_id)
+        if not bbox:
+            return
+        x, y, width, height = bbox
+        column_name = self._get_tree_column_name(tree, column_id)
+        if not column_name:
+            return
+        editor = ttk.Combobox(
+            tree, values=options, state="readonly", style="Inline.TCombobox"
+        )
+        current_value = tree.set(item_id, column_name)
+        editor.set(current_value or options[0])
+        editor.place(x=x, y=y, width=width, height=height)
+        editor.focus_set()
+        self.assignment_editor = editor
+
+        def finish(commit: bool) -> None:
+            if not self.assignment_editor:
+                return
+            value = editor.get().strip()
+            editor.destroy()
+            self.assignment_editor = None
+            if commit and value:
+                on_commit(value)
+
+        editor.bind("<<ComboboxSelected>>", lambda _event: finish(True))
+        editor.bind("<Return>", lambda _event: finish(True))
+        editor.bind("<Escape>", lambda _event: finish(False))
+
+        def handle_focus_out(_event) -> None:
+            def maybe_finish() -> None:
+                if not self.assignment_editor or not editor.winfo_exists():
+                    return
+                if self._is_combobox_popdown_visible(editor):
+                    editor.after(50, maybe_finish)
+                    return
+                finish(True)
+
+            editor.after(1, maybe_finish)
+
+        editor.bind("<FocusOut>", handle_focus_out)
+        editor.after(0, lambda: editor.tk.call("ttk::combobox::Post", editor))
 
     def _initialize_variables(self) -> None:
         default_algorithm = (
@@ -116,6 +295,27 @@ class AutologicGUI:
         style.configure("TFrame", background=palette["panel"])
         style.configure("TLabel", font=("Segoe UI", 10), background=palette["panel"])
         style.configure("TButton", font=("Segoe UI", 10))
+        style.configure(
+            "TEntry",
+            fieldbackground=palette["field"],
+            foreground=palette["text"],
+        )
+        style.configure(
+            "TCombobox",
+            fieldbackground=palette["field"],
+            foreground=palette["text"],
+            selectforeground=palette["text"],
+        )
+        style.map(
+            "TEntry",
+            fieldbackground=[("readonly", palette["field"])],
+            foreground=[("readonly", palette["text"])],
+        )
+        style.map(
+            "TCombobox",
+            fieldbackground=[("readonly", palette["field"])],
+            foreground=[("readonly", palette["text"])],
+        )
         style.configure("TLabelframe", background=palette["panel"])
         style.configure(
             "TLabelframe.Label",
@@ -125,7 +325,7 @@ class AutologicGUI:
         )
         style.configure(
             "Treeview",
-            rowheight=26,
+            rowheight=30,
             background=palette["panel"],
             fieldbackground=palette["panel"],
         )
@@ -151,6 +351,49 @@ class AutologicGUI:
             "Summary.Invalid.TLabel",
             background=colors.danger,
             foreground=colors.selectfg,
+        )
+        style.configure(
+            "Saved.TLabel",
+            background=palette["panel"],
+            foreground=colors.success,
+            font=("Segoe UI", 9, "bold"),
+        )
+        style.configure(
+            "Unsaved.TLabel",
+            background=palette["panel"],
+            foreground=colors.warning,
+            font=("Segoe UI", 9, "bold"),
+        )
+        style.configure(
+            "Validation.Ok.TLabel",
+            background=palette["panel"],
+            foreground=colors.success,
+            font=("Segoe UI", 9, "bold"),
+        )
+        style.configure(
+            "Validation.Invalid.TLabel",
+            background=palette["panel"],
+            foreground=colors.warning,
+            font=("Segoe UI", 9, "bold"),
+        )
+        style.configure(
+            "Validation.Empty.TLabel",
+            background=palette["panel"],
+            foreground=palette["text"],
+            font=("Segoe UI", 9, "bold"),
+        )
+        style.configure(
+            "Inline.TCombobox",
+            fieldbackground=palette["field"],
+            foreground=palette["text"],
+            selectforeground=palette["text"],
+            padding=(4, 0, 4, 0),
+        )
+        style.configure(
+            "Status.TLabel",
+            background=palette["panel"],
+            foreground=palette["text"],
+            font=("Segoe UI", 9),
         )
 
     def _initialize_checkbox_images(self) -> None:
@@ -194,6 +437,21 @@ class AutologicGUI:
                 image.put(check_color, (8 + offset, 15 - offset))
 
         return image
+
+    def _finalize_dialog_size(self, dialog: tk.Toplevel) -> None:
+        """Set the dialog size to its requested size and center it."""
+        self.root.update_idletasks()
+        dialog.update_idletasks()
+        required_width = dialog.winfo_reqwidth()
+        required_height = dialog.winfo_reqheight()
+        root_x = self.root.winfo_rootx()
+        root_y = self.root.winfo_rooty()
+        root_width = self.root.winfo_width()
+        root_height = self.root.winfo_height()
+        x = root_x + max((root_width - required_width) // 2, 0)
+        y = root_y + max((root_height - required_height) // 2, 0)
+        dialog.minsize(required_width, required_height)
+        dialog.geometry(f"{required_width}x{required_height}+{x}+{y}")
 
     def _build_layout(self) -> None:
         container = tk.Frame(self.root, background=PALETTE["background"])
@@ -282,11 +540,16 @@ class AutologicGUI:
 
         status_row = ttk.Frame(parent)
         status_row.pack(fill=X)
+        status_row.columnconfigure(0, weight=1)
         self.unsaved_label = ttk.Label(status_row, text="", anchor=W)
-        self.unsaved_label.pack(side=LEFT, fill=X, expand=True)
-        ttk.Label(status_row, textvariable=self.status_variable, anchor=W).pack(
-            side=RIGHT
+        self.unsaved_label.grid(row=0, column=0, sticky="w")
+        self.status_label = ttk.Label(
+            status_row,
+            textvariable=self.status_variable,
+            anchor="e",
+            style="Status.TLabel",
         )
+        self.status_label.grid(row=0, column=1, sticky="e", padx=(10, 0))
 
     def _build_parameters_panel(self, parent: ttk.Labelframe) -> None:
         form = ttk.Frame(parent)
@@ -332,7 +595,7 @@ class AutologicGUI:
         )
         self._add_file_picker(
             file_frame,
-            "Member attributes CSV",
+            "Member CSV",
             self.member_csv_path_variable,
             1,
             lambda: self._browse_file(
@@ -342,18 +605,6 @@ class AutologicGUI:
         )
 
     def _build_assignments_panel(self, parent: ttk.Labelframe) -> None:
-        button_frame = ttk.Frame(parent)
-        button_frame.pack(fill=X, pady=(0, 6))
-        ttk.Button(button_frame, text="Add", command=self._add_assignment_row).pack(
-            side=LEFT, padx=4
-        )
-        ttk.Button(
-            button_frame, text="Modify", command=self._modify_assignment_row
-        ).pack(side=LEFT, padx=4)
-        ttk.Button(
-            button_frame, text="Remove", command=self._remove_assignment_row
-        ).pack(side=LEFT, padx=4)
-
         tree_frame = ttk.Frame(parent)
         tree_frame.pack(fill=BOTH, expand=True)
 
@@ -366,19 +617,27 @@ class AutologicGUI:
         self.assignments_tree.heading("#0", text="Use", anchor="center")
         self.assignments_tree.heading("member_id", text="Member ID", anchor=W)
         self.assignments_tree.heading("name", text="Name", anchor=W)
-        self.assignments_tree.heading("assignment", text="Assignment", anchor="center")
+        self.assignments_tree.heading(
+            "assignment", text="Assignment ▾", anchor="center"
+        )
         self.assignments_tree.column("#0", width=60, anchor="center", stretch=False)
         self.assignments_tree.column("member_id", width=120, anchor=W)
         self.assignments_tree.column("name", width=180, anchor=W)
         self.assignments_tree.column("assignment", width=140, anchor="center")
         self.assignments_tree.tag_configure("disabled", foreground="#888888")
         self.assignments_tree.bind("<Button-1>", self._on_assignment_click)
+        self.assignments_tree.bind("<Button-3>", self._on_assignment_right_click)
         self.assignments_tree.pack(side=LEFT, fill=BOTH, expand=True)
 
         scrollbar = ttk.Scrollbar(tree_frame, orient="vertical")
         scrollbar.pack(side=RIGHT, fill=Y)
         self.assignments_tree.configure(yscrollcommand=scrollbar.set)
         scrollbar.configure(command=self.assignments_tree.yview)
+
+        self.assignment_context_menu = tk.Menu(self.root, tearoff=0)
+        self.assignment_context_menu.add_command(
+            label="Delete", command=self._remove_assignment_row
+        )
 
     def _build_data_panel(self, parent: ttk.Labelframe) -> None:
         parent.columnconfigure(0, weight=1)
@@ -399,7 +658,7 @@ class AutologicGUI:
         ttk.Button(
             heat_button_row,
             text="Rotate Run/Work",
-            command=self._rotate_run_work_dialog,
+            command=self._rotate_run_work,
         ).pack(side=LEFT, padx=4)
 
         self.heat_tree = ttk.Treeview(
@@ -427,37 +686,30 @@ class AutologicGUI:
         summary_frame.columnconfigure(0, weight=1)
         summary_frame.rowconfigure(1, weight=1)
 
-        ttk.Label(
-            summary_frame, textvariable=self.validation_status_variable, anchor=W
-        ).grid(row=0, column=0, sticky="ew", pady=(0, 6))
+        self.validation_status_label = ttk.Label(
+            summary_frame,
+            textvariable=self.validation_status_variable,
+            anchor=W,
+            style="Validation.Empty.TLabel",
+        )
+        self.validation_status_label.grid(row=0, column=0, sticky="ew", pady=(0, 6))
 
         self.summary_table_container = ttk.Frame(summary_frame)
         self.summary_table_container.grid(row=1, column=0, sticky="nsew")
 
-        worker_frame = ttk.Labelframe(parent, text="Worker Tracking", padding=8)
+        worker_frame = ttk.Labelframe(parent, text="Worker Assignments", padding=8)
         worker_frame.grid(row=2, column=0, sticky="nsew")
         worker_frame.columnconfigure(0, weight=1)
-        worker_frame.rowconfigure(1, weight=1)
-
-        worker_button_row = ttk.Frame(worker_frame)
-        worker_button_row.grid(row=0, column=0, sticky="ew", pady=(0, 6))
-        ttk.Button(
-            worker_button_row,
-            text="Update Assignment",
-            command=self._update_assignment_dialog,
-        ).pack(side=LEFT, padx=4)
-        ttk.Label(worker_button_row, text="Click a column header to sort").pack(
-            side=RIGHT
-        )
+        worker_frame.rowconfigure(0, weight=1)
 
         self.worker_tree = ttk.Treeview(
             worker_frame,
             columns=(
                 "working",
                 "name",
+                "assignment",
                 "class",
                 "number",
-                "assignment",
             ),
             show="headings",
             height=10,
@@ -465,22 +717,22 @@ class AutologicGUI:
         self.worker_column_labels = {
             "working": "Working",
             "name": "Name",
+            "assignment": "Assignment ▾",
             "class": "Class",
             "number": "Number",
-            "assignment": "Assignment",
         }
         self._update_worker_sort_headings()
 
         self.worker_tree.column("working", width=70, anchor="center")
         self.worker_tree.column("name", width=180, anchor=W)
+        self.worker_tree.column("assignment", width=120, anchor="center")
         self.worker_tree.column("class", width=60, anchor="center")
         self.worker_tree.column("number", width=60, anchor="center")
-        self.worker_tree.column("assignment", width=120, anchor="center")
-        self.worker_tree.bind("<Double-1>", self._on_worker_double_click)
+        self.worker_tree.bind("<Button-1>", self._on_worker_assignment_click)
 
-        self.worker_tree.grid(row=1, column=0, sticky="nsew")
+        self.worker_tree.grid(row=0, column=0, sticky="nsew")
         worker_scrollbar = ttk.Scrollbar(worker_frame, orient="vertical")
-        worker_scrollbar.grid(row=1, column=1, sticky="ns")
+        worker_scrollbar.grid(row=0, column=1, sticky="ns")
         self.worker_tree.configure(yscrollcommand=worker_scrollbar.set)
         worker_scrollbar.configure(command=self.worker_tree.yview)
 
@@ -527,12 +779,13 @@ class AutologicGUI:
         row: int,
         browse_command,
     ) -> None:
+        parent.columnconfigure(1, weight=1)
         ttk.Label(parent, text=label).grid(row=row, column=0, sticky=W, padx=4, pady=2)
         ttk.Entry(parent, textvariable=variable, width=48).grid(
-            row=row, column=1, sticky=W, padx=4, pady=2
+            row=row, column=1, sticky="ew", padx=4, pady=2
         )
         ttk.Button(parent, text="Browse", command=browse_command).grid(
-            row=row, column=2, sticky=W, padx=4, pady=2
+            row=row, column=2, sticky="e", padx=4, pady=2
         )
 
     def _browse_file(
@@ -586,7 +839,7 @@ class AutologicGUI:
 
         self._load_member_names()
         self.config_dirty = False
-        self._set_status(f"Loaded config from {config_path}")
+        self._set_status("Loaded config")
         self._update_unsaved_indicator()
 
     def _apply_config_data(self, config_data: dict) -> None:
@@ -625,6 +878,7 @@ class AutologicGUI:
             )
 
         self._refresh_assignment_names()
+        self._ensure_add_assignment_row()
 
     def _save_config(self) -> bool:
         try:
@@ -641,7 +895,7 @@ class AutologicGUI:
             return False
 
         self.config_dirty = False
-        self._set_status(f"Saved config to {self.config_path}")
+        self._set_status("Saved config")
         self._update_unsaved_indicator()
         return True
 
@@ -780,12 +1034,13 @@ class AutologicGUI:
         if not raw_name:
             messagebox.showwarning("Missing event name", "Event name is required")
             return
+        event_name = raw_name
+        output_dir = self._get_output_directory()
 
-        sanitized_name = self._sanitize_event_name(raw_name)
         output_paths = [
-            Path(f"{sanitized_name}.csv"),
-            Path(f"{sanitized_name}.pdf"),
-            Path(f"{sanitized_name}.pkl"),
+            output_dir / f"{event_name}.csv",
+            output_dir / f"{event_name}.pdf",
+            output_dir / f"{event_name}.pkl",
         ]
         existing_files = [path.name for path in output_paths if path.exists()]
 
@@ -798,22 +1053,27 @@ class AutologicGUI:
             if not overwrite:
                 return
 
-        self.current_event.name = sanitized_name
-        self.event_name_variable.set(sanitized_name)
+        self.current_event.name = event_name
+        self.event_name_variable.set(event_name)
 
         if not self._save_config():
             return
 
+        previous_dir = Path.cwd()
         try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            os.chdir(output_dir)
             self.current_event.to_csv()
             self.current_event.to_pdf()
             self.current_event.to_pickle()
         except Exception as exc:
             messagebox.showerror("Error", f"Failed to save event: {exc}")
             return
+        finally:
+            os.chdir(previous_dir)
 
         self.event_dirty = False
-        self._set_status(f"Saved event as {sanitized_name}")
+        self._set_status("Saved event")
         self._update_unsaved_indicator()
 
     def _load_event_prompt(self) -> None:
@@ -826,7 +1086,7 @@ class AutologicGUI:
 
         try:
             with open(path, "rb") as file:
-                self.current_event = pickle.load(file)
+                self.current_event = EventUnpickler(file).load()
         except Exception as exc:
             messagebox.showerror("Error", f"Failed to load event: {exc}")
             return
@@ -834,7 +1094,7 @@ class AutologicGUI:
         self._apply_event_parameters(self.current_event)
         self.event_dirty = False
         self._refresh_event_views()
-        self._set_status(f"Loaded event {self.current_event.name}")
+        self._set_status("Loaded event")
         self._update_unsaved_indicator()
 
     def _apply_event_parameters(self, event: Event) -> None:
@@ -852,6 +1112,7 @@ class AutologicGUI:
         self._mark_config_dirty()
 
     def _refresh_event_views(self) -> None:
+        self._clear_assignment_editor()
         self._refresh_heat_table()
         self._refresh_summary_table()
         self._refresh_worker_table()
@@ -889,14 +1150,18 @@ class AutologicGUI:
                 anchor=W,
             ).grid(row=0, column=0, sticky=W)
             self.validation_status_variable.set("Validation: --")
+            self.validation_status_label.configure(style="Validation.Empty.TLabel")
             return
 
         validation_state = self._evaluate_event_validity()
         event_is_valid = validation_state["event_is_valid"]
         invalid_cells = validation_state["invalid_cells"]
-        self.validation_status_variable.set(
-            "Validation: OK" if event_is_valid else "Validation: INVALID"
-        )
+        if event_is_valid:
+            self.validation_status_variable.set("Validation: OK")
+            self.validation_status_label.configure(style="Validation.Ok.TLabel")
+        else:
+            self.validation_status_variable.set("Validation: INVALID")
+            self.validation_status_label.configure(style="Validation.Invalid.TLabel")
 
         for column_index, column_name in enumerate(SUMMARY_COLUMNS):
             header = ttk.Label(
@@ -1021,9 +1286,9 @@ class AutologicGUI:
                     (
                         heat.working,
                         participant.name,
+                        participant.assignment or "",
                         participant.axware_category,
                         participant.number,
-                        participant.assignment or "",
                         participant,
                     )
                 )
@@ -1035,9 +1300,9 @@ class AutologicGUI:
         column_index = {
             "working": 0,
             "name": 1,
-            "class": 2,
-            "number": 3,
-            "assignment": 4,
+            "assignment": 2,
+            "class": 3,
+            "number": 4,
         }.get(self.worker_sort_column, 0)
 
         rows.sort(
@@ -1108,9 +1373,8 @@ class AutologicGUI:
             return
 
         dialog = tk.Toplevel(self.root)
-        dialog.title("Move class")
+        self._prepare_dialog(dialog)
         dialog.grab_set()
-        dialog.resizable(False, False)
 
         classes = sorted(self.current_event.categories.keys(), key=str.lower)
         if not classes or not self.current_event.heats:
@@ -1186,108 +1450,21 @@ class AutologicGUI:
             side=RIGHT, padx=4
         )
         ttk.Button(button_row, text="Apply", command=on_apply).pack(side=RIGHT, padx=4)
+        self._finalize_dialog_size(dialog)
 
-    def _rotate_run_work_dialog(self) -> None:
+    def _rotate_run_work(self) -> None:
         if not self._ensure_event_loaded():
             return
 
-        dialog = tk.Toplevel(self.root)
-        dialog.title("Rotate run/work")
-        dialog.grab_set()
-        dialog.resizable(False, False)
-
-        offset_variable = tk.StringVar(value="1")
-        ttk.Label(dialog, text="Offset").grid(row=0, column=0, sticky=W, padx=8, pady=6)
-        ttk.Entry(dialog, textvariable=offset_variable, width=8).grid(
-            row=0, column=1, padx=8, pady=6
+        offset = 1 % self.current_event.number_of_heats
+        self.current_event.heats[:] = (
+            self.current_event.heats[-offset:] + self.current_event.heats[:-offset]
         )
+        self._mark_event_dirty()
+        self._refresh_event_views()
+        self._validate_current_event()
 
-        def on_apply() -> None:
-            offset_text = offset_variable.get().strip()
-            if not offset_text.isdigit():
-                messagebox.showwarning("Invalid offset", "Offset must be a number")
-                return
-            offset = int(offset_text) % self.current_event.number_of_heats
-            self.current_event.heats[:] = (
-                self.current_event.heats[-offset:] + self.current_event.heats[:-offset]
-            )
-            dialog.destroy()
-            self._mark_event_dirty()
-            self._refresh_event_views()
-            self._validate_current_event()
-
-        button_row = ttk.Frame(dialog)
-        button_row.grid(row=1, column=0, columnspan=2, pady=8)
-        ttk.Button(button_row, text="Cancel", command=dialog.destroy).pack(
-            side=RIGHT, padx=4
-        )
-        ttk.Button(button_row, text="Apply", command=on_apply).pack(side=RIGHT, padx=4)
-
-    def _on_worker_double_click(self, event) -> str | None:
-        region = self.worker_tree.identify_region(event.x, event.y)
-        if region != "cell":
-            return "break"
-        self._update_assignment_dialog()
-        return "break"
-
-    def _update_assignment_dialog(self, event=None) -> None:
-        if not self._ensure_event_loaded():
-            return
-
-        selection = self.worker_tree.selection()
-        if not selection:
-            messagebox.showwarning("No selection", "Select a participant to update")
-            return
-
-        participant = self.worker_table_mapping.get(selection[0])
-        if not participant:
-            return
-
-        dialog = tk.Toplevel(self.root)
-        dialog.title("Update assignment")
-        dialog.grab_set()
-        dialog.resizable(False, False)
-
-        assignment_variable = tk.StringVar(value=participant.assignment or "worker")
-
-        ttk.Label(dialog, text="Participant").grid(
-            row=0, column=0, sticky=W, padx=8, pady=6
-        )
-        ttk.Label(dialog, text=participant.name).grid(
-            row=0, column=1, sticky=W, padx=8, pady=6
-        )
-
-        ttk.Label(dialog, text="Role").grid(row=1, column=0, sticky=W, padx=8, pady=6)
-        ttk.Combobox(
-            dialog,
-            textvariable=assignment_variable,
-            values=ROLE_OPTIONS,
-            state="readonly",
-            width=20,
-        ).grid(row=1, column=1, padx=8, pady=6)
-
-        def on_apply() -> None:
-            role = assignment_variable.get().strip().lower()
-            if not role:
-                return
-            try:
-                participant.set_assignment(
-                    role, show_previous=True, manual_override=True
-                )
-            except Exception as exc:
-                messagebox.showerror("Error", f"Failed to update assignment: {exc}")
-                return
-            dialog.destroy()
-            self._mark_event_dirty()
-            self._refresh_event_views()
-            self._validate_current_event()
-
-        button_row = ttk.Frame(dialog)
-        button_row.grid(row=2, column=0, columnspan=2, pady=8)
-        ttk.Button(button_row, text="Cancel", command=dialog.destroy).pack(
-            side=RIGHT, padx=4
-        )
-        ttk.Button(button_row, text="Apply", command=on_apply).pack(side=RIGHT, padx=4)
+    # assignment editing now handled inline via single-click dropdowns
 
     def _validate_current_event(self) -> None:
         if not self.current_event:
@@ -1304,12 +1481,15 @@ class AutologicGUI:
         return {
             str(self.assignments_tree.item(item)["values"][0]).strip()
             for item in self.assignments_tree.get_children()
+            if not self._is_add_assignment_row(item)
         }
 
     def _get_assignment_names_by_id(self) -> dict[str, str]:
         """Return a mapping of member IDs to names from the assignments table."""
         names_by_id: dict[str, str] = {}
         for item in self.assignments_tree.get_children():
+            if self._is_add_assignment_row(item):
+                continue
             values = self.assignments_tree.item(item)["values"]
             if len(values) >= 2:
                 names_by_id[str(values[0]).strip()] = str(values[1]).strip()
@@ -1336,21 +1516,27 @@ class AutologicGUI:
             tuple[bool, str, str] | None: (use flag, member ID, assignment) or None.
         """
         dialog = tk.Toplevel(self.root)
-        dialog.title("Assignment")
+        self._prepare_dialog(dialog)
         dialog.grab_set()
-        dialog.resizable(False, False)
 
-        use_variable = tk.BooleanVar(value=use)
+        member_id = str(member_id) if member_id is not None else ""
+        use_flag = bool(use)
         member_id_variable = tk.StringVar(value=member_id)
         member_name_variable = tk.StringVar(value="")
         assignment_variable = tk.StringVar(value=assignment)
 
-        assigned_member_ids = assigned_member_ids or set()
-        allowed_member_ids = (
-            set(allowed_member_ids)
-            if allowed_member_ids is not None
-            else set(self.member_name_lookup.keys())
-        )
+        assigned_member_ids = {
+            str(current_id)
+            for current_id in (assigned_member_ids or set())
+            if current_id is not None
+        }
+        if allowed_member_ids is None:
+            allowed_member_ids = set(self.member_name_lookup.keys())
+        allowed_member_ids = {
+            str(current_id)
+            for current_id in allowed_member_ids
+            if current_id is not None
+        }
         if member_id:
             allowed_member_ids.add(member_id)
 
@@ -1362,8 +1548,8 @@ class AutologicGUI:
             ) or assignment_names.get(current_member_id, "")
             name = str(name).strip() if name else ""
             if not name:
-                name = current_member_id
-            member_entries.append((current_member_id, name))
+                name = str(current_member_id)
+            member_entries.append((str(current_member_id), name))
 
         member_entries.sort(key=lambda item: (item[1].lower(), item[0]))
         if not member_entries:
@@ -1399,12 +1585,8 @@ class AutologicGUI:
         member_id_state = "readonly"
         member_name_state = "readonly"
 
-        ttk.Checkbutton(dialog, text="Use", variable=use_variable).grid(
-            row=0, column=0, sticky=W, padx=8, pady=6
-        )
-
         ttk.Label(dialog, text="Member ID").grid(
-            row=1, column=0, sticky=W, padx=8, pady=4
+            row=0, column=0, sticky=W, padx=8, pady=4
         )
         ttk.Combobox(
             dialog,
@@ -1412,19 +1594,19 @@ class AutologicGUI:
             values=member_id_values,
             state=member_id_state,
             width=32,
-        ).grid(row=1, column=1, padx=8, pady=4)
+        ).grid(row=0, column=1, padx=8, pady=4)
 
-        ttk.Label(dialog, text="Name").grid(row=2, column=0, sticky=W, padx=8, pady=4)
+        ttk.Label(dialog, text="Name").grid(row=1, column=0, sticky=W, padx=8, pady=4)
         ttk.Combobox(
             dialog,
             textvariable=member_name_variable,
             values=member_name_values,
             state=member_name_state,
             width=32,
-        ).grid(row=2, column=1, padx=8, pady=4)
+        ).grid(row=1, column=1, padx=8, pady=4)
 
         ttk.Label(dialog, text="Assignment").grid(
-            row=3, column=0, sticky=W, padx=8, pady=4
+            row=2, column=0, sticky=W, padx=8, pady=4
         )
         ttk.Combobox(
             dialog,
@@ -1432,7 +1614,7 @@ class AutologicGUI:
             values=ASSIGNMENT_OPTIONS,
             state="readonly",
             width=20,
-        ).grid(row=3, column=1, padx=8, pady=4)
+        ).grid(row=2, column=1, padx=8, pady=4)
 
         is_syncing = False
 
@@ -1489,15 +1671,16 @@ class AutologicGUI:
             if not assignment_value:
                 messagebox.showwarning("Missing assignment", "Assignment is required")
                 return
-            result["data"] = (use_variable.get(), member_value, assignment_value)
+            result["data"] = (use_flag, member_value, assignment_value)
             dialog.destroy()
 
         button_row = ttk.Frame(dialog)
-        button_row.grid(row=4, column=0, columnspan=2, pady=8)
+        button_row.grid(row=3, column=0, columnspan=2, pady=8)
         ttk.Button(button_row, text="Cancel", command=dialog.destroy).pack(
             side=RIGHT, padx=4
         )
         ttk.Button(button_row, text="OK", command=on_ok).pack(side=RIGHT, padx=4)
+        self._finalize_dialog_size(dialog)
 
         dialog.wait_window()
         return result.get("data")
@@ -1533,41 +1716,23 @@ class AutologicGUI:
         self._insert_assignment_row(use_flag, member_id, name, assignment)
         self._mark_config_dirty()
 
-    def _modify_assignment_row(self) -> None:
-        selected = self.assignments_tree.selection()
-        if not selected:
-            return
-        item_id = selected[0]
-        current = self.assignments_tree.item(item_id)["values"]
-        use_flag = self.assignment_use_state.get(item_id, True)
-        assigned_member_ids = self._get_assignment_member_ids()
-        data = self._assignment_dialog(
-            use=use_flag,
-            member_id=current[0],
-            assignment=current[2],
-            allowed_member_ids=assigned_member_ids,
-            assigned_member_ids=assigned_member_ids,
-        )
-        if not data:
-            return
-        use_flag, member_id, assignment = data
-        name = self.member_name_lookup.get(member_id, "")
-        self.assignments_tree.item(item_id, values=(member_id, name, assignment))
-        self.assignment_use_state[item_id] = use_flag
-        self._refresh_assignment_styles()
-        self._mark_config_dirty()
-
     def _remove_assignment_row(self) -> None:
         selected = self.assignments_tree.selection()
         for item in selected:
+            if self._is_add_assignment_row(item):
+                continue
             self.assignments_tree.delete(item)
             self.assignment_use_state.pop(item, None)
         if selected:
             self._mark_config_dirty()
+        self._ensure_add_assignment_row()
 
     def _insert_assignment_row(
         self, use_flag: bool, member_id: str, name: str, assignment: str
     ) -> None:
+        member_id = str(member_id).strip()
+        name = str(name).strip()
+        assignment = str(assignment).strip()
         item_id = self.assignments_tree.insert(
             "",
             END,
@@ -1580,17 +1745,111 @@ class AutologicGUI:
         )
         self.assignment_use_state[item_id] = use_flag
         self._refresh_assignment_styles()
+        self._ensure_add_assignment_row()
+
+    def _ensure_add_assignment_row(self) -> None:
+        """Ensure the add-assignment row is the last row."""
+        if self.assignment_add_row_id and self.assignments_tree.exists(
+            self.assignment_add_row_id
+        ):
+            self.assignments_tree.delete(self.assignment_add_row_id)
+        self.assignment_add_row_id = self.assignments_tree.insert(
+            "",
+            END,
+            values=("", "+ Add assignment", ""),
+            tags=("add_row",),
+        )
+        self.assignment_use_state.pop(self.assignment_add_row_id, None)
+        self.assignments_tree.item(self.assignment_add_row_id, image="")
+        self.assignments_tree.tag_configure("add_row", foreground=PALETTE["accent"])
+
+    def _is_add_assignment_row(self, item_id: str) -> bool:
+        return item_id == self.assignment_add_row_id
 
     def _on_assignment_click(self, event) -> str | None:
         """Handle single-click toggles for assignment checkboxes."""
+        self._clear_assignment_editor()
         item_id = self.assignments_tree.identify_row(event.y)
         if not item_id:
             return None
+        if self._is_add_assignment_row(item_id):
+            self._add_assignment_row()
+            return "break"
         column = self.assignments_tree.identify_column(event.x)
-        if column != "#0":
-            return None
-        self._toggle_assignment_use(item_id)
+        column_name = self._get_tree_column_name(self.assignments_tree, column)
+        if column == "#0":
+            self._toggle_assignment_use(item_id)
+            self.assignments_tree.selection_set(item_id)
+            return "break"
+        if column_name == "assignment":
+            self.assignments_tree.selection_set(item_id)
+
+            def commit_assignment(value: str) -> None:
+                values = list(self.assignments_tree.item(item_id)["values"])
+                if len(values) < 3:
+                    return
+                values[2] = value
+                self.assignments_tree.item(item_id, values=values)
+                self._mark_config_dirty()
+
+            self._show_assignment_editor(
+                self.assignments_tree,
+                item_id,
+                column,
+                ASSIGNMENT_OPTIONS,
+                commit_assignment,
+            )
+            return "break"
+        return None
+
+    def _on_assignment_right_click(self, event) -> str | None:
+        item_id = self.assignments_tree.identify_row(event.y)
+        if not item_id or self._is_add_assignment_row(item_id):
+            return "break"
         self.assignments_tree.selection_set(item_id)
+        if self.assignment_context_menu:
+            self.assignment_context_menu.tk_popup(event.x_root, event.y_root)
+        return "break"
+
+    def _on_worker_assignment_click(self, event) -> str | None:
+        region = self.worker_tree.identify_region(event.x, event.y)
+        if region != "cell":
+            return None
+        item_id = self.worker_tree.identify_row(event.y)
+        if not item_id:
+            return None
+        column_id = self.worker_tree.identify_column(event.x)
+        column_name = self._get_tree_column_name(self.worker_tree, column_id)
+        if column_name != "assignment":
+            return None
+
+        participant = self.worker_table_mapping.get(item_id)
+        if not participant:
+            return "break"
+        self.worker_tree.selection_set(item_id)
+
+        def commit_assignment(value: str) -> None:
+            role = value.strip().lower()
+            if not role:
+                return
+            try:
+                participant.set_assignment(
+                    role, show_previous=True, manual_override=True
+                )
+            except Exception as exc:
+                messagebox.showerror("Error", f"Failed to update assignment: {exc}")
+                return
+            self._mark_event_dirty()
+            self._refresh_event_views()
+            self._validate_current_event()
+
+        self._show_assignment_editor(
+            self.worker_tree,
+            item_id,
+            column_id,
+            ROLE_OPTIONS,
+            commit_assignment,
+        )
         return "break"
 
     def _toggle_assignment_use(self, item_id: str) -> None:
@@ -1606,6 +1865,8 @@ class AutologicGUI:
 
     def _refresh_assignment_styles(self) -> None:
         for item in self.assignments_tree.get_children():
+            if self._is_add_assignment_row(item):
+                continue
             use_flag = self.assignment_use_state.get(item, True)
             tag = "disabled" if not use_flag else ""
             self.assignments_tree.item(
@@ -1621,6 +1882,8 @@ class AutologicGUI:
     def _collect_assignments(self) -> dict[str, str]:
         assignments: dict[str, str] = {}
         for item in self.assignments_tree.get_children():
+            if self._is_add_assignment_row(item):
+                continue
             if not self.assignment_use_state.get(item, False):
                 continue
             member_id, _, assignment = self.assignments_tree.item(item)["values"]
@@ -1631,6 +1894,8 @@ class AutologicGUI:
 
     def _refresh_assignment_names(self) -> None:
         for item in self.assignments_tree.get_children():
+            if self._is_add_assignment_row(item):
+                continue
             values = list(self.assignments_tree.item(item)["values"])
             member_id = str(values[0]).strip()
             values[1] = self.member_name_lookup.get(member_id, values[1])
@@ -1686,12 +1951,15 @@ class AutologicGUI:
             parts.append("event")
         if parts:
             message = f"Unsaved changes: {', '.join(parts)}"
-            self.unsaved_label.configure(text=message, bootstyle="warning")
+            self.unsaved_label.configure(text=message, style="Unsaved.TLabel")
         else:
-            self.unsaved_label.configure(text="All changes saved", bootstyle="success")
+            self.unsaved_label.configure(text="All changes saved", style="Saved.TLabel")
 
-    def _sanitize_event_name(self, name: str) -> str:
-        return "-".join(name.split())
+    def _get_output_directory(self) -> Path:
+        """Return the directory for generated outputs."""
+        if self.config_path:
+            return self.config_path.parent
+        return self.application_directory
 
     def _set_status(self, text: str) -> None:
         self.status_variable.set(text)

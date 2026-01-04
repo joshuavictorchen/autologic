@@ -56,12 +56,12 @@ jobs:
 
       - name: Build GUI .exe with PyInstaller
         run: |
-          pyinstaller --onefile --name autologic-gui --collect-submodules=autologic.algorithms --additional-hooks-dir=autologic gui/gui.py
+          pyinstaller --onefile --noconsole --name autologic --icon docs\images\autologic-icon.ico --add-data "docs\images\autologic-icon.ico;docs/images" --add-data "docs\images\autologic-icon.png;docs/images" --collect-submodules=autologic.algorithms --additional-hooks-dir=autologic gui/gui.py
 
       - name: Flatten release files
         run: |
           cp dist/autologic-cli.exe .
-          cp dist/autologic-gui.exe .
+          cp dist/autologic.exe .
           cp tests/sample_axware_export.tsv .
           cp tests/sample_member_attributes.csv .
           cp tests/sample_event_config.yaml .
@@ -72,7 +72,7 @@ jobs:
           name: autologic
           path: |
             autologic-cli.exe
-            autologic-gui.exe
+            autologic.exe
             sample_axware_export.tsv
             sample_member_attributes.csv
             sample_event_config.yaml
@@ -152,7 +152,7 @@ jobs:
         with:
           files: |
             autologic-cli.exe
-            autologic-gui.exe
+            autologic.exe
             sample_axware_export.tsv
             sample_member_attributes.csv
             sample_event_config.yaml
