@@ -665,7 +665,7 @@ class AutologicGUI:
             heat_frame,
             columns=("heat", "running", "working", "classes"),
             show="headings",
-            height=6,
+            height=2,
         )
         self.heat_tree.heading("heat", text="Heat")
         self.heat_tree.heading("running", text="Running")
