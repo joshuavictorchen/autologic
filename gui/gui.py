@@ -48,53 +48,6 @@ DEFAULT_NOVICE_DENOMINATOR = 3
 DEFAULT_MAX_ITERATIONS = 10000
 
 
-class GenerationCancelled(Exception):
-    """Raised when a GUI generation run is cancelled."""
-
-
-class EventUnpickler(pickle.Unpickler):
-    """Unpickler with legacy module name support."""
-
-    MODULE_ALIASES = {
-        "Event": "autologic.event",
-        "event": "autologic.event",
-        "Heat": "autologic.heat",
-        "heat": "autologic.heat",
-        "Category": "autologic.category",
-        "category": "autologic.category",
-        "Participant": "autologic.participant",
-        "participant": "autologic.participant",
-        "Group": "autologic.group",
-        "group": "autologic.group",
-    }
-
-    CLASS_MODULES = {
-        "Event": "autologic.event",
-        "Heat": "autologic.heat",
-        "Category": "autologic.category",
-        "Participant": "autologic.participant",
-        "Group": "autologic.group",
-    }
-
-    def find_class(self, module: str, name: str):
-        """Resolve legacy module names while unpickling events.
-
-        Args:
-            module: Module name recorded in the pickle.
-            name: Class name recorded in the pickle.
-
-        Returns:
-            type: Resolved class object.
-        """
-        # map legacy module paths so older pickles still load cleanly
-        module_alias = self.MODULE_ALIASES.get(module)
-        if module_alias:
-            module = module_alias
-        elif module == "__main__" and name in self.CLASS_MODULES:
-            module = self.CLASS_MODULES[name]
-        return super().find_class(module, name)
-
-
 class AutologicGUI:
     """GUI controller for configuring and visualizing Autologic events."""
 
@@ -2349,6 +2302,59 @@ class AutologicGUI:
     def run(self) -> None:
         """Start the Tkinter main loop."""
         self.root.mainloop()
+
+
+class GenerationCancelled(Exception):
+    """Raised when a GUI generation run is cancelled."""
+
+
+class EventUnpickler(pickle.Unpickler):
+    """
+    Unpickler with legacy module name support.
+
+    Helps with loading old events from the beta version of this program.
+
+    This will be removed in the future.
+    """
+
+    MODULE_ALIASES = {
+        "Event": "autologic.event",
+        "event": "autologic.event",
+        "Heat": "autologic.heat",
+        "heat": "autologic.heat",
+        "Category": "autologic.category",
+        "category": "autologic.category",
+        "Participant": "autologic.participant",
+        "participant": "autologic.participant",
+        "Group": "autologic.group",
+        "group": "autologic.group",
+    }
+
+    CLASS_MODULES = {
+        "Event": "autologic.event",
+        "Heat": "autologic.heat",
+        "Category": "autologic.category",
+        "Participant": "autologic.participant",
+        "Group": "autologic.group",
+    }
+
+    def find_class(self, module: str, name: str):
+        """Resolve legacy module names while unpickling events.
+
+        Args:
+            module: Module name recorded in the pickle.
+            name: Class name recorded in the pickle.
+
+        Returns:
+            type: Resolved class object.
+        """
+        # map legacy module paths so older pickles still load cleanly
+        module_alias = self.MODULE_ALIASES.get(module)
+        if module_alias:
+            module = module_alias
+        elif module == "__main__" and name in self.CLASS_MODULES:
+            module = self.CLASS_MODULES[name]
+        return super().find_class(module, name)
 
 
 if __name__ == "__main__":
