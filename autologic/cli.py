@@ -49,12 +49,41 @@ class Config(BaseModel):
                 raise ValueError(f"{path_attr} is not a file: {p}")
 
 
+def resolve_config_paths(config_data: dict, config_path: Path) -> dict:
+    """Resolve relative data paths against the configuration file directory.
+
+    Args:
+        config_data: Raw configuration dictionary.
+        config_path: Path to the configuration file.
+
+    Returns:
+        dict: Configuration data with resolved paths.
+    """
+    if not config_data or not config_path:
+        return config_data or {}
+
+    resolved_data = dict(config_data)
+    base_dir = config_path.parent
+    for key in ["axware_export_tsv", "member_attributes_csv"]:
+        value = resolved_data.get(key)
+        if not value:
+            continue
+        try:
+            path = Path(value)
+        except TypeError:
+            continue
+        if not path.is_absolute():
+            resolved_data[key] = str((base_dir / path).resolve())
+    return resolved_data
+
+
 def load_config(ctx, param, value: Path) -> Config:
     if value is None:
         return None
     try:
         with open(value, "r") as f:
             data = yaml.safe_load(f)
+        data = resolve_config_paths(data or {}, value)
         config = Config(**data)
         config.validate_paths()
         return config

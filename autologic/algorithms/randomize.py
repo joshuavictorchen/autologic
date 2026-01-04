@@ -228,6 +228,8 @@ class Randomizer(HeatGenerator):
             for c in categories:
                 c.set_heat(random.choice(event.heats))
             count += 1
+            if count % 100 == 0:
+                self._notify("internal_iteration", {"iteration": count})
             print(f"  Internal iteration: {count}", end="\r")
 
         print(f"  Internal iteration: {count}")
