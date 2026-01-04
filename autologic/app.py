@@ -93,7 +93,7 @@ def load_event(
     if seed is not None:
         random.seed(seed)
 
-    return Event(
+    event = Event(
         name=name,
         axware_export_tsv=axware_export_tsv,
         member_attributes_csv=member_attributes_csv,
@@ -107,3 +107,19 @@ def load_event(
         novice_denominator=novice_denominator,
         max_iterations=max_iterations,
     )
+    # store a config snapshot so GUI loads can repopulate inputs from pickles
+    event.config_snapshot = {
+        "name": name,
+        "axware_export_tsv": str(axware_export_tsv),
+        "member_attributes_csv": str(member_attributes_csv),
+        "custom_assignments": {
+            str(key): value for key, value in custom_assignments.items()
+        },
+        "number_of_heats": number_of_heats,
+        "number_of_stations": number_of_stations,
+        "heat_size_parity": heat_size_parity,
+        "novice_size_parity": novice_size_parity,
+        "novice_denominator": novice_denominator,
+        "max_iterations": max_iterations,
+    }
+    return event

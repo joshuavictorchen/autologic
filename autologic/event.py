@@ -47,6 +47,7 @@ class Event(Group):
         self.novice_size_parity = novice_size_parity
         self.novice_denominator = novice_denominator
         self.max_iterations = max_iterations
+        self.config_snapshot: dict | None = None
         self.verbose = False  # TODO: snuck this in here at the last minute; expose this
 
         # raise an error if event does not have enough qualified participants to fill each role

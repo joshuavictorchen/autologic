@@ -1,7 +1,7 @@
 
 # Self-explanatory.
-axware_export_tsv: ./tests/sample_axware_export.tsv
-member_attributes_csv: ./tests/sample_member_attributes.csv
+axware_export_tsv: ./sample_axware_export.tsv
+member_attributes_csv: ./sample_member_attributes.csv
 number_of_heats: 3
 number_of_stations: 5
 

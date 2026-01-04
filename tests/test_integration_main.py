@@ -42,10 +42,10 @@ class TestIntegrationMain(unittest.TestCase):
 
         config_data["name"] = "integration-event"
         config_data["axware_export_tsv"] = str(
-            (repo_root / config_data["axware_export_tsv"]).resolve()
+            (config_path.parent / config_data["axware_export_tsv"]).resolve()
         )
         config_data["member_attributes_csv"] = str(
-            (repo_root / config_data["member_attributes_csv"]).resolve()
+            (config_path.parent / config_data["member_attributes_csv"]).resolve()
         )
 
         with tempfile.TemporaryDirectory() as tmp_dir:

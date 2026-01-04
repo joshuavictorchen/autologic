@@ -52,13 +52,14 @@ Event lifecycle:
 1. Load config (`_load_config_from_path`) and resolve relative paths
 2. Generate event (`_start_generation` -> `_run_generation_thread`)
 3. Apply results (`_handle_generation_result`) and refresh views
-4. Save outputs (`_save_event`) next to the active config
+4. Save outputs (`_save_event`) next to the active config and embed a config snapshot in the PKL
 
 ## Config handling
 
 - Default config lives next to the app (`autologic.yaml`)
 - Relative paths in config are resolved against the config file directory
 - Config is built from widget values via `_build_config_payload`
+- Event pickles store a config snapshot so loading a PKL can repopulate GUI inputs
 - Use `_mark_config_dirty` when user input changes
 
 ## Draft mode handling

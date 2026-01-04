@@ -13,7 +13,7 @@
 # input wiring
 # config loading and saving
 # generation workflow
-# event persistence
+# event persistence and config snapshots
 # event view refresh
 # validation helpers
 # worker table rendering and sorting
@@ -986,7 +986,17 @@ class AutologicGUI:
 
         self.config_path = config_path
         self.config_path_variable.set(str(config_path))
+        self._apply_config_data(config_data)
+        self.config_dirty = False
+        self._set_status("Loaded config")
+        self._update_unsaved_indicator()
 
+    def _apply_config_data(self, config_data: dict) -> None:
+        """Apply configuration values to the GUI state.
+
+        Args:
+            config_data: Configuration values to apply.
+        """
         self.is_applying_config = True
         try:
             # suppress dirty tracking while values are programmatically applied
@@ -1039,9 +1049,6 @@ class AutologicGUI:
 
         # update dependent data after config values are set
         self._load_member_names()
-        self.config_dirty = False
-        self._set_status("Loaded config")
-        self._update_unsaved_indicator()
 
     def _save_config(self) -> bool:
         """Persist the current GUI configuration to the active YAML file.
@@ -1086,6 +1093,16 @@ class AutologicGUI:
             "max_iterations": self.max_iterations_variable.get().strip(),
             "algorithm": self.algorithm_variable.get().strip(),
         }
+
+    def _build_config_snapshot(self) -> dict:
+        """Build a config snapshot for event persistence.
+
+        Returns:
+            dict: Configuration snapshot with resolved data paths.
+        """
+        config_data = self._build_config_payload()
+        # store absolute data paths so pickle reloads do not depend on the config file
+        return resolve_config_paths(config_data, self.config_path)
 
     # generation workflow ---------------------------------------------------------------------
     # runs event generation in a worker thread and consumes results safely
@@ -1225,8 +1242,32 @@ class AutologicGUI:
             self.generate_button.configure(text="Generate Event", bootstyle="primary")
         self._update_save_event_state()
 
-    # event persistence -----------------------------------------------------------------------
-    # loads and saves event artifacts alongside the active config so files stay grouped
+    # event persistence and config snapshots --------------------------------------------------
+    # loads and saves event artifacts alongside the active config and embeds config snapshots
+    def _get_event_config_snapshot(self, event: Event | None) -> dict | None:
+        """Return the config snapshot from an event when available.
+
+        Args:
+            event: Event instance to inspect.
+
+        Returns:
+            dict | None: Stored config snapshot when present.
+        """
+        if not event:
+            return None
+        config_snapshot = getattr(event, "config_snapshot", None)
+        if isinstance(config_snapshot, dict):
+            return config_snapshot
+        return None
+
+    def _set_event_config_snapshot(self) -> None:
+        """Attach the current config snapshot to the active event."""
+        if not self.current_event:
+            return
+        config_snapshot = self._build_config_snapshot()
+        # store config alongside the event so reloads can restore GUI inputs
+        self.current_event.config_snapshot = config_snapshot
+
     def _save_event(self) -> None:
         """Save CSV/PDF/PKL outputs for the current event."""
         if not self._ensure_event_loaded():
@@ -1265,6 +1306,7 @@ class AutologicGUI:
 
         if not self._save_config():
             return
+        self._set_event_config_snapshot()
 
         # change into the output directory for the export helpers
         previous_dir = Path.cwd()
@@ -1301,6 +1343,13 @@ class AutologicGUI:
             messagebox.showerror("Error", f"Failed to load event: {exc}")
             return
 
+        config_snapshot = self._get_event_config_snapshot(self.current_event)
+        if config_snapshot:
+            self._apply_config_data(config_snapshot)
+            self.config_dirty = False
+        else:
+            self.config_dirty = True
+
         self.is_applying_config = True
         try:
             self.event_name_variable.set(str(self.current_event.name))
@@ -1314,8 +1363,6 @@ class AutologicGUI:
             self.max_iterations_variable.set(str(self.current_event.max_iterations))
         finally:
             self.is_applying_config = False
-        # treat loaded values as editable config inputs
-        self._mark_config_dirty()
         self.event_dirty = False
         self._refresh_event_views()
         self._set_status("Loaded event")
