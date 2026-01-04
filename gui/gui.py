@@ -401,6 +401,7 @@ class AutologicGUI:
         self.assignment_editor = editor
 
         def finish(commit: bool) -> None:
+            """Finalize the inline editor with optional commit."""
             # commit only after a selection or focus-out to avoid partial state
             if not self.assignment_editor:
                 return
@@ -415,8 +416,11 @@ class AutologicGUI:
         editor.bind("<Escape>", lambda _event: finish(False))
 
         def handle_focus_out(_event) -> None:
+            """Delay closing so the popdown can receive focus."""
+
             # wait until the dropdown closes so single clicks do not self-dismiss
             def popdown_visible() -> bool:
+                """Return True while the combobox popdown is visible."""
                 try:
                     popdown = editor.tk.call("ttk::combobox::PopdownWindow", editor)
                     return bool(int(editor.tk.call("winfo", "viewable", popdown)))
@@ -424,6 +428,7 @@ class AutologicGUI:
                     return False
 
             def maybe_finish() -> None:
+                """Poll the popdown and finish after it closes."""
                 # poll until the dropdown closes so focus changes do not cancel edits
                 if not self.assignment_editor or not editor.winfo_exists():
                     return
@@ -528,6 +533,7 @@ class AutologicGUI:
             left_column, text="Control Panel", padding=10
         )
         self.control_panel.grid(row=0, column=0, sticky="nsew", pady=(0, 10))
+        # build each panel in its own function to keep layout readable
         self._build_control_panel(self.control_panel)
 
         self.parameters_panel = ttk.Labelframe(
@@ -939,8 +945,52 @@ class AutologicGUI:
 
         self.is_applying_config = True
         try:
+            # config application -------------------------------------------------------------------
             # suppress dirty tracking while values are programmatically applied
-            self._apply_config_data(config_data)
+            if "name" in config_data:
+                self.event_name_variable.set(str(config_data["name"]))
+            if "axware_export_tsv" in config_data:
+                self.tsv_path_variable.set(str(config_data["axware_export_tsv"]))
+            if "member_attributes_csv" in config_data:
+                self.member_csv_path_variable.set(
+                    str(config_data["member_attributes_csv"])
+                )
+            if "number_of_heats" in config_data:
+                self.heats_variable.set(str(config_data["number_of_heats"]))
+            if "number_of_stations" in config_data:
+                self.stations_variable.set(str(config_data["number_of_stations"]))
+            if "heat_size_parity" in config_data:
+                self.heat_parity_variable.set(str(config_data["heat_size_parity"]))
+            if "novice_size_parity" in config_data:
+                self.novice_parity_variable.set(str(config_data["novice_size_parity"]))
+            if "novice_denominator" in config_data:
+                self.novice_denominator_variable.set(
+                    str(config_data["novice_denominator"])
+                )
+            if "max_iterations" in config_data:
+                self.max_iterations_variable.set(str(config_data["max_iterations"]))
+            if (
+                "algorithm" in config_data
+                and config_data["algorithm"] in self.algorithms
+            ):
+                self.algorithm_variable.set(str(config_data["algorithm"]))
+
+            # rebuild the assignments table so it matches config order and state
+            for item in self.assignments_tree.get_children():
+                self.assignments_tree.delete(item)
+            self.assignment_use_state.clear()
+
+            custom_assignments = config_data.get("custom_assignments", {}) or {}
+            for member_id, assignment in custom_assignments.items():
+                self._insert_assignment_row(
+                    True,
+                    str(member_id),
+                    self.member_name_lookup.get(str(member_id), ""),
+                    str(assignment),
+                )
+
+            self._refresh_assignment_names()
+            self._ensure_add_assignment_row()
         finally:
             self.is_applying_config = False
 
@@ -949,51 +999,6 @@ class AutologicGUI:
         self.config_dirty = False
         self._set_status("Loaded config")
         self._update_unsaved_indicator()
-
-    def _apply_config_data(self, config_data: dict) -> None:
-        """Apply config values to GUI widgets and internal state.
-
-        Args:
-            config_data: Parsed config dictionary.
-        """
-        # populate only known keys to avoid breaking on new config fields
-        if "name" in config_data:
-            self.event_name_variable.set(str(config_data["name"]))
-        if "axware_export_tsv" in config_data:
-            self.tsv_path_variable.set(str(config_data["axware_export_tsv"]))
-        if "member_attributes_csv" in config_data:
-            self.member_csv_path_variable.set(str(config_data["member_attributes_csv"]))
-        if "number_of_heats" in config_data:
-            self.heats_variable.set(str(config_data["number_of_heats"]))
-        if "number_of_stations" in config_data:
-            self.stations_variable.set(str(config_data["number_of_stations"]))
-        if "heat_size_parity" in config_data:
-            self.heat_parity_variable.set(str(config_data["heat_size_parity"]))
-        if "novice_size_parity" in config_data:
-            self.novice_parity_variable.set(str(config_data["novice_size_parity"]))
-        if "novice_denominator" in config_data:
-            self.novice_denominator_variable.set(str(config_data["novice_denominator"]))
-        if "max_iterations" in config_data:
-            self.max_iterations_variable.set(str(config_data["max_iterations"]))
-        if "algorithm" in config_data and config_data["algorithm"] in self.algorithms:
-            self.algorithm_variable.set(str(config_data["algorithm"]))
-
-        # rebuild the assignments table so it matches config order and state
-        for item in self.assignments_tree.get_children():
-            self.assignments_tree.delete(item)
-        self.assignment_use_state.clear()
-
-        custom_assignments = config_data.get("custom_assignments", {}) or {}
-        for member_id, assignment in custom_assignments.items():
-            self._insert_assignment_row(
-                True,
-                str(member_id),
-                self.member_name_lookup.get(str(member_id), ""),
-                str(assignment),
-            )
-
-        self._refresh_assignment_names()
-        self._ensure_add_assignment_row()
 
     def _save_config(self) -> bool:
         """Persist the current GUI configuration to the active YAML file.
@@ -1041,6 +1046,7 @@ class AutologicGUI:
 
     def _on_generate_button(self) -> None:
         """Handle Generate Event/Cancel button presses."""
+        # generation cancellation ------------------------------------------------------------------
         if self.is_generating:
             # signal cancellation without blocking the UI thread
             self.generation_cancel_requested.set()
@@ -1185,6 +1191,7 @@ class AutologicGUI:
             messagebox.showwarning("Missing event name", "Event name is required")
             return
         event_name = raw_name
+        # output location --------------------------------------------------------------------------
         # save outputs next to the active config to keep event assets together
         if self.config_path:
             output_dir = self.config_path.parent
@@ -1249,31 +1256,26 @@ class AutologicGUI:
             messagebox.showerror("Error", f"Failed to load event: {exc}")
             return
 
-        self._apply_event_parameters(self.current_event)
-        self.event_dirty = False
-        self._refresh_event_views()
-        self._set_status("Loaded event")
-        self._update_unsaved_indicator()
-
-    def _apply_event_parameters(self, event: Event) -> None:
-        """Populate parameter widgets from a loaded event.
-
-        Args:
-            event: Loaded event instance.
-        """
+        # event parameter application --------------------------------------------------------------
         self.is_applying_config = True
         try:
-            self.event_name_variable.set(str(event.name))
-            self.heats_variable.set(str(event.number_of_heats))
-            self.stations_variable.set(str(event.number_of_stations))
-            self.heat_parity_variable.set(str(event.heat_size_parity))
-            self.novice_parity_variable.set(str(event.novice_size_parity))
-            self.novice_denominator_variable.set(str(event.novice_denominator))
-            self.max_iterations_variable.set(str(event.max_iterations))
+            self.event_name_variable.set(str(self.current_event.name))
+            self.heats_variable.set(str(self.current_event.number_of_heats))
+            self.stations_variable.set(str(self.current_event.number_of_stations))
+            self.heat_parity_variable.set(str(self.current_event.heat_size_parity))
+            self.novice_parity_variable.set(str(self.current_event.novice_size_parity))
+            self.novice_denominator_variable.set(
+                str(self.current_event.novice_denominator)
+            )
+            self.max_iterations_variable.set(str(self.current_event.max_iterations))
         finally:
             self.is_applying_config = False
         # treat loaded values as editable config inputs
         self._mark_config_dirty()
+        self.event_dirty = False
+        self._refresh_event_views()
+        self._set_status("Loaded event")
+        self._update_unsaved_indicator()
 
     def _refresh_event_views(self) -> None:
         """Refresh all event-dependent tables and controls."""
@@ -1605,6 +1607,7 @@ class AutologicGUI:
         heat_combo.grid(row=1, column=1, padx=8, pady=6)
 
         def update_heat_options(*_) -> None:
+            """Update heat options based on the selected class."""
             # keep heat choices limited to actual moves
             category_name = class_name_variable.get().strip()
             current_heat = self.current_event.categories.get(category_name)
@@ -1627,6 +1630,7 @@ class AutologicGUI:
         update_heat_options()
 
         def on_apply() -> None:
+            """Apply the selected class move."""
             # apply the class move and refresh dependent views
             category = class_name_variable.get().strip()
             heat_number = heat_number_variable.get().strip()
@@ -1682,33 +1686,6 @@ class AutologicGUI:
             return
         self._set_status("Validation passed" if is_valid else "Validation failed")
 
-    def _get_assignment_member_ids(self) -> set[str]:
-        """Return member IDs already assigned in the custom assignments table.
-
-        Returns:
-            set[str]: Member IDs present in the assignments table.
-        """
-        return {
-            str(self.assignments_tree.item(item)["values"][0]).strip()
-            for item in self.assignments_tree.get_children()
-            if not self._is_add_assignment_row(item)
-        }
-
-    def _get_assignment_names_by_id(self) -> dict[str, str]:
-        """Return a mapping of member IDs to names from the assignments table.
-
-        Returns:
-            dict[str, str]: Mapping of member ID to display name.
-        """
-        names_by_id: dict[str, str] = {}
-        for item in self.assignments_tree.get_children():
-            if self._is_add_assignment_row(item):
-                continue
-            values = self.assignments_tree.item(item)["values"]
-            if len(values) >= 2:
-                names_by_id[str(values[0]).strip()] = str(values[1]).strip()
-        return names_by_id
-
     def _assignment_dialog(
         self,
         use=True,
@@ -1754,7 +1731,14 @@ class AutologicGUI:
         if member_id:
             allowed_member_ids.add(member_id)
 
-        assignment_names = self._get_assignment_names_by_id()
+        # assignment name lookup -------------------------------------------------------------------
+        assignment_names: dict[str, str] = {}
+        for item in self.assignments_tree.get_children():
+            if self._is_add_assignment_row(item):
+                continue
+            values = self.assignments_tree.item(item)["values"]
+            if len(values) >= 2:
+                assignment_names[str(values[0]).strip()] = str(values[1]).strip()
         member_entries = []
         for current_member_id in allowed_member_ids:
             name = self.member_name_lookup.get(
@@ -1835,6 +1819,7 @@ class AutologicGUI:
         is_syncing = False
 
         def sync_from_id(*_) -> None:
+            """Sync the name dropdown when the ID changes."""
             # update the name dropdown when the ID changes
             nonlocal is_syncing
             if is_syncing:
@@ -1845,6 +1830,7 @@ class AutologicGUI:
             is_syncing = False
 
         def sync_from_name(*_) -> None:
+            """Sync the ID dropdown when the name changes."""
             # update the ID dropdown when the name changes
             nonlocal is_syncing
             if is_syncing:
@@ -1868,6 +1854,7 @@ class AutologicGUI:
         result: dict[str, tuple[bool, str, str]] = {}
 
         def on_ok() -> None:
+            """Validate selections and close the dialog."""
             # validate input before accepting the dialog
             member_value = member_id_variable.get().strip()
             name_value = member_name_variable.get().strip()
@@ -1913,7 +1900,12 @@ class AutologicGUI:
             )
             return
 
-        assigned_member_ids = self._get_assignment_member_ids()
+        # assigned member detection ----------------------------------------------------------------
+        assigned_member_ids = {
+            str(self.assignments_tree.item(item)["values"][0]).strip()
+            for item in self.assignments_tree.get_children()
+            if not self._is_add_assignment_row(item)
+        }
         available_member_ids = {
             member_id
             for member_id in self.member_name_lookup.keys()
@@ -2029,6 +2021,7 @@ class AutologicGUI:
             self.assignments_tree.selection_set(item_id)
 
             def commit_assignment(value: str) -> None:
+                """Persist the assignment selection to the table."""
                 # update the inline value and mark config as modified
                 values = list(self.assignments_tree.item(item_id)["values"])
                 if len(values) < 3:
@@ -2090,6 +2083,7 @@ class AutologicGUI:
         self.worker_tree.selection_set(item_id)
 
         def commit_assignment(value: str) -> None:
+            """Persist the assignment selection to the participant."""
             # persist the assignment change to the participant model
             role = value.strip().lower()
             if not role:
@@ -2178,6 +2172,7 @@ class AutologicGUI:
 
     def _on_tsv_change(self, *_) -> None:
         """Warn when TSV files lack check-in data."""
+        # draft detection --------------------------------------------------------------------------
         path_value = self.tsv_path_variable.get().strip()
         if not path_value:
             return
