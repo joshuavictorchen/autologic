@@ -752,6 +752,7 @@ class AutologicGUI:
         for variable in config_variables:
             variable.trace_add("write", self._on_config_variable_change)
 
+        self.tsv_path_variable.trace_add("write", self._on_tsv_change)
         self.member_csv_path_variable.trace_add("write", self._on_member_csv_change)
 
     def _on_close(self) -> None:
@@ -1019,12 +1020,9 @@ class AutologicGUI:
         self.is_generating = is_generating
         if is_generating:
             self.generate_button.configure(text="Cancel", bootstyle="danger")
-            self.save_event_button.configure(state="disabled")
         else:
             self.generate_button.configure(text="Generate Event", bootstyle="primary")
-            self.save_event_button.configure(
-                state="normal" if self.current_event else "disabled"
-            )
+        self._update_save_event_state()
 
     def _save_event(self) -> None:
         if not self._ensure_event_loaded():
@@ -1116,9 +1114,7 @@ class AutologicGUI:
         self._refresh_heat_table()
         self._refresh_summary_table()
         self._refresh_worker_table()
-        self.save_event_button.configure(
-            state="normal" if self.current_event else "disabled"
-        )
+        self._update_save_event_state()
 
     def _refresh_heat_table(self) -> None:
         self.heat_tree.delete(*self.heat_tree.get_children())
@@ -1906,10 +1902,47 @@ class AutologicGUI:
             return
         self._mark_config_dirty()
 
+    def _on_tsv_change(self, *_) -> None:
+        self._warn_if_draft_tsv()
+
     def _on_member_csv_change(self, *_) -> None:
         if self.is_applying_config:
             return
         self._load_member_names()
+
+    def _resolve_tsv_path(self) -> Path | None:
+        path_value = self.tsv_path_variable.get().strip()
+        if not path_value:
+            return None
+        try:
+            path = Path(path_value)
+        except TypeError:
+            return None
+        if not path.is_absolute() and self.config_path:
+            path = (self.config_path.parent / path).resolve()
+        return path
+
+    def _warn_if_draft_tsv(self) -> None:
+        path = self._resolve_tsv_path()
+        if not path or not path.exists() or not path.is_file():
+            return
+        try:
+            with open(path, newline="", encoding="utf-8-sig") as file:
+                reader = csv.DictReader(file, delimiter="\t")
+                fieldnames = [name for name in (reader.fieldnames or []) if name]
+        except Exception:
+            return
+        if not fieldnames:
+            return
+        checkin_present = any(
+            str(name).strip().lower() == "checkin" for name in fieldnames
+        )
+        if checkin_present:
+            return
+        messagebox.showinfo(
+            "Draft mode",
+            "No check-in data detected - DRAFT mode activated.",
+        )
 
     def _load_member_names(self) -> None:
         self.member_name_lookup.clear()
@@ -1935,6 +1968,18 @@ class AutologicGUI:
             return False
         return True
 
+    def _event_is_draft(self) -> bool:
+        return bool(getattr(self.current_event, "draft_mode", False))
+
+    def _update_save_event_state(self) -> None:
+        if self.is_generating:
+            self.save_event_button.configure(state="disabled")
+            return
+        if self.current_event and not self._event_is_draft():
+            self.save_event_button.configure(state="normal")
+        else:
+            self.save_event_button.configure(state="disabled")
+
     def _mark_config_dirty(self) -> None:
         self.config_dirty = True
         self._update_unsaved_indicator()
@@ -1944,6 +1989,14 @@ class AutologicGUI:
         self._update_unsaved_indicator()
 
     def _update_unsaved_indicator(self) -> None:
+        if self._event_is_draft():
+            if self.config_dirty:
+                message = "Unsaved changes: config, DRAFT event"
+            else:
+                message = "DRAFT event"
+            self.unsaved_label.configure(text=message, style="Unsaved.TLabel")
+            return
+
         parts = []
         if self.config_dirty:
             parts.append("config")

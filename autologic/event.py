@@ -33,7 +33,11 @@ class Event(Group):
         self.name = name
         self.number_of_stations = number_of_stations
         self.participants = []
-        self.participants, self.no_shows = self.load_participants(
+        (
+            self.participants,
+            self.no_shows,
+            self.draft_mode,
+        ) = self.load_participants(
             axware_export_tsv, member_attributes_csv, custom_assignments
         )
         self.categories = self.load_categories()
@@ -92,6 +96,7 @@ class Event(Group):
         Returns:
             list[Participant]: All participants that have checked into the event.
             list[Participant]: All participants that have NOT checked into the event.
+            bool: Whether the event is in draft mode due to missing check-in data.
         """
         member_attributes_dict = {}
         with open(member_attributes_csv, newline="", encoding="utf-8-sig") as file:
@@ -104,8 +109,15 @@ class Event(Group):
         has_special_assignments = False
         participants = []
         no_shows = []
+        draft_mode = False
         with open(axware_export_tsv, newline="", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file, delimiter="\t")
+            fieldnames = [name for name in (reader.fieldnames or []) if name]
+            fieldname_map = {
+                name.lower(): name for name in fieldnames if isinstance(name, str)
+            }
+            checkin_field = fieldname_map.get("checkin")
+            draft_mode = checkin_field is None
             for axware_row in reader:
 
                 this_firstname = f"{axware_row['First Name']}"
@@ -138,7 +150,11 @@ class Event(Group):
                 else:
                     category_string = axware_row["Class"]
 
-                no_show = True if axware_row["Checkin"].upper() != "YES" else False
+                if draft_mode:
+                    no_show = False
+                else:
+                    checkin_value = str(axware_row.get(checkin_field, "")).strip()
+                    no_show = checkin_value.upper() != "YES"
 
                 participant = Participant(
                     event=self if not no_show else None,
@@ -167,7 +183,7 @@ class Event(Group):
         if not has_special_assignments:
             print("    No special assignments.")
 
-        return participants, no_shows
+        return participants, no_shows, draft_mode
 
     def load_categories(self):
         """
