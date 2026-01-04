@@ -2,11 +2,11 @@
 
 ## Purpose
 
-The GUI in `gui.py` loads configuration data, generates events in memory, and presents editable tables for heats, roles, and worker assignments.
+The GUI in `autologic/gui.py` loads configuration data, generates events in memory, and presents editable tables for heats, roles, and worker assignments.
 
 ## Entry points
 
-- `gui/gui.py`: main GUI module
+- `autologic/gui.py`: main GUI module
 - `AutologicGUI().run()`: starts the app
 
 ## Architecture overview
@@ -127,5 +127,5 @@ Add a new event action:
 
 ## Quick sanity checks
 
-- `python -m py_compile gui/gui.py` to confirm syntax
-- Run `python gui/gui.py` and validate the main flows
+- `python -m py_compile autologic/gui.py` to confirm syntax
+- Run `python -m autologic.gui` and validate the main flows

@@ -291,8 +291,17 @@ class AutologicGUI:
         self._build_layout()
         self._register_variable_traces()
 
+        legacy_config_path = self.resource_root / "gui" / "autologic.yaml"
+        initial_config_path = self.default_config_path
+        if not self.default_config_path.exists() and legacy_config_path.exists():
+            # prefer the legacy path to preserve relative config references
+            initial_config_path = legacy_config_path
+
         # ensure the default config exists so save operations are predictable
-        if not self.default_config_path.exists():
+        if (
+            initial_config_path == self.default_config_path
+            and not self.default_config_path.exists()
+        ):
             try:
                 self.default_config_path.write_text("", encoding="utf-8")
             except OSError as exc:
@@ -300,7 +309,7 @@ class AutologicGUI:
                     "Error", f"Failed to create default config file: {exc}"
                 )
 
-        self._load_config_from_path(self.default_config_path)
+        self._load_config_from_path(initial_config_path)
         self._update_unsaved_indicator()
         self._apply_window_icon(self.root)
 
