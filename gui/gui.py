@@ -272,7 +272,7 @@ class AutologicGUI:
             else next(iter(self.algorithms))
         )
 
-        self.event_name_variable = tk.StringVar(value="autologic-event")
+        self.event_name_variable = tk.StringVar(value="Autologic Event")
         self.heats_variable = tk.StringVar(value="3")
         self.stations_variable = tk.StringVar(value="5")
         self.heat_parity_variable = tk.StringVar(value="25")
