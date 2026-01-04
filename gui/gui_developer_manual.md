@@ -19,22 +19,6 @@ The GUI in `gui.py` loads configuration data, generates events in memory, and pr
   - validation display and table refreshes
   - saving outputs (CSV, PDF, PKL)
 
-## Flow diagram
-
-```mermaid
-flowchart TD
-    A[User actions] --> B[Config load/save]
-    B --> C[Resolve paths]
-    C --> D[Generate event in thread]
-    D --> E[Validation checks]
-    E --> F[Refresh tables]
-    F --> G[Save outputs]
-
-    C --> H[Draft detection]
-    H -->|CheckIn missing| I[Draft mode]
-    I --> F
-```
-
 ## Layout structure
 
 `_build_layout` divides the window into two columns:

@@ -1,3 +1,31 @@
+# -------------------------------------------------------------------------------------------------
+# gui code sections
+# -------------------------------------------------------------------------------------------------
+# constants and defaults
+# gui controller
+# initialization
+# window utilities
+# tree helpers
+# inline editors
+# checkbox rendering
+# dialog layout
+# layout and panels
+# input wiring
+# config loading and saving
+# generation workflow
+# event persistence
+# event view refresh
+# validation helpers
+# worker table rendering and sorting
+# heat adjustments
+# custom assignments
+# assignment interactions
+# data loading
+# state updates
+# run loop
+# support classes and entrypoint
+# -------------------------------------------------------------------------------------------------
+
 import csv
 import os
 import pickle
@@ -18,6 +46,8 @@ from autologic.app import load_event, main
 from autologic.cli import Config, resolve_config_paths
 from autologic.event import Event
 
+# constants and defaults -------------------------------------------------------------------
+# centralizes user interface labels, colors, and default values for consistent configuration
 ASSIGNMENT_OPTIONS = ["instructor", "timing", "grid", "start", "captain", "special"]
 ROLE_OPTIONS = ASSIGNMENT_OPTIONS + ["worker"]
 SUMMARY_COLUMNS = [
@@ -48,10 +78,13 @@ DEFAULT_NOVICE_DENOMINATOR = 3
 DEFAULT_MAX_ITERATIONS = 10000
 
 
+# gui controller ---------------------------------------------------------------------------
+# encapsulates the tkinter application state, widgets, and event workflows so user interface logic stays central
 class AutologicGUI:
     """GUI controller for configuring and visualizing Autologic events."""
 
-    # initialization -------------------------------------------------------------------------------
+    # initialization ---------------------------------------------------------------------------
+    # establishes window state, defaults, and styles so startup is predictable
     def __init__(self):
         """Initialize GUI state, resources, and layout."""
         self.root = ttk.Window(themename="flatly")
@@ -274,7 +307,8 @@ class AutologicGUI:
         # keep window close wired for clean shutdown
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
-    # window utilities -----------------------------------------------------------------------------
+    # window utilities -------------------------------------------------------------------------
+    # keeps window-level behavior like icons and dialog defaults consistent
     def _apply_window_icon(self, window: tk.Misc) -> None:
         """Apply the configured app icon to a window.
 
@@ -312,7 +346,8 @@ class AutologicGUI:
         dialog.resizable(False, False)
         self._apply_window_icon(dialog)
 
-    # tree helpers ---------------------------------------------------------------------------------
+    # tree helpers -----------------------------------------------------------------------------
+    # centralizes treeview utilities to keep rendering logic tidy
     def _get_tree_column_name(self, tree: ttk.Treeview, column_id: str) -> str | None:
         """Map a Treeview column id to its logical column name.
 
@@ -356,7 +391,8 @@ class AutologicGUI:
         first_name = " ".join(name_parts[:-1])
         return f"{last_name}, {first_name}"
 
-    # inline editors -------------------------------------------------------------------------------
+    # inline editors ---------------------------------------------------------------------------
+    # handles in-place dropdown editors so edits stay in context
     def _clear_assignment_editor(self) -> None:
         """Remove any active inline assignment editor."""
         if self.assignment_editor:
@@ -441,7 +477,8 @@ class AutologicGUI:
         # open the dropdown immediately so a single click exposes options
         editor.after(0, lambda: editor.tk.call("ttk::combobox::Post", editor))
 
-    # checkbox rendering ---------------------------------------------------------------------------
+    # checkbox rendering -----------------------------------------------------------------------
+    # draws custom checkbox images so tree rows show clear state
     def _create_checkbox_image(self, checked: bool) -> tk.PhotoImage:
         """Build a checkbox image for Treeview rows.
 
@@ -480,7 +517,8 @@ class AutologicGUI:
 
         return image
 
-    # dialog layout --------------------------------------------------------------------------------
+    # dialog layout ----------------------------------------------------------------------------
+    # standardizes dialog sizing and centering to match the main window
     def _finalize_dialog_size(self, dialog: tk.Toplevel) -> None:
         """Set the dialog size to its requested size and center it.
 
@@ -501,7 +539,8 @@ class AutologicGUI:
         dialog.minsize(required_width, required_height)
         dialog.geometry(f"{required_width}x{required_height}+{x}+{y}")
 
-    # layout and panels ----------------------------------------------------------------------------
+    # layout and panels ------------------------------------------------------------------------
+    # constructs the main window layout so panel changes stay localized
     def _build_layout(self) -> None:
         """Build the top-level layout containers."""
         container = tk.Frame(self.root, background=PALETTE["background"])
@@ -821,7 +860,8 @@ class AutologicGUI:
         self.worker_tree.configure(yscrollcommand=worker_scrollbar.set)
         worker_scrollbar.configure(command=self.worker_tree.yview)
 
-    # input wiring ---------------------------------------------------------------------------------
+    # input wiring -----------------------------------------------------------------------------
+    # wires up variable traces so input changes trigger consistent updates
     def _register_variable_traces(self) -> None:
         """Attach variable traces to mark config changes and reload data."""
         config_variables = [
@@ -917,7 +957,8 @@ class AutologicGUI:
         if file_path:
             target_variable.set(file_path)
 
-    # config loading and saving --------------------------------------------------------------------
+    # config loading and saving ----------------------------------------------------------------
+    # loads config values into the user interface so config and user interface stay in sync
     def _load_config_prompt(self) -> None:
         """Prompt the user to choose a config file to load."""
         path = filedialog.askopenfilename(
@@ -1046,7 +1087,8 @@ class AutologicGUI:
             "algorithm": self.algorithm_variable.get().strip(),
         }
 
-    # generation workflow --------------------------------------------------------------------------
+    # generation workflow ---------------------------------------------------------------------
+    # runs event generation in a worker thread and consumes results safely
     def _on_generate_button(self) -> None:
         """Handle Generate Event/Cancel button presses."""
         if self.is_generating:
@@ -1183,7 +1225,8 @@ class AutologicGUI:
             self.generate_button.configure(text="Generate Event", bootstyle="primary")
         self._update_save_event_state()
 
-    # event persistence ----------------------------------------------------------------------------
+    # event persistence -----------------------------------------------------------------------
+    # loads and saves event artifacts alongside the active config so files stay grouped
     def _save_event(self) -> None:
         """Save CSV/PDF/PKL outputs for the current event."""
         if not self._ensure_event_loaded():
@@ -1278,7 +1321,8 @@ class AutologicGUI:
         self._set_status("Loaded event")
         self._update_unsaved_indicator()
 
-    # event view refresh ---------------------------------------------------------------------------
+    # event view refresh ----------------------------------------------------------------------
+    # refreshes event-dependent tables so views mirror the active event
     def _refresh_event_views(self) -> None:
         """Refresh all event-dependent tables and controls."""
         self._clear_assignment_editor()
@@ -1383,6 +1427,8 @@ class AutologicGUI:
                     pady=1,
                 )
 
+    # validation helpers ----------------------------------------------------------------------
+    # computes role counts and validity to drive summary highlighting
     def _evaluate_event_validity(self) -> dict:
         """Evaluate event validity and capture which summary cells are invalid.
 
@@ -1458,6 +1504,19 @@ class AutologicGUI:
                 counts[assignment] += 1
         return counts
 
+    def _validate_current_event(self) -> None:
+        """Validate the current event and update status."""
+        if not self.current_event:
+            return
+        try:
+            is_valid = self.current_event.validate()
+        except Exception as exc:
+            messagebox.showerror("Error", f"Validation error: {exc}")
+            return
+        self._set_status("Validation passed" if is_valid else "Validation failed")
+
+    # worker table rendering and sorting ------------------------------------------------------
+    # keeps worker table rows and sort state in sync with the active event
     def _refresh_worker_table(self) -> None:
         """Render the worker assignments table."""
         self.worker_tree.delete(*self.worker_tree.get_children())
@@ -1572,7 +1631,8 @@ class AutologicGUI:
                 return 0
         return str(value).lower()
 
-    # heat adjustments -----------------------------------------------------------------------------
+    # heat adjustments ------------------------------------------------------------------------
+    # updates heat and class assignments so manual edits reflect in event data
     def _move_class_dialog(self) -> None:
         """Prompt for moving a class to a different heat."""
         if not self._ensure_event_loaded():
@@ -1676,20 +1736,8 @@ class AutologicGUI:
         self._refresh_event_views()
         self._validate_current_event()
 
-    # assignment editing now handled inline via single-click dropdowns
-
-    def _validate_current_event(self) -> None:
-        """Validate the current event and update status."""
-        if not self.current_event:
-            return
-        try:
-            is_valid = self.current_event.validate()
-        except Exception as exc:
-            messagebox.showerror("Error", f"Validation error: {exc}")
-            return
-        self._set_status("Validation passed" if is_valid else "Validation failed")
-
-    # custom assignments ---------------------------------------------------------------------------
+    # custom assignments ----------------------------------------------------------------------
+    # manages assignment rows so config overrides are explicit and editable
     def _assignment_dialog(
         self,
         use=True,
@@ -1997,6 +2045,8 @@ class AutologicGUI:
         """
         return item_id == self.assignment_add_row_id
 
+    # assignment interactions -----------------------------------------------------------------
+    # handles clicks and inline edits so assignment changes flow into the model
     def _on_assignment_click(self, event) -> str | None:
         """Handle single-click toggles for assignment checkboxes.
 
@@ -2166,7 +2216,8 @@ class AutologicGUI:
             values[1] = self.member_name_lookup.get(member_id, values[1])
             self.assignments_tree.item(item, values=values)
 
-    # data loading ---------------------------------------------------------------------------------
+    # data loading ----------------------------------------------------------------------------
+    # pulls external data files into lookup maps and warns on missing inputs
     def _on_config_variable_change(self, *_) -> None:
         """Mark config dirty when a tracked variable changes."""
         if self.is_applying_config:
@@ -2232,7 +2283,8 @@ class AutologicGUI:
             messagebox.showwarning("Member attributes", f"Failed to load names: {exc}")
         self._refresh_assignment_names()
 
-    # state updates --------------------------------------------------------------------------------
+    # state updates ----------------------------------------------------------------------------
+    # keeps dirty flags, status labels, and save enablement in sync
     def _ensure_event_loaded(self) -> bool:
         """Ensure an event exists before running event actions.
 
@@ -2297,12 +2349,15 @@ class AutologicGUI:
         """
         self.status_variable.set(text)
 
-    # run loop -------------------------------------------------------------------------------------
+    # run loop --------------------------------------------------------------------------------
+    # starts the tkinter event loop for the application
     def run(self) -> None:
         """Start the Tkinter main loop."""
         self.root.mainloop()
 
 
+# support classes and entrypoint --------------------------------------------------------------
+# keeps small helper classes and the script entrypoint grouped together
 class GenerationCancelled(Exception):
     """Raised when a GUI generation run is cancelled."""
 
