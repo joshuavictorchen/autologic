@@ -56,7 +56,7 @@ jobs:
 
       - name: Build GUI .exe with PyInstaller
         run: |
-          pyinstaller --onefile --noconsole --name autologic --icon docs\images\autologic-icon.ico --add-data "docs\images\autologic-icon.ico;docs/images" --add-data "docs\images\autologic-icon.png;docs/images" --collect-submodules=autologic.algorithms --additional-hooks-dir=autologic gui/gui.py
+          pyinstaller --onefile --noconsole --name autologic --icon docs\images\autologic-icon.ico --add-data "docs\images\autologic-icon.ico;docs/images" --add-data "docs\images\autologic-icon.png;docs/images" --collect-submodules=autologic.algorithms --additional-hooks-dir=autologic autologic/gui.py
 
       - name: Flatten release files
         run: |
