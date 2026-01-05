@@ -43,7 +43,7 @@ import yaml
 from autologic import utils
 from autologic.algorithms import get_algorithms
 from autologic.app import load_event, main
-from autologic.cli import Config, resolve_config_paths
+from autologic.config import Config, resolve_config_paths
 from autologic.event import Event
 
 # constants and defaults -------------------------------------------------------------------
