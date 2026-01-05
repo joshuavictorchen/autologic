@@ -1,5 +1,5 @@
 import csv
-import sys
+import shutil
 import time
 from pathlib import Path
 
@@ -12,10 +12,6 @@ import autologic.gui as gui_module
 from autologic import utils
 from autologic.gui import AutologicGUI
 
-
-pytestmark = pytest.mark.skipif(
-    sys.platform != "win32", reason="GUI integration runs on Windows"
-)
 
 ALGORITHM_NAME = "randomize"
 EVENT_NAME = "gui-integration-event"
@@ -363,6 +359,19 @@ def extract_pdf_text(pdf_path: Path) -> str:
     return "\n".join(text_chunks)
 
 
+def clear_directory(directory: Path) -> None:
+    """Remove all files and folders in the target directory.
+
+    Args:
+        directory: Directory to clear before running integration steps.
+    """
+    for child in directory.iterdir():
+        if child.is_dir():
+            shutil.rmtree(child)
+        else:
+            child.unlink()
+
+
 def set_config_path(gui_controller: AutologicGUI, config_path: Path) -> None:
     """Update the GUI controller config path fields together.
 
@@ -430,10 +439,10 @@ def create_gui_controller(monkeypatch):
     try:
         gui_controller = AutologicGUI()
     except gui_module.tk.TclError as exc:
-        pytest.skip(
+        raise RuntimeError(
             "Tkinter/Tcl unavailable; install Python with Tcl/Tk support "
             f"to run GUI integration tests. Details: {exc}"
-        )
+        ) from exc
     gui_controller.root.withdraw()
     gui_controller.root.update()
 
@@ -449,7 +458,9 @@ def create_gui_controller(monkeypatch):
 @pytest.fixture(scope="module")
 def integration_workspace(tmp_path_factory) -> Path:
     """Create a shared workspace for the ordered integration steps."""
-    return tmp_path_factory.mktemp("gui_integration")
+    workspace = tmp_path_factory.mktemp("gui_integration")
+    clear_directory(workspace)
+    return workspace
 
 
 @pytest.fixture(scope="module")
@@ -461,6 +472,7 @@ def state_path(integration_workspace: Path) -> Path:
 @pytest.mark.order(1)
 def test_step01_load_config(integration_workspace: Path, state_path: Path, monkeypatch):
     """Load a config with invalid and valid branches and persist the path."""
+    clear_directory(integration_workspace)
     sample_config_path = Path(__file__).resolve().parent / "sample_event_config.yaml"
     config_path, config_data = build_test_config(
         sample_config_path, integration_workspace, EVENT_NAME
@@ -505,8 +517,7 @@ def test_step01_load_config(integration_workspace: Path, state_path: Path, monke
 def test_step02_change_params(state_path: Path, monkeypatch):
     """Change config parameters with invalid and valid edits."""
     state = load_state(state_path)
-    if not state.get("config_path"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get("config_path"), "state file missing; run ordered integration steps"
 
     config_path = Path(state["config_path"])
     config_payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
@@ -537,8 +548,7 @@ def test_step02_change_params(state_path: Path, monkeypatch):
 def test_step03_add_custom_assignment(state_path: Path, monkeypatch):
     """Add custom assignments with invalid and valid branches."""
     state = load_state(state_path)
-    if not state.get("config_path"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get("config_path"), "state file missing; run ordered integration steps"
 
     config_path = Path(state["config_path"])
     axware_export_path = Path(state["axware_export_tsv"])
@@ -576,8 +586,9 @@ def test_step03_add_custom_assignment(state_path: Path, monkeypatch):
 def test_step04_update_custom_assignment(state_path: Path, monkeypatch):
     """Update a custom assignment with invalid and valid values."""
     state = load_state(state_path)
-    if not state.get("new_member_id"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get(
+        "new_member_id"
+    ), "state file missing; run ordered integration steps"
 
     config_path = Path(state["config_path"])
     new_member_id = state["new_member_id"]
@@ -614,8 +625,9 @@ def test_step04_update_custom_assignment(state_path: Path, monkeypatch):
 def test_step05_save_config(state_path: Path, monkeypatch):
     """Save the config with invalid and valid paths."""
     state = load_state(state_path)
-    if not state.get("new_member_id"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get(
+        "new_member_id"
+    ), "state file missing; run ordered integration steps"
 
     config_path = Path(state["config_path"])
     new_member_id = state["new_member_id"]
@@ -660,8 +672,7 @@ def test_step05_save_config(state_path: Path, monkeypatch):
 def test_step06_generate_event(state_path: Path, monkeypatch):
     """Generate an event with invalid and valid configurations."""
     state = load_state(state_path)
-    if not state.get("config_path"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get("config_path"), "state file missing; run ordered integration steps"
 
     config_path = Path(state["config_path"])
 
@@ -695,8 +706,7 @@ def test_step06_generate_event(state_path: Path, monkeypatch):
 def test_step07_move_class_and_validate(state_path: Path, monkeypatch):
     """Move a class between heats and validate the result."""
     state = load_state(state_path)
-    if not state.get("config_path"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get("config_path"), "state file missing; run ordered integration steps"
 
     config_path = Path(state["config_path"])
 
@@ -745,8 +755,7 @@ def test_step07_move_class_and_validate(state_path: Path, monkeypatch):
 def test_step08_rotate_run_work(state_path: Path, monkeypatch):
     """Rotate run/work groups with invalid and valid branches."""
     state = load_state(state_path)
-    if not state.get("config_path"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get("config_path"), "state file missing; run ordered integration steps"
 
     config_path = Path(state["config_path"])
 
@@ -780,8 +789,7 @@ def test_step08_rotate_run_work(state_path: Path, monkeypatch):
 def test_step09_update_worker_assignment(state_path: Path, monkeypatch):
     """Update worker assignments and confirm validation reactions."""
     state = load_state(state_path)
-    if not state.get("config_path"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get("config_path"), "state file missing; run ordered integration steps"
 
     config_path = Path(state["config_path"])
 
@@ -824,8 +832,7 @@ def test_step09_update_worker_assignment(state_path: Path, monkeypatch):
 def test_step10_save_event(state_path: Path, monkeypatch):
     """Save the event with invalid name and overwrite prompts."""
     state = load_state(state_path)
-    if not state.get("config_path"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get("config_path"), "state file missing; run ordered integration steps"
 
     config_path = Path(state["config_path"])
 
@@ -884,15 +891,13 @@ def test_step10_save_event(state_path: Path, monkeypatch):
 def test_step11_inspect_outputs(state_path: Path):
     """Inspect CSV and PDF outputs for targeted accuracy checks."""
     state = load_state(state_path)
-    if not state.get("csv_path"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get("csv_path"), "state file missing; run ordered integration steps"
 
     csv_path = Path(state["csv_path"])
     pdf_path = Path(state["pdf_path"])
     member_attributes_path = Path(state["member_attributes_csv"])
     new_member_id = state.get("new_member_id")
-    if not new_member_id:
-        pytest.skip("state file missing; run ordered integration steps")
+    assert new_member_id, "state file missing; run ordered integration steps"
 
     with csv_path.open(newline="", encoding="utf-8") as csv_file:
         reader = csv.reader(csv_file)
@@ -932,8 +937,7 @@ def test_step11_inspect_outputs(state_path: Path):
 def test_step12_load_pickle(state_path: Path, monkeypatch):
     """Load the saved event pickle with invalid and valid branches."""
     state = load_state(state_path)
-    if not state.get("pickle_path"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get("pickle_path"), "state file missing; run ordered integration steps"
 
     pickle_path = Path(state["pickle_path"])
     config_path = Path(state["config_path"])
@@ -979,8 +983,9 @@ def test_step13_draft_mode_blocks_save(
 ):
     """Confirm draft mode disables Save Event when check-in data is missing."""
     state = load_state(state_path)
-    if not state.get("axware_export_tsv"):
-        pytest.skip("state file missing; run ordered integration steps")
+    assert state.get(
+        "axware_export_tsv"
+    ), "state file missing; run ordered integration steps"
 
     original_tsv = Path(state["axware_export_tsv"])
     draft_tsv = integration_workspace / "draft_axware_export.tsv"
