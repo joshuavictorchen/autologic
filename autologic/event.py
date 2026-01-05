@@ -92,7 +92,6 @@ class Event(Group):
         Checks custom_assignments dictionary from `sample_event_config.yaml` for static, special assignments.
 
         TODO: Currently requires the CSVs to match the samples exactly, with case sensitivity; loosen these shackles.
-        TODO: Also, unjumble this function. Right now it just gets things to work with the sample files on hand.
 
         Returns:
             list[Participant]: All participants that have checked into the event.
@@ -304,11 +303,16 @@ class Event(Group):
 
     def get_work_assignments(self):
         """
-        Returns a list of dicts that describe each participant in the event, and their assignments.
+        Return worker assignment rows for export to CSV and PDF.
 
-        Return format is for input to to_csv and to_pdf.
+        Each row corresponds to a participant in the heat that is working the
+        current run group. Rows are grouped by working heat (1..number_of_heats)
+        and sorted by participant name within each heat. The checked_in field is
+        left blank as a placeholder for printed check-in sheets.
 
-        TODO: flesh out docs
+        Returns:
+            list[dict[str, str | int]]: Ordered rows keyed by "heat", "name",
+                "class", "number", "assignment", and "checked_in".
         """
 
         work_assignments = []
@@ -330,11 +334,15 @@ class Event(Group):
 
     def get_run_assignments(self):
         """
-        Returns a list of dicts that describe each participant in the event, and their run group.
+        Return run group rows for export to the PDF.
 
-        Return format is for input to to_pdf.
+        Each row corresponds to a participant in a running heat and is sorted
+        by participant name within each heat. The tally field is left blank as
+        a placeholder for printed timing sheets.
 
-        TODO: flesh out docs
+        Returns:
+            list[dict[str, str | int]]: Ordered rows keyed by "heat", "name",
+                "class", "number", and "tally".
         """
 
         run_assignments = []
@@ -362,11 +370,16 @@ class Event(Group):
 
     def get_heat_assignments(self, verbose=False):
         """
-        Returns a list of lists that describe each heat in the event, and their categories.
+        Return heat summary rows for export to the PDF.
 
-        Return format is for input to to_pdf.
+        Each row contains a run/work label and the comma-separated class list
+        for that heat. Class names are sorted alphabetically.
 
-        TODO: flesh out docs
+        Args:
+            verbose (bool): When True, print each heat summary to stdout.
+
+        Returns:
+            list[list[str]]: Heat summary rows in event order.
         """
 
         heat_assignments = []
@@ -389,7 +402,11 @@ class Event(Group):
 
     def to_csv(self):
         """
-        TODO: flesh out docs
+        Write the worker assignment sheet to a CSV file.
+
+        The CSV is written to the current working directory as
+        `<event name>.csv` and includes a header row. Row data is sourced from
+        `get_work_assignments`.
         """
 
         with open(f"{self.name}.csv", "w", newline="") as f:
