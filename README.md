@@ -8,20 +8,17 @@ This program generates heat + worker assignments for autocross events.
 
 It provides a framework that can be used to programmatically assign `Categories` (car classes) to `Heats`, and `Participants` to roles (work assignments), for a given `Event`.
 
-> [!NOTE]
-> **This is a minimum viable prototype product.** It will be cleaned, documented, de-spaghettified, and made more generally applicable after it's gained some field experience at actual events.
-
 ## Use
 
-1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/).
+1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/) or by [clicking on this link](https://github.com/joshuavictorchen/autologic/releases/latest/download/autologic.exe).
 
 2. Open a terminal window and execute `.\path\to\autologic.exe --config .\path\to\config_file.yaml --algorithm name_of_module` to generate heat and worker assignments for a set of configured parameters.
 
     - | Sample input file | Description |
       | - | - |
-      | [sample_event_config.yaml](./tests/sample_event_config.yaml) | Configurable event parameters (number of heats, number of worker stations, custom assignments, etc.) |
-      | [sample_member_attributes.csv](./tests/sample_member_attributes.csv) | Worker qualification table maintained by worker coordinators |
-      | [sample_axware_export.tsv](./tests/sample_axware_export.tsv) | Data dump from AXWare |
+      | [sample_event_config.yaml](https://github.com/joshuavictorchen/autologic/releases/latest/download/sample_event_config.yaml) | Configurable event parameters (number of heats, number of worker stations, custom assignments, etc.) |
+      | [sample_member_attributes.csv](https://github.com/joshuavictorchen/autologic/releases/latest/download/sample_member_attributes.csv) | Worker qualification table maintained by worker coordinators |
+      | [sample_axware_export.tsv](https://github.com/joshuavictorchen/autologic/releases/latest/download/sample_axware_export.tsv) | Data dump from AXWare |
 
     - If no `--algorithm` argument is provided, [randomize.py](./autologic/algorithms/randomize.py) is used by default.
 
