@@ -41,6 +41,7 @@ The panel builders are kept separate to keep layout code readable and to make ta
 - Parameter entry widgets show immediate hover tooltips for quick guidance.
 - Tooltip text is defined in `PARAMETER_TOOLTIPS` in `autologic/gui.py`.
 - Tooltips are attached in `_attach_tooltip` when building labeled entries; the Algorithm dropdown intentionally has none.
+- Tooltip placement uses virtual-root bounds so positions follow the window across monitors.
 
 ## State and data flow
 

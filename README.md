@@ -70,3 +70,5 @@ Once the `Event` is returned, `Event.validate()` is called to perform a series o
 
 - Observers are currently a GUI cancellation hook, so `_notify(...)` calls inside long loops provide cancellation checkpoints.
 - `_notify(event_type, payload)` accepts any payload shape today; the GUI does not interpret payloads yet.
+
+The Parameters pane in the GUI is currently tuned to `randomize.py`; other algorithms may ignore some fields, which is expected for now and does not affect heat generation.

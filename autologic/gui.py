@@ -2525,23 +2525,34 @@ class HoverTooltip:
         widget_height = self.widget.winfo_height()
         tooltip_width = tooltip_window.winfo_reqwidth()
         tooltip_height = tooltip_window.winfo_reqheight()
-        screen_width = self.widget.winfo_screenwidth()
-        screen_height = self.widget.winfo_screenheight()
+        virtual_root_x = self.widget.winfo_vrootx()
+        virtual_root_y = self.widget.winfo_vrooty()
+        virtual_root_width = self.widget.winfo_vrootwidth()
+        virtual_root_height = self.widget.winfo_vrootheight()
+
+        if virtual_root_width <= 1 or virtual_root_height <= 1:
+            virtual_root_x = 0
+            virtual_root_y = 0
+            virtual_root_width = self.widget.winfo_screenwidth()
+            virtual_root_height = self.widget.winfo_screenheight()
 
         x_position = widget_root_x + widget_width + 8
         y_position = widget_root_y + max((widget_height - tooltip_height) // 2, 0)
 
-        if x_position + tooltip_width > screen_width:
+        virtual_root_max_x = virtual_root_x + virtual_root_width
+        virtual_root_max_y = virtual_root_y + virtual_root_height
+
+        if x_position + tooltip_width > virtual_root_max_x:
             x_position = widget_root_x - tooltip_width - 8
 
-        if x_position < 0:
-            x_position = 0
+        if x_position < virtual_root_x:
+            x_position = virtual_root_x
 
-        if y_position + tooltip_height > screen_height:
-            y_position = screen_height - tooltip_height - 8
+        if y_position + tooltip_height > virtual_root_max_y:
+            y_position = virtual_root_max_y - tooltip_height - 8
 
-        if y_position < 0:
-            y_position = 0
+        if y_position < virtual_root_y:
+            y_position = virtual_root_y
 
         return x_position, y_position
 
