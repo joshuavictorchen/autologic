@@ -65,3 +65,8 @@ Each plugin’s `generate()` method is given a fully initialized `Event` object.
 - See how the `generate()` method is called in [app.py](./autologic/app.py).
 
 Once the `Event` is returned, `Event.validate()` is called to perform a series of validation checks. If the checks pass, then the `Event` is saved and outputs are generated.
+
+`HeatGenerator.add_observer(...)` and `HeatGenerator._notify(...)` are optional; algorithms work without them.
+
+- Observers are currently a GUI cancellation hook, so `_notify(...)` calls inside long loops provide cancellation checkpoints.
+- `_notify(event_type, payload)` accepts any payload shape today; the GUI does not interpret payloads yet.

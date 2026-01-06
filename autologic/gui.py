@@ -1173,7 +1173,6 @@ class AutologicGUI:
             main(
                 algorithm=algorithm,
                 event=event,
-                interactive=False,
                 observer=self._generation_observer,
                 export=False,
             )

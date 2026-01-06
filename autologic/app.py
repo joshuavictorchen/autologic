@@ -1,32 +1,17 @@
 import random
-import questionary
 from autologic.algorithms import get_algorithms
 from autologic.event import Event
 
 
-def main(algorithm, event, interactive=False, observer=None, export=True):
+def main(algorithm, event, observer=None, export=True):
     """Parse event participants and generate heat assignments with role coverage and balanced sizes.
 
     Args:
         algorithm: Algorithm name to run.
         event: Event instance to mutate.
-        interactive: Whether to prompt between steps.
         observer: Optional callback for algorithm progress updates.
         export: Whether to write CSV/PDF/PKL outputs after validation.
     """
-
-    if interactive:
-
-        choice = questionary.select(
-            "\nAction:",
-            choices=["Continue", "Quit"],
-            qmark="",
-            instruction=" ",
-        ).ask()
-
-        if choice != "Continue":
-            print()
-            return
 
     # get the algorithms
     algos = get_algorithms()
