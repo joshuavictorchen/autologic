@@ -3,6 +3,15 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 
+class CustomAssignmentRecord(BaseModel):
+    """Structured custom assignment configuration."""
+
+    assignment: str = Field(..., description="Role assignment for the member.")
+    is_active: bool = Field(
+        True, description="Whether the assignment is applied during generation."
+    )
+
+
 class Config(BaseModel):
     """Configuration data for loading an Autologic event."""
 
@@ -17,9 +26,11 @@ class Config(BaseModel):
     number_of_stations: int = Field(
         5, description="Number of worker stations for the course."
     )
-    custom_assignments: dict[str | int, str] = Field(
+    custom_assignments: dict[str | int, str | CustomAssignmentRecord] = Field(
         default_factory=dict,
-        description="A dictionary of member IDs to their custom role assignment.",
+        description=(
+            "Mapping of member IDs to assignment strings or structured records."
+        ),
     )
     heat_size_parity: int = Field(
         25, description="Smaller values enforce tighter heat size balance."

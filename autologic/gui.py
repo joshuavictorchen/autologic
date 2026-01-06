@@ -1081,11 +1081,14 @@ class AutologicGUI:
 
             custom_assignments = config_data.get("custom_assignments", {}) or {}
             for member_id, assignment in custom_assignments.items():
+                assignment_value, use_flag = self._parse_assignment_record(assignment)
+                if not assignment_value:
+                    continue
                 self._insert_assignment_row(
-                    True,
+                    use_flag,
                     str(member_id),
                     self.member_name_lookup.get(str(member_id), ""),
-                    str(assignment),
+                    assignment_value,
                 )
 
             self._refresh_assignment_names()
@@ -1132,7 +1135,7 @@ class AutologicGUI:
             "member_attributes_csv": self.member_csv_path_variable.get().strip(),
             "number_of_heats": self.heats_variable.get().strip(),
             "number_of_stations": self.stations_variable.get().strip(),
-            "custom_assignments": self._collect_assignments(),
+            "custom_assignments": self._collect_assignment_records(),
             "heat_size_parity": self.heat_parity_variable.get().strip(),
             "novice_size_parity": self.novice_parity_variable.get().strip(),
             "novice_denominator": self.novice_denominator_variable.get().strip(),
@@ -2280,6 +2283,44 @@ class AutologicGUI:
             )
             self.assignments_tree.item(item, tags=(tag,))
 
+    def _parse_assignment_record(self, assignment_value: object) -> tuple[str, bool]:
+        """Normalize assignment config entries into values the GUI can use.
+
+        Args:
+            assignment_value: Raw config value for a custom assignment.
+
+        Returns:
+            tuple[str, bool]: Assignment string and active flag.
+        """
+        if assignment_value is None:
+            return "", True
+        if isinstance(assignment_value, dict):
+            assignment = str(assignment_value.get("assignment", "")).strip()
+            is_active = bool(assignment_value.get("is_active", True))
+            return assignment, is_active
+        return str(assignment_value).strip(), True
+
+    def _collect_assignment_records(self) -> dict[str, dict[str, object]]:
+        """Collect custom assignments for persistence, including inactive rows.
+
+        Returns:
+            dict[str, dict[str, object]]: Member ID to assignment record mapping.
+        """
+        assignments: dict[str, dict[str, object]] = {}
+        for item in self.assignments_tree.get_children():
+            if self._is_add_assignment_row(item):
+                continue
+            member_id, _, assignment = self.assignments_tree.item(item)["values"]
+            assignment_value = str(assignment).strip()
+            if not assignment_value:
+                continue
+            use_flag = self.assignment_use_state.get(item, True)
+            assignments[str(member_id)] = {
+                "assignment": assignment_value,
+                "is_active": use_flag,
+            }
+        return assignments
+
     def _collect_assignments(self) -> dict[str, str]:
         """Collect active custom assignments from the table.
 
@@ -2287,15 +2328,9 @@ class AutologicGUI:
             dict[str, str]: Member ID to assignment mapping.
         """
         assignments: dict[str, str] = {}
-        for item in self.assignments_tree.get_children():
-            if self._is_add_assignment_row(item):
-                continue
-            if not self.assignment_use_state.get(item, False):
-                continue
-            member_id, _, assignment = self.assignments_tree.item(item)["values"]
-            assignment_value = str(assignment).strip()
-            if assignment_value:
-                assignments[str(member_id)] = assignment_value
+        for member_id, record in self._collect_assignment_records().items():
+            if record.get("is_active", True):
+                assignments[member_id] = str(record.get("assignment", "")).strip()
         return assignments
 
     def _refresh_assignment_names(self) -> None:

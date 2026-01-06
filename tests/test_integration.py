@@ -485,7 +485,7 @@ def assert_parameter_tooltips(gui_controller: AutologicGUI) -> None:
 
 
 @pytest.fixture(scope="module")
-def integration_workspace(tmp_path_factory) -> Path:
+def integration_workspace(tmp_path_factory):
     """Create a shared workspace for the ordered integration steps."""
     workspace = tmp_path_factory.mktemp("gui_integration")
     clear_directory(workspace)
@@ -668,6 +668,7 @@ def test_step05_save_config(state_path: Path, monkeypatch):
     updated_heat_parity = state.get("updated_heat_parity")
 
     gui_controller, messagebox_recorder, _, cleanup = create_gui_controller(monkeypatch)
+    inactive_member_id = None
     try:
         gui_controller._load_config_from_path(config_path)
         gui_controller._load_member_names()
@@ -676,6 +677,20 @@ def test_step05_save_config(state_path: Path, monkeypatch):
         gui_controller._insert_assignment_row(
             True, new_member_id, new_member_name, "special"
         )
+        for item in gui_controller.assignments_tree.get_children():
+            if gui_controller._is_add_assignment_row(item):
+                continue
+            member_id = str(
+                gui_controller.assignments_tree.item(item)["values"][0]
+            ).strip()
+            if member_id == new_member_id:
+                continue
+            gui_controller.assignment_use_state[item] = False
+            gui_controller._refresh_assignment_styles()
+            inactive_member_id = member_id
+            break
+        if not inactive_member_id:
+            raise AssertionError("no assignment row available to disable")
         if updated_heat_parity:
             gui_controller.heat_parity_variable.set(updated_heat_parity)
         gui_controller._mark_config_dirty()
@@ -693,13 +708,20 @@ def test_step05_save_config(state_path: Path, monkeypatch):
         set_config_path(gui_controller, config_path)
         assert gui_controller._save_config() is True
         assert gui_controller.unsaved_label.cget("text") == "All changes saved"
+
+        gui_controller._load_config_from_path(config_path)
+        inactive_row_id = find_assignment_row(gui_controller, inactive_member_id)
+        assert gui_controller.assignment_use_state[inactive_row_id] is False
     finally:
         cleanup()
 
     saved_config = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
     if updated_heat_parity:
         assert saved_config["heat_size_parity"] == updated_heat_parity
-    assert saved_config["custom_assignments"][new_member_id] == "special"
+    new_assignment_record = saved_config["custom_assignments"][new_member_id]
+    assert new_assignment_record["assignment"] == "special"
+    assert new_assignment_record["is_active"] is True
+    assert saved_config["custom_assignments"][inactive_member_id]["is_active"] is False
 
 
 @pytest.mark.order(6)
