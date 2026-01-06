@@ -11,6 +11,7 @@
 # dialog layout
 # layout and panels
 # input wiring
+# tooltips
 # config loading and saving
 # generation workflow
 # event persistence and config snapshots
@@ -76,6 +77,18 @@ DEFAULT_HEAT_SIZE_PARITY = 50
 DEFAULT_NOVICE_SIZE_PARITY = 40
 DEFAULT_NOVICE_DENOMINATOR = 4
 DEFAULT_MAX_ITERATIONS = 8000
+PARAMETER_TOOLTIPS = {
+    "Event name": "Name of this event.",
+    "Algorithm": None,
+    "Heats": "Number of heats in this event.",
+    "Stations": "Number of worker stations on course.",
+    "Heat parity": "Larger values enforce tighter heat size balance.",
+    "Novice parity": "Larger values enforce tighter novice balance across heats.",
+    "Novice denominator": (
+        "Min instructors required per heat = number of novices / novice_denominator."
+    ),
+    "Max iterations": "Maximum number of attempts to be made by the program.",
+}
 
 
 # gui controller ---------------------------------------------------------------------------
@@ -112,6 +125,7 @@ class AutologicGUI:
         ] = queue.Queue()
         self.assignment_editor: ttk.Combobox | None = None
         self.assignment_context_menu: tk.Menu | None = None
+        self.parameter_tooltips: list["HoverTooltip"] = []
 
         is_frozen = getattr(sys, "frozen", False)
         # resolve base directories differently for bundled executables
@@ -897,6 +911,29 @@ class AutologicGUI:
         """Close the application window."""
         self.root.destroy()
 
+    # tooltips -----------------------------------------------------------------------------
+    # attaches hover tooltips to parameter inputs without interrupting edits
+    def _attach_tooltip(self, widget: tk.Widget, label: str) -> None:
+        """Attach a tooltip to a widget if a definition exists.
+
+        Args:
+            widget: Widget that should display the tooltip.
+            label: Parameter label used to look up tooltip text.
+        """
+        tooltip_text = PARAMETER_TOOLTIPS.get(label)
+        if not tooltip_text:
+            return
+        self.parameter_tooltips.append(
+            HoverTooltip(
+                root=self.root,
+                widget=widget,
+                text=tooltip_text,
+                background=PALETTE["header"],
+                foreground=PALETTE["text"],
+                font=("Segoe UI", 10),
+            )
+        )
+
     def _add_labeled_entry(
         self,
         parent: ttk.Frame,
@@ -917,9 +954,9 @@ class AutologicGUI:
             width: Entry width in characters.
         """
         ttk.Label(parent, text=label).grid(row=row, column=column, sticky=W, padx=4)
-        ttk.Entry(parent, textvariable=variable, width=width).grid(
-            row=row, column=column + 1, sticky=W, padx=4
-        )
+        entry_widget = ttk.Entry(parent, textvariable=variable, width=width)
+        entry_widget.grid(row=row, column=column + 1, sticky=W, padx=4)
+        self._attach_tooltip(entry_widget, label)
 
     def _add_file_picker(
         self,
@@ -2413,6 +2450,102 @@ class AutologicGUI:
 
 # support classes and entrypoint --------------------------------------------------------------
 # keeps small helper classes and the script entrypoint grouped together
+class HoverTooltip:
+    """Display a tooltip for a widget while the cursor hovers."""
+
+    def __init__(
+        self,
+        root: tk.Tk,
+        widget: tk.Widget,
+        text: str,
+        background: str,
+        foreground: str,
+        font: tuple[str, int],
+    ) -> None:
+        self.root = root
+        self.widget = widget
+        self.text = text
+        self.background = background
+        self.foreground = foreground
+        self.font = font
+        self.tooltip_window: tk.Toplevel | None = None
+
+        self.widget.bind("<Enter>", self._on_enter, add="+")
+        self.widget.bind("<Leave>", self._on_leave, add="+")
+        self.widget.bind("<ButtonPress>", self._on_leave, add="+")
+        self.widget.bind("<FocusOut>", self._on_leave, add="+")
+
+    def _on_enter(self, _event: tk.Event | None = None) -> None:
+        """Show the tooltip when the cursor enters the widget."""
+        if self.tooltip_window:
+            return
+        self._show_tooltip()
+
+    def _on_leave(self, _event: tk.Event | None = None) -> None:
+        """Hide the tooltip when the cursor leaves the widget."""
+        self._hide_tooltip()
+
+    def _show_tooltip(self) -> None:
+        """Create and display the tooltip window."""
+        tooltip_window = tk.Toplevel(self.root)
+        tooltip_window.withdraw()
+        tooltip_window.overrideredirect(True)
+        tooltip_window.attributes("-topmost", True)
+        tooltip_label = tk.Label(
+            tooltip_window,
+            text=self.text,
+            background=self.background,
+            foreground=self.foreground,
+            font=self.font,
+            relief="solid",
+            borderwidth=1,
+            padx=6,
+            pady=4,
+            justify="left",
+        )
+        tooltip_label.pack()
+        tooltip_window.update_idletasks()
+        x_position, y_position = self._calculate_position(tooltip_window)
+        tooltip_window.geometry(f"+{x_position}+{y_position}")
+        tooltip_window.deiconify()
+        self.tooltip_window = tooltip_window
+
+    def _hide_tooltip(self) -> None:
+        """Destroy the tooltip window if it exists."""
+        if not self.tooltip_window:
+            return
+        self.tooltip_window.destroy()
+        self.tooltip_window = None
+
+    def _calculate_position(self, tooltip_window: tk.Toplevel) -> tuple[int, int]:
+        """Calculate a position that stays near, but not over, the widget."""
+        widget_root_x = self.widget.winfo_rootx()
+        widget_root_y = self.widget.winfo_rooty()
+        widget_width = self.widget.winfo_width()
+        widget_height = self.widget.winfo_height()
+        tooltip_width = tooltip_window.winfo_reqwidth()
+        tooltip_height = tooltip_window.winfo_reqheight()
+        screen_width = self.widget.winfo_screenwidth()
+        screen_height = self.widget.winfo_screenheight()
+
+        x_position = widget_root_x + widget_width + 8
+        y_position = widget_root_y + max((widget_height - tooltip_height) // 2, 0)
+
+        if x_position + tooltip_width > screen_width:
+            x_position = widget_root_x - tooltip_width - 8
+
+        if x_position < 0:
+            x_position = 0
+
+        if y_position + tooltip_height > screen_height:
+            y_position = screen_height - tooltip_height - 8
+
+        if y_position < 0:
+            y_position = 0
+
+        return x_position, y_position
+
+
 class GenerationCancelled(Exception):
     """Raised when a GUI generation run is cancelled."""
 

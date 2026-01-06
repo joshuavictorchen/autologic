@@ -455,12 +455,45 @@ def create_gui_controller(monkeypatch):
     return gui_controller, messagebox_recorder, filedialog_recorder, cleanup
 
 
+def assert_parameter_tooltips(gui_controller: AutologicGUI) -> None:
+    """Confirm parameter tooltips are attached and respond to hover events.
+
+    Args:
+        gui_controller: GUI controller instance to inspect.
+    """
+    expected_tooltip_texts: set[str] = set()
+    for tooltip_text in gui_module.PARAMETER_TOOLTIPS.values():
+        if tooltip_text:
+            expected_tooltip_texts.add(tooltip_text)
+
+    actual_tooltip_texts: set[str] = set()
+    for tooltip in gui_controller.parameter_tooltips:
+        actual_tooltip_texts.add(tooltip.text)
+
+    assert actual_tooltip_texts == expected_tooltip_texts
+    assert (
+        gui_controller.parameter_tooltips
+    ), "expected parameter tooltips to be registered"
+
+    sample_tooltip = gui_controller.parameter_tooltips[0]
+    sample_tooltip.widget.event_generate("<Enter>")
+    gui_controller.root.update()
+    assert sample_tooltip.tooltip_window is not None
+    sample_tooltip.widget.event_generate("<Leave>")
+    gui_controller.root.update()
+    assert sample_tooltip.tooltip_window is None
+
+
 @pytest.fixture(scope="module")
 def integration_workspace(tmp_path_factory) -> Path:
     """Create a shared workspace for the ordered integration steps."""
     workspace = tmp_path_factory.mktemp("gui_integration")
     clear_directory(workspace)
-    return workspace
+    try:
+        yield workspace
+    finally:
+        if workspace.exists():
+            shutil.rmtree(workspace, ignore_errors=True)
 
 
 @pytest.fixture(scope="module")
@@ -482,6 +515,7 @@ def test_step01_load_config(integration_workspace: Path, state_path: Path, monke
         create_gui_controller(monkeypatch)
     )
     try:
+        assert_parameter_tooltips(gui_controller)
         # ensure missing configs surface errors
         filedialog_recorder.open_paths.append(integration_workspace / "missing.yaml")
         messagebox_recorder.reset()
