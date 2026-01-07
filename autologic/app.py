@@ -1,51 +1,7 @@
 import random
 from autologic.algorithms import get_algorithms
 from autologic.event import Event
-
-
-def normalize_custom_assignments(
-    custom_assignments: dict | None,
-) -> tuple[dict[str, str], dict[str, dict[str, object]]]:
-    """Normalize custom assignments into active and persisted mappings.
-
-    Args:
-        custom_assignments: Raw assignment mapping from config or GUI.
-
-    Returns:
-        tuple[dict[str, str], dict[str, dict[str, object]]]: Active assignments
-        and structured assignment records for persistence.
-    """
-    active_assignments: dict[str, str] = {}
-    assignment_records: dict[str, dict[str, object]] = {}
-
-    if not custom_assignments:
-        return active_assignments, assignment_records
-
-    for member_id, assignment_value in custom_assignments.items():
-        assignment = ""
-        is_active = True
-        if assignment_value is None:
-            assignment = ""
-        elif isinstance(assignment_value, dict):
-            assignment = str(assignment_value.get("assignment", "")).strip()
-            is_active = bool(assignment_value.get("is_active", True))
-        elif hasattr(assignment_value, "assignment"):
-            assignment = str(getattr(assignment_value, "assignment", "")).strip()
-            is_active = bool(getattr(assignment_value, "is_active", True))
-        else:
-            assignment = str(assignment_value).strip()
-
-        if not assignment:
-            continue
-
-        assignment_records[str(member_id)] = {
-            "assignment": assignment,
-            "is_active": is_active,
-        }
-        if is_active:
-            active_assignments[str(member_id)] = assignment
-
-    return active_assignments, assignment_records
+from autologic.utils import normalize_custom_assignments
 
 
 def main(algorithm, event, observer=None, export=True):
