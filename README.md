@@ -18,7 +18,11 @@ The application models events in terms of `Categories` (car classes), `Heats`, a
 
 The architecture is intentionally extensible, allowing additional heat-generation algorithms to be implemented and contributed without modifying the core application.
 
-## Inputs
+![example](./docs/images/example.gif)
+
+## Use
+
+### Inputs
 
 - **Event data export** ([sample file](tests/sample_axware_export.tsv))
   - A tabular export of participant data for a single event (name, member ID, car class, car number, novice status, etc.).
@@ -31,7 +35,7 @@ The architecture is intentionally extensible, allowing additional heat-generatio
 > AXWare is currently the only supported event export format. The input layer is intentionally minimal, and additional connectors for other registration systems can be added with modest effort.
 > Support for additional formats can be requested by [opening an issue](https://github.com/joshuavictorchen/autologic/issues/new).
 
-## Use
+### Instructions
 
 1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/) or [directly from this link](https://github.com/joshuavictorchen/autologic/releases/latest/download/autologic.exe).
 
@@ -71,6 +75,15 @@ The architecture is intentionally extensible, allowing additional heat-generatio
 11. Click **Save Event** to generate output artifacts (PDF and PKL event state files).
 
     - The PDF is intended for printing and day-of-event use by worker coordinators and grid workers.
+
+### Outputs
+
+> [!NOTE]
+> All names in the sample files are fictional and randomly generated.
+
+<img src="./docs/images/sample-front.png" width="600">
+
+<img src="./docs/images/sample-grid.png" width="600">
 
 ## Validation
 
