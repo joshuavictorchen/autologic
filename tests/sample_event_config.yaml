@@ -24,13 +24,13 @@ custom_assignments:
     is_active: true
 
 # Larger values enforce tighter heat size balance.
-heat_size_parity: 25
+heat_size_parity: 50
 
 # Larger values enforce tighter novice balance across heats.
-novice_size_parity: 10
+novice_size_parity: 40
 
 # Min instructors required per heat = number of novices / novice_denominator.
 novice_denominator: 4
 
 # Maximum number of attempts to be made by the program.
-max_iterations: 10000
+max_iterations: 8000

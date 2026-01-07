@@ -2639,7 +2639,6 @@ class EventUnpickler(pickle.Unpickler):
     Unpickler with legacy module name support.
 
     Helps with loading old events from the beta version of this program.
-
     This will be removed in the future.
     """
 
