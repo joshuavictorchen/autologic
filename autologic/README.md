@@ -81,6 +81,7 @@ Custom assignments:
 
 - Table rows track `use` state and assignment role
 - Config serialization preserves inactive assignments with an `is_active` flag
+- Inactive rows are grayed and italicized; clicking outside the panel clears selection
 - `+ Add assignment` row opens the assignment dialog
 - Right-click on a row opens a delete context menu
 - The dialog syncs member ID and name dropdowns

@@ -304,6 +304,7 @@ class AutologicGUI:
 
         self._build_layout()
         self._register_variable_traces()
+        self._register_root_bindings()
 
         legacy_config_path = self.resource_root / "gui" / "autologic.yaml"
         initial_config_path = self.default_config_path
@@ -762,7 +763,11 @@ class AutologicGUI:
         self.assignments_tree.column("member_id", width=120, anchor=W)
         self.assignments_tree.column("name", width=180, anchor=W)
         self.assignments_tree.column("assignment", width=140, anchor="center")
-        self.assignments_tree.tag_configure("disabled", foreground="#888888")
+        self.assignments_tree.tag_configure(
+            "disabled",
+            foreground="#888888",
+            font=("Segoe UI", 10, "italic"),
+        )
         self.assignments_tree.bind("<Button-1>", self._on_assignment_click)
         self.assignments_tree.bind("<Button-3>", self._on_assignment_right_click)
         self.assignments_tree.pack(side=LEFT, fill=BOTH, expand=True)
@@ -906,6 +911,39 @@ class AutologicGUI:
         # TSV and CSV changes need special handling beyond dirty state
         self.tsv_path_variable.trace_add("write", self._on_tsv_change)
         self.member_csv_path_variable.trace_add("write", self._on_member_csv_change)
+
+    def _register_root_bindings(self) -> None:
+        """Attach root bindings for global click behavior."""
+        self.root.bind("<Button-1>", self._on_root_click, add="+")
+
+    def _on_root_click(self, event: tk.Event) -> None:
+        """Clear assignment selection when clicking outside the assignments panel."""
+        if not hasattr(self, "assignments_panel"):
+            return
+        if self._is_widget_descendant(event.widget, self.assignments_panel):
+            return
+        selection = self.assignments_tree.selection()
+        if selection:
+            self.assignments_tree.selection_remove(selection)
+
+    def _is_widget_descendant(self, widget: tk.Widget, ancestor: tk.Widget) -> bool:
+        """Return True when a widget is a descendant of another widget.
+
+        Args:
+            widget: Widget to evaluate.
+            ancestor: Parent widget that should contain the widget.
+        """
+        while widget:
+            if widget == ancestor:
+                return True
+            try:
+                parent_name = widget.winfo_parent()
+            except tk.TclError:
+                return False
+            if not parent_name:
+                return False
+            widget = widget.nametowidget(parent_name)
+        return False
 
     def _on_close(self) -> None:
         """Close the application window."""
@@ -1832,7 +1870,7 @@ class AutologicGUI:
         self._validate_current_event()
 
     # custom assignments ----------------------------------------------------------------------
-    # manages assignment rows so config overrides are explicit and editable
+    # manages assignment rows so config overrides are explicit, visible, and editable
     def _assignment_dialog(
         self,
         use=True,
