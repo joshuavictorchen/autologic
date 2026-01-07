@@ -119,6 +119,10 @@ class Heat(Group):
     @property
     def working(self):
 
+        # two-heat schedules swap run/work groups
+        if self.event.number_of_heats == 2:
+            return 2 if self.running == 1 else 1
+
         work_offset = 5 if self.event.number_of_heats >= 4 else 3
         return (self.running + work_offset) % self.event.number_of_heats + 1
 
