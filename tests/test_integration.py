@@ -1,4 +1,5 @@
 import csv
+import queue
 import shutil
 import time
 from pathlib import Path
@@ -18,6 +19,9 @@ EVENT_NAME = "gui-integration-event"
 INVALID_ASSIGNMENT = "invalid-role"
 SEED = 1337
 STATE_FILE_NAME = "gui_integration_state.yaml"
+_GUI_CONTROLLER_SINGLETON: AutologicGUI | None = None
+_GUI_DEFAULT_CONFIG_PATH: Path | None = None
+_GUI_DEFAULT_CONFIG_EXISTED = False
 
 
 class MessageBoxRecorder:
@@ -352,10 +356,11 @@ def extract_pdf_text(pdf_path: Path) -> str:
     Returns:
         str: Combined extracted text.
     """
-    reader = PdfReader(str(pdf_path))
-    text_chunks: list[str] = []
-    for page in reader.pages:
-        text_chunks.append(page.extract_text() or "")
+    with pdf_path.open("rb") as pdf_file:
+        reader = PdfReader(pdf_file)
+        text_chunks: list[str] = []
+        for page in reader.pages:
+            text_chunks.append(page.extract_text() or "")
     return "\n".join(text_chunks)
 
 
@@ -419,19 +424,48 @@ def save_state(state_path: Path, state: dict) -> None:
     state_path.write_text(yaml.safe_dump(state, sort_keys=False), encoding="utf-8")
 
 
-def create_gui_controller(monkeypatch):
-    """Create a GUI controller with stubbed dialogs and deterministic seed."""
-    messagebox_recorder = MessageBoxRecorder()
-    filedialog_recorder = FileDialogRecorder()
+def _reset_gui_controller(gui_controller: AutologicGUI) -> None:
+    """Reset GUI state so integration steps start from a clean baseline."""
+    if gui_controller.is_generating:
+        gui_controller.generation_cancel_requested.set()
+        start_time = time.monotonic()
+        while gui_controller.is_generating and time.monotonic() - start_time < 5:
+            try:
+                gui_controller.root.update()
+            except gui_module.tk.TclError:
+                break
+            time.sleep(0.01)
 
-    monkeypatch.setattr(gui_module, "messagebox", messagebox_recorder)
-    monkeypatch.setattr(gui_module, "filedialog", filedialog_recorder)
+    gui_controller.generation_cancel_requested.clear()
+    while not gui_controller.generation_result_queue.empty():
+        try:
+            gui_controller.generation_result_queue.get_nowait()
+        except queue.Empty:
+            break
 
-    def seeded_load_event(**config_payload):
-        """Inject a deterministic seed into GUI-driven generation."""
-        return app_module.load_event(**config_payload, seed=SEED)
+    gui_controller.current_event = None
+    gui_controller.event_dirty = False
+    gui_controller.config_dirty = False
+    gui_controller._clear_assignment_editor()
+    gui_controller._refresh_event_views()
+    gui_controller._set_status("Ready")
+    gui_controller._update_unsaved_indicator()
 
-    monkeypatch.setattr(gui_module, "load_event", seeded_load_event)
+    selection = gui_controller.assignments_tree.selection()
+    if selection:
+        gui_controller.assignments_tree.selection_remove(selection)
+
+
+def _get_or_create_gui_controller() -> AutologicGUI:
+    """Return a shared GUI controller for the integration suite."""
+    global _GUI_CONTROLLER_SINGLETON
+    global _GUI_DEFAULT_CONFIG_PATH
+    global _GUI_DEFAULT_CONFIG_EXISTED
+
+    if _GUI_CONTROLLER_SINGLETON:
+        if _GUI_CONTROLLER_SINGLETON.root.winfo_exists():
+            return _GUI_CONTROLLER_SINGLETON
+        _GUI_CONTROLLER_SINGLETON = None
 
     default_config_path = Path(gui_module.__file__).resolve().parent / "autologic.yaml"
     default_config_existed = default_config_path.exists()
@@ -446,11 +480,31 @@ def create_gui_controller(monkeypatch):
     gui_controller.root.withdraw()
     gui_controller.root.update()
 
+    _GUI_CONTROLLER_SINGLETON = gui_controller
+    _GUI_DEFAULT_CONFIG_PATH = default_config_path
+    _GUI_DEFAULT_CONFIG_EXISTED = default_config_existed
+    return gui_controller
+
+
+def create_gui_controller(monkeypatch):
+    """Create a GUI controller with stubbed dialogs and deterministic seed."""
+    messagebox_recorder = MessageBoxRecorder()
+    filedialog_recorder = FileDialogRecorder()
+
+    monkeypatch.setattr(gui_module, "messagebox", messagebox_recorder)
+    monkeypatch.setattr(gui_module, "filedialog", filedialog_recorder)
+
+    def seeded_load_event(**config_payload):
+        """Inject a deterministic seed into GUI-driven generation."""
+        return app_module.load_event(**config_payload, seed=SEED)
+
+    monkeypatch.setattr(gui_module, "load_event", seeded_load_event)
+    gui_controller = _get_or_create_gui_controller()
+    _reset_gui_controller(gui_controller)
+
     def cleanup() -> None:
-        """Destroy the Tk root and remove any auto-created config file."""
-        gui_controller.root.destroy()
-        if not default_config_existed and default_config_path.exists():
-            default_config_path.unlink()
+        """Reset the GUI controller to a clean baseline."""
+        _reset_gui_controller(gui_controller)
 
     return gui_controller, messagebox_recorder, filedialog_recorder, cleanup
 
@@ -500,6 +554,29 @@ def integration_workspace(tmp_path_factory):
 def state_path(integration_workspace: Path) -> Path:
     """Return the shared state file path for the ordered integration steps."""
     return integration_workspace / STATE_FILE_NAME
+
+
+@pytest.fixture(scope="module", autouse=True)
+def gui_controller_teardown():
+    """Clean up the shared GUI controller after integration tests."""
+    yield
+    global _GUI_CONTROLLER_SINGLETON
+    global _GUI_DEFAULT_CONFIG_PATH
+    global _GUI_DEFAULT_CONFIG_EXISTED
+
+    if _GUI_CONTROLLER_SINGLETON:
+        try:
+            _GUI_CONTROLLER_SINGLETON.root.destroy()
+        except gui_module.tk.TclError:
+            pass
+        _GUI_CONTROLLER_SINGLETON = None
+
+    if (
+        _GUI_DEFAULT_CONFIG_PATH
+        and not _GUI_DEFAULT_CONFIG_EXISTED
+        and _GUI_DEFAULT_CONFIG_PATH.exists()
+    ):
+        _GUI_DEFAULT_CONFIG_PATH.unlink()
 
 
 @pytest.mark.order(1)

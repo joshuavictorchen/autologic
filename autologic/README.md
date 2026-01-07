@@ -105,6 +105,12 @@ Inline dropdowns are handled by `_show_assignment_editor` to avoid pop-up dialog
 - `_generation_observer` checks `generation_cancel_requested` and aborts
 - `_check_generation_queue` polls the queue and updates the UI
 
+## Integration test harness
+
+- `tests/test_integration.py` reuses a single `AutologicGUI` instance across ordered steps
+- Each step resets GUI state and drains generation queues to avoid Tk teardown flakiness
+- The suite cleans up any auto-created `autologic.yaml` after tests complete
+
 ## Adding new features
 
 Add a new parameter:
