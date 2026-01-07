@@ -2,6 +2,8 @@
 *private*
 *autologic-export*
 *autologic-event*
+gui/autologic.yaml
+autologic/autologic.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

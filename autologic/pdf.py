@@ -3,6 +3,7 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
+from xml.sax.saxutils import escape
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
 from reportlab.platypus import (
@@ -118,14 +119,30 @@ def _build_worker_table(event, available_width):
 def _build_heat_class_table(event, available_width):
     """Build the heat/class summary table (run/work pairing + class list per heat)."""
 
-    heat_class_rows = [["Heat", "Classes"]] + event.get_heat_assignments()
-    col_widths = _compute_scaled_col_widths(
-        data=heat_class_rows,
-        font_name=FONT_NAME,
-        font_size=FONT_SIZE,
-        padding=CELL_PADDING,
-        total_width=available_width,
+    styles = getSampleStyleSheet()
+    class_style = ParagraphStyle(
+        name="ClassList",
+        parent=styles["BodyText"],
+        fontName=FONT_NAME,
+        fontSize=FONT_SIZE,
+        leading=FONT_SIZE + 2,
     )
+
+    heat_class_rows = [["Heat", "Classes"]]
+    for run_work, classes in event.get_heat_assignments():
+        safe_classes = escape(str(classes))
+        heat_class_rows.append([run_work, Paragraph(safe_classes, class_style)])
+
+    # keep the run/work column compact to maximize class wrap width
+    max_heat_label_width = max(
+        stringWidth(str(row[0]), FONT_NAME, FONT_SIZE) for row in heat_class_rows
+    )
+    heat_col_width = min(
+        max_heat_label_width + CELL_PADDING,
+        available_width * 0.35,
+    )
+    class_col_width = available_width - heat_col_width
+    col_widths = [heat_col_width, class_col_width]
     heat_class_table = Table(heat_class_rows, colWidths=col_widths, repeatRows=1)
     heat_class_table.setStyle(
         TableStyle(
@@ -134,6 +151,7 @@ def _build_heat_class_table(event, available_width):
                 ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
                 ("ALIGN", (0, 0), (0, -1), "LEFT"),
                 ("ALIGN", (1, 0), (1, -1), "LEFT"),
+                ("VALIGN", (0, 1), (-1, -1), "TOP"),
                 ("FONTNAME", (0, 0), (-1, 0), FONT_NAME_BOLD),
                 ("FONTNAME", (0, 1), (-1, -1), FONT_NAME),
                 ("FONTSIZE", (0, 0), (-1, -1), FONT_SIZE),

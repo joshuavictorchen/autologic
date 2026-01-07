@@ -1,7 +1,6 @@
 import csv
 import math
 import pickle
-import random
 from autologic import utils
 from autologic.category import Category
 from autologic.group import Group
@@ -23,7 +22,7 @@ class Event(Group):
         name: str,
         axware_export_tsv: str,
         member_attributes_csv: str,
-        custom_assignments: dict[str, str | list[str]],
+        custom_assignments: dict[str, str],
         number_of_heats: int,
         number_of_stations: int,
         heat_size_parity: int,
@@ -34,7 +33,11 @@ class Event(Group):
         self.name = name
         self.number_of_stations = number_of_stations
         self.participants = []
-        self.participants, self.no_shows = self.load_participants(
+        (
+            self.participants,
+            self.no_shows,
+            self.draft_mode,
+        ) = self.load_participants(
             axware_export_tsv, member_attributes_csv, custom_assignments
         )
         self.categories = self.load_categories()
@@ -44,6 +47,7 @@ class Event(Group):
         self.novice_size_parity = novice_size_parity
         self.novice_denominator = novice_denominator
         self.max_iterations = max_iterations
+        self.config_snapshot: dict | None = None
         self.verbose = False  # TODO: snuck this in here at the last minute; expose this
 
         # raise an error if event does not have enough qualified participants to fill each role
@@ -80,7 +84,7 @@ class Event(Group):
         self,
         axware_export_tsv: str,
         member_attributes_csv: str,
-        custom_assignments: dict[str, str | list[str]],
+        custom_assignments: dict[str, str],
     ):
         """
         Loads participants from `axware_export_tsv`, then gets their possible work assignments from `member_attributes_csv`.
@@ -88,11 +92,11 @@ class Event(Group):
         Checks custom_assignments dictionary from `sample_event_config.yaml` for static, special assignments.
 
         TODO: Currently requires the CSVs to match the samples exactly, with case sensitivity; loosen these shackles.
-        TODO: Also, unjumble this function. Right now it just gets things to work with the sample files on hand.
 
         Returns:
             list[Participant]: All participants that have checked into the event.
             list[Participant]: All participants that have NOT checked into the event.
+            bool: Whether the event is in draft mode due to missing check-in data.
         """
         member_attributes_dict = {}
         with open(member_attributes_csv, newline="", encoding="utf-8-sig") as file:
@@ -105,8 +109,15 @@ class Event(Group):
         has_special_assignments = False
         participants = []
         no_shows = []
+        draft_mode = False
         with open(axware_export_tsv, newline="", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file, delimiter="\t")
+            fieldnames = [name for name in (reader.fieldnames or []) if name]
+            fieldname_map = {
+                name.lower(): name for name in fieldnames if isinstance(name, str)
+            }
+            checkin_field = fieldname_map.get("checkin")
+            draft_mode = checkin_field is None
             for axware_row in reader:
 
                 this_firstname = f"{axware_row['First Name']}"
@@ -118,15 +129,8 @@ class Event(Group):
                 )
                 member_attributes = member_attributes_dict.get(axware_row["Member #"])
                 special_assignment = custom_assignments.get(axware_row["Member #"])
-
-                # special assignment may be a str or a list of strings
-                # if the latter, then randomly choose one
-                # TODO: outsource this to the algorithm (don't do this here)
-                special_assignment = (
-                    random.choice(special_assignment)
-                    if type(special_assignment) == list
-                    else special_assignment
-                )
+                if isinstance(special_assignment, list):
+                    raise ValueError("Custom assignments must be a single role string.")
 
                 has_special_assignments = (
                     True if special_assignment else has_special_assignments
@@ -146,7 +150,11 @@ class Event(Group):
                 else:
                     category_string = axware_row["Class"]
 
-                no_show = True if axware_row["Checkin"].upper() != "YES" else False
+                if draft_mode:
+                    no_show = False
+                else:
+                    checkin_value = str(axware_row.get(checkin_field, "")).strip()
+                    no_show = checkin_value.upper() != "YES"
 
                 participant = Participant(
                     event=self if not no_show else None,
@@ -175,7 +183,7 @@ class Event(Group):
         if not has_special_assignments:
             print("    No special assignments.")
 
-        return participants, no_shows
+        return participants, no_shows, draft_mode
 
     def load_categories(self):
         """
@@ -295,11 +303,16 @@ class Event(Group):
 
     def get_work_assignments(self):
         """
-        Returns a list of dicts that describe each participant in the event, and their assignments.
+        Return worker assignment rows for export to CSV and PDF.
 
-        Return format is for input to to_csv and to_pdf.
+        Each row corresponds to a participant in the heat that is working the
+        current run group. Rows are grouped by working heat (1..number_of_heats)
+        and sorted by participant name within each heat. The checked_in field is
+        left blank as a placeholder for printed check-in sheets.
 
-        TODO: flesh out docs
+        Returns:
+            list[dict[str, str | int]]: Ordered rows keyed by "heat", "name",
+                "class", "number", "assignment", and "checked_in".
         """
 
         work_assignments = []
@@ -321,11 +334,15 @@ class Event(Group):
 
     def get_run_assignments(self):
         """
-        Returns a list of dicts that describe each participant in the event, and their run group.
+        Return run group rows for export to the PDF.
 
-        Return format is for input to to_pdf.
+        Each row corresponds to a participant in a running heat and is sorted
+        by participant name within each heat. The tally field is left blank as
+        a placeholder for printed timing sheets.
 
-        TODO: flesh out docs
+        Returns:
+            list[dict[str, str | int]]: Ordered rows keyed by "heat", "name",
+                "class", "number", and "tally".
         """
 
         run_assignments = []
@@ -353,11 +370,16 @@ class Event(Group):
 
     def get_heat_assignments(self, verbose=False):
         """
-        Returns a list of lists that describe each heat in the event, and their categories.
+        Return heat summary rows for export to the PDF.
 
-        Return format is for input to to_pdf.
+        Each row contains a run/work label and the comma-separated class list
+        for that heat. Class names are sorted alphabetically.
 
-        TODO: flesh out docs
+        Args:
+            verbose (bool): When True, print each heat summary to stdout.
+
+        Returns:
+            list[list[str]]: Heat summary rows in event order.
         """
 
         heat_assignments = []
@@ -380,7 +402,11 @@ class Event(Group):
 
     def to_csv(self):
         """
-        TODO: flesh out docs
+        Write the worker assignment sheet to a CSV file.
+
+        The CSV is written to the current working directory as
+        `<event name>.csv` and includes a header row. Row data is sourced from
+        `get_work_assignments`.
         """
 
         with open(f"{self.name}.csv", "w", newline="") as f:

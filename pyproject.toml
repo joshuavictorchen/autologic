@@ -15,6 +15,7 @@ dependencies = [
   "pyinstaller",
   "questionary",
   "reportlab",
+  "ttkbootstrap",
 ]
 
 [tool.setuptools.packages.find]

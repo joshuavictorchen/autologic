@@ -24,7 +24,19 @@ class Randomizer(HeatGenerator):
         # keep randomizing heats until all criteria are met (lol)
         rules_satisfied = False
         iteration = -1
+        rejection_reasons = {}
         self._notify("start", {"max_iterations": event.max_iterations})
+
+        def record_rejection_reason(reason: str) -> None:
+            """Track how often each rejection reason occurs.
+
+            Args:
+                reason: Short description of why the iteration failed.
+            """
+            if reason not in rejection_reasons:
+                rejection_reasons[reason] = 0
+            rejection_reasons[reason] += 1
+
         while not rules_satisfied and iteration < event.max_iterations:
 
             iteration += 1
@@ -64,6 +76,13 @@ class Randomizer(HeatGenerator):
                 if not h.valid_size:
                     rules_satisfied = False
                     skip_iteration = True
+                    reason = "heat size out of bounds"
+                    record_rejection_reason(reason)
+                    print(f"\n    Heat {h} rejected: {reason}")
+                    self._notify(
+                        "heat_rejected",
+                        {"iteration": iteration, "heat": h.number, "reason": reason},
+                    )
                     break
 
                 # check heat novice count constraints
@@ -71,6 +90,13 @@ class Randomizer(HeatGenerator):
                 if not h.valid_novice_count:
                     rules_satisfied = False
                     skip_iteration = True
+                    reason = "novice count out of bounds"
+                    record_rejection_reason(reason)
+                    print(f"\n    Heat {h} rejected: {reason}")
+                    self._notify(
+                        "heat_rejected",
+                        {"iteration": iteration, "heat": h.number, "reason": reason},
+                    )
                     break
 
                 header = f"Heat {h} ({heat_size} total, {novice_count} novices)"
@@ -96,6 +122,8 @@ class Randomizer(HeatGenerator):
                     if qualified < minimum:
                         rules_satisfied = False
                         skip_iteration = True
+                        reason = f"insufficient qualified {role}"
+                        record_rejection_reason(reason)
                         print(
                             f"\n    Heat {h} rejected: unable to fill {role.upper()} role(s)"
                         )
@@ -151,6 +179,8 @@ class Randomizer(HeatGenerator):
                             available = h.get_available(role)
                             if not available:
                                 rules_satisfied = False
+                                reason = f"unable to assign {role}"
+                                record_rejection_reason(reason)
                                 print(
                                     f"\n  Heat {h} rejected: unable to fill {role} role(s)"
                                 )
@@ -164,6 +194,7 @@ class Randomizer(HeatGenerator):
                         worker.set_assignment("worker")
 
         if not rules_satisfied:
+            self._print_rejection_summary(iteration + 1, rejection_reasons)
             print(
                 f"\n\n  Could not create heats in {event.max_iterations} iterations.\n"
             )
@@ -173,6 +204,7 @@ class Randomizer(HeatGenerator):
             )
             exit(1)
 
+        self._print_rejection_summary(iteration + 1, rejection_reasons)
         print(f"\n  ---\n\n  >>> Iteration {iteration} accepted <<<")
         self._notify("accepted", {"iteration": iteration})
 
@@ -196,6 +228,31 @@ class Randomizer(HeatGenerator):
             for c in categories:
                 c.set_heat(random.choice(event.heats))
             count += 1
+            if count % 100 == 0:
+                self._notify("internal_iteration", {"iteration": count})
             print(f"  Internal iteration: {count}", end="\r")
 
         print(f"  Internal iteration: {count}")
+
+    def _print_rejection_summary(
+        self, iterations_attempted: int, rejection_reasons: dict[str, int]
+    ) -> None:
+        """Print a summary table of rejection reasons.
+
+        Args:
+            iterations_attempted: Number of iterations attempted.
+            rejection_reasons: Mapping of rejection reason to occurrence count.
+        """
+        if not rejection_reasons:
+            return
+
+        print("\n  Rejection summary")
+        print("  -----------------")
+        print(f"  Iterations attempted: {iterations_attempted}")
+
+        sorted_reasons = sorted(
+            rejection_reasons.items(),
+            key=lambda item: (-item[1], item[0]),
+        )
+        for reason, count in sorted_reasons:
+            print(f"  {str(count).rjust(4)}  {reason}")

@@ -1,21 +1,27 @@
 
 # Self-explanatory.
-axware_export_tsv: ./tests/sample_axware_export.tsv
-member_attributes_csv: ./tests/sample_member_attributes.csv
+axware_export_tsv: ./sample_axware_export.tsv
+member_attributes_csv: ./sample_member_attributes.csv
 number_of_heats: 3
 number_of_stations: 5
 
 # A dictionary of member IDs to their fixed role assignments.
+# Each entry includes an assignment and whether it should be applied.
 # Values must be drawn from the columns in the `member_attributes` CSV, or marked as 'special'.
 # Members marked as 'special' are reserved and will not be assigned to any other role.
-# A list of values may also be provided. If so, the member will be assigned to ONE of those roles.
 custom_assignments:
-  SAMPLE-499: special     # i.e. a gate worker - Mia Thomas
-  SAMPLE-797:             # i.e. someone who should have a non-worker role - Jackson Clark
-    - instructor          #      he will be assigned to ONE of these roles randomly
-    - captain
-  SAMPLE-105: instructor  # i.e. a novice coordinator - Noah Johnson
-  SAMPLE-549: special     # i.e. someone who made an automated worker assignment program (kidding) - Henry Taylor
+  SAMPLE-499:
+    assignment: special     # i.e. a gate worker - Mia Thomas
+    is_active: true
+  SAMPLE-797:
+    assignment: instructor  # i.e. someone who should have a non-worker role - Jackson Clark
+    is_active: true
+  SAMPLE-105:
+    assignment: instructor  # i.e. a novice coordinator - Noah Johnson
+    is_active: true
+  SAMPLE-549:
+    assignment: special     # i.e. someone who made an automated worker assignment program (kidding) - Henry Taylor
+    is_active: true
 
 # Larger values enforce tighter heat size balance.
 heat_size_parity: 25

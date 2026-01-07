@@ -50,18 +50,13 @@ jobs:
           pip install -r requirements.txt pyinstaller
           pip install -e .
 
-      - name: Build CLI .exe with PyInstaller
+      - name: Build autologic.exe with PyInstaller
         run: |
-          pyinstaller --onefile --name autologic-cli --collect-submodules=autologic.algorithms --additional-hooks-dir=autologic autologic/cli.py
-
-      - name: Build GUI .exe with PyInstaller
-        run: |
-          pyinstaller --onefile --name autologic-gui --collect-submodules=autologic.algorithms --additional-hooks-dir=autologic gui/gui.py
+          pyinstaller --onefile --noconsole --name autologic --icon docs\images\autologic-icon.ico --add-data "docs\images\autologic-icon.ico;docs/images" --add-data "docs\images\autologic-icon.png;docs/images" --collect-submodules=autologic.algorithms --additional-hooks-dir=autologic autologic/gui.py
 
       - name: Flatten release files
         run: |
-          cp dist/autologic-cli.exe .
-          cp dist/autologic-gui.exe .
+          cp dist/autologic.exe .
           cp tests/sample_axware_export.tsv .
           cp tests/sample_member_attributes.csv .
           cp tests/sample_event_config.yaml .
@@ -71,8 +66,7 @@ jobs:
         with:
           name: autologic
           path: |
-            autologic-cli.exe
-            autologic-gui.exe
+            autologic.exe
             sample_axware_export.tsv
             sample_member_attributes.csv
             sample_event_config.yaml
@@ -109,33 +103,6 @@ jobs:
         with:
           name: autologic
 
-      - name: Run autologic.exe with sample_event_config.yaml
-        run: .\autologic-cli.exe --config .\sample_event_config.yaml --algorithm randomize --interactive false --seed 1337
-
-      - name: Validate .exe outputs
-        shell: pwsh
-        run: |
-          $files = @(
-            "autologic-event.csv",
-            "autologic-event.pdf",
-            "autologic-event.pkl"
-          )
-          foreach ($file in $files) {
-            if (-not (Test-Path $file)) {
-              Write-Error "Missing $file"
-              exit 1
-            }
-            if ((Get-Item $file).Length -le 0) {
-              Write-Error "Empty $file"
-              exit 1
-            }
-          }
-          $header = Get-Content autologic-event.csv -TotalCount 1
-          if ($header -ne "heat,name,class,number,assignment,checked_in") {
-            Write-Error "Unexpected CSV header: $header"
-            exit 1
-          }
-
   release:
     needs: test
     if: startsWith(github.ref, 'refs/tags/')
@@ -151,8 +118,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            autologic-cli.exe
-            autologic-gui.exe
+            autologic.exe
             sample_axware_export.tsv
             sample_member_attributes.csv
             sample_event_config.yaml

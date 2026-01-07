@@ -1,24 +1,62 @@
 import random
-import questionary
 from autologic.algorithms import get_algorithms
 from autologic.event import Event
 
 
-def main(algorithm, event, interactive=False, observer=None):
-    """Parse event participants and generate heat assignments with role coverage and balanced sizes."""
+def normalize_custom_assignments(
+    custom_assignments: dict | None,
+) -> tuple[dict[str, str], dict[str, dict[str, object]]]:
+    """Normalize custom assignments into active and persisted mappings.
 
-    if interactive:
+    Args:
+        custom_assignments: Raw assignment mapping from config or GUI.
 
-        choice = questionary.select(
-            "\nAction:",
-            choices=["Continue", "Quit"],
-            qmark="",
-            instruction=" ",
-        ).ask()
+    Returns:
+        tuple[dict[str, str], dict[str, dict[str, object]]]: Active assignments
+        and structured assignment records for persistence.
+    """
+    active_assignments: dict[str, str] = {}
+    assignment_records: dict[str, dict[str, object]] = {}
 
-        if choice != "Continue":
-            print()
-            return
+    if not custom_assignments:
+        return active_assignments, assignment_records
+
+    for member_id, assignment_value in custom_assignments.items():
+        assignment = ""
+        is_active = True
+        if assignment_value is None:
+            assignment = ""
+        elif isinstance(assignment_value, dict):
+            assignment = str(assignment_value.get("assignment", "")).strip()
+            is_active = bool(assignment_value.get("is_active", True))
+        elif hasattr(assignment_value, "assignment"):
+            assignment = str(getattr(assignment_value, "assignment", "")).strip()
+            is_active = bool(getattr(assignment_value, "is_active", True))
+        else:
+            assignment = str(assignment_value).strip()
+
+        if not assignment:
+            continue
+
+        assignment_records[str(member_id)] = {
+            "assignment": assignment,
+            "is_active": is_active,
+        }
+        if is_active:
+            active_assignments[str(member_id)] = assignment
+
+    return active_assignments, assignment_records
+
+
+def main(algorithm, event, observer=None, export=True):
+    """Parse event participants and generate heat assignments with role coverage and balanced sizes.
+
+    Args:
+        algorithm: Algorithm name to run.
+        event: Event instance to mutate.
+        observer: Optional callback for algorithm progress updates.
+        export: Whether to write CSV/PDF/PKL outputs after validation.
+    """
 
     # get the algorithms
     algos = get_algorithms()
@@ -36,17 +74,18 @@ def main(algorithm, event, interactive=False, observer=None):
             f"Invalid event configuration. See console output for details."
         )
 
-    # export data
-    if event.no_shows:
-        print(
-            f"\n  The following individuals have not checked in and are therefore excluded:\n"
-        )
-        [print(f"  - {i}") for i in event.no_shows]
+    if export:
+        # export data
+        if event.no_shows:
+            print(
+                "\n  The following individuals have not checked in and are therefore excluded:\n"
+            )
+            [print(f"  - {i}") for i in event.no_shows]
 
-    event.to_csv()
-    event.to_pdf()
-    event.to_pickle()
-    print()
+        event.to_csv()
+        event.to_pdf()
+        event.to_pickle()
+        print()
 
 
 def load_event(
@@ -69,7 +108,7 @@ def load_event(
         axware_export_tsv: Path to the AXWare TSV export.
         member_attributes_csv: Path to the member attributes CSV.
         number_of_heats: Number of heats to schedule.
-        custom_assignments: Mapping of member IDs to fixed role assignments.
+        custom_assignments: Mapping of member IDs to assignment strings or records.
         number_of_stations: Number of worker stations for the course.
         heat_size_parity: Heat size balance control value.
         novice_size_parity: Novice balance control value.
@@ -84,13 +123,15 @@ def load_event(
     if seed is not None:
         random.seed(seed)
 
-    return Event(
+    active_assignments, assignment_records = normalize_custom_assignments(
+        custom_assignments
+    )
+
+    event = Event(
         name=name,
         axware_export_tsv=axware_export_tsv,
         member_attributes_csv=member_attributes_csv,
-        custom_assignments={
-            str(key): value for key, value in custom_assignments.items()
-        },  # ensure all keys are str
+        custom_assignments=active_assignments,
         number_of_heats=number_of_heats,
         number_of_stations=number_of_stations,
         heat_size_parity=heat_size_parity,
@@ -98,3 +139,17 @@ def load_event(
         novice_denominator=novice_denominator,
         max_iterations=max_iterations,
     )
+    # store a config snapshot so GUI loads can repopulate inputs from pickles
+    event.config_snapshot = {
+        "name": name,
+        "axware_export_tsv": str(axware_export_tsv),
+        "member_attributes_csv": str(member_attributes_csv),
+        "custom_assignments": assignment_records,
+        "number_of_heats": number_of_heats,
+        "number_of_stations": number_of_stations,
+        "heat_size_parity": heat_size_parity,
+        "novice_size_parity": novice_size_parity,
+        "novice_denominator": novice_denominator,
+        "max_iterations": max_iterations,
+    }
+    return event
