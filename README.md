@@ -4,17 +4,19 @@
 [![Release](https://img.shields.io/github/v/release/joshuavictorchen/autologic)](https://github.com/joshuavictorchen/autologic/releases)
 [![Coverage](https://img.shields.io/codecov/c/github/joshuavictorchen/autologic)](https://codecov.io/gh/joshuavictorchen/autologic)
 
-`Autologic` is a desktop application for coordinating autocross events. It generates balanced run/work groups, assigns participants to required worker roles, and produces printable outputs for day-of-event operations.
-
-The application models events in terms of `Categories` (car classes), `Heats`, and `Participants`, and applies configurable constraints to ensure adequate role coverage, instructor availability for novices, and parity across groups.
-
 ## Motivation
 
 Autocross events are typically organized by dividing participants into competitive classes and assigning those classes to run/work groups. In addition to balancing group sizes, worker coordinators must ensure that each heat has adequate coverage for specialized roles (timing, grid, start, course captains, etc.) and sufficient instructors to support novice drivers.
 
-The available planning window is often very short - commonly limited to the time between registration close and the start of the event. Producing well-balanced assignments manually under these conditions poses a logistical challenge.
+The available planning window is often very short - commonly limited to the time between registration close and the start of the event. Producing well-balanced assignments manually under these conditions is a nontrivial logistical task.
 
-`Autologic` automates this process. It generates run/work groups, assigns participants to roles based on qualifications and constraints, and produces printable artifacts (sign-in sheets and grid sheets) suitable for use by worker coordinators and grid workers on event day.
+## Overview
+
+`Autologic` is a desktop application for coordinating autocross events. It generates balanced run/work groups, assigns participants to roles based on qualifications and constraints, and produces printable artifacts (sign-in sheets and grid sheets) suitable for use by worker coordinators and grid workers on event day.
+
+The application models events in terms of `Categories` (car classes), `Heats`, and `Participants`, and applies configurable constraints to ensure adequate role coverage, instructor availability for novices, and parity across groups.
+
+The architecture is intentionally extensible, allowing additional heat-generation algorithms to be implemented and contributed without modifying the core application.
 
 ## Inputs
 
