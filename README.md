@@ -20,9 +20,11 @@ The architecture is intentionally extensible, allowing additional heat-generatio
 
 ![example](./docs/images/example.gif)
 
-## Use
+## Inputs
 
-### Inputs
+> [!NOTE]
+> AXWare is currently the only supported event export format. The input layer is intentionally minimal, and additional connectors for other registration systems can be added with modest effort.
+> Support for additional formats can be requested by [opening an issue](https://github.com/joshuavictorchen/autologic/issues/new).
 
 - **Event data export** ([sample file](tests/sample_axware_export.tsv))
   - A tabular export of participant data for a single event (name, member ID, car class, car number, novice status, etc.).
@@ -31,11 +33,7 @@ The architecture is intentionally extensible, allowing additional heat-generatio
 - **Member attributes** ([sample file](tests/sample_member_attributes.csv))
   - A table mapping members to the roles for which they are qualified (CSV).
 
-> [!NOTE]
-> AXWare is currently the only supported event export format. The input layer is intentionally minimal, and additional connectors for other registration systems can be added with modest effort.
-> Support for additional formats can be requested by [opening an issue](https://github.com/joshuavictorchen/autologic/issues/new).
-
-### Instructions
+## Instructions
 
 1. Download `autologic.exe` from the latest release on the [releases page](https://github.com/joshuavictorchen/autologic/releases/) or [directly from this link](https://github.com/joshuavictorchen/autologic/releases/latest/download/autologic.exe).
 
@@ -76,14 +74,14 @@ The architecture is intentionally extensible, allowing additional heat-generatio
 
     - The PDF is intended for printing and day-of-event use by worker coordinators and grid workers.
 
-### Outputs
+## Outputs
 
 > [!NOTE]
 > All names in the sample files are fictional and randomly generated.
 
-<img src="./docs/images/sample-front.png" width="600">
+<img src="./docs/images/sample-front.png" width="700">
 
-<img src="./docs/images/sample-grid.png" width="600">
+<img src="./docs/images/sample-grid.png" width="700">
 
 ## Validation
 
