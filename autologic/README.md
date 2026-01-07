@@ -109,7 +109,6 @@ Inline dropdowns are handled by `_show_assignment_editor` to avoid pop-up dialog
 
 - `tests/test_integration.py` reuses a single `AutologicGUI` instance across ordered steps
 - Each step resets GUI state and drains generation queues to avoid Tk teardown flakiness
-- The suite cleans up any auto-created `autologic.yaml` after tests complete
 
 ## Adding new features
 
@@ -132,15 +131,3 @@ Add a new event action:
 1. Add a button and callback
 2. Mutate `current_event`
 3. Call `_mark_event_dirty`, `_refresh_event_views`, and `_validate_current_event`
-
-## Conventions
-
-- Use Google-style docstrings
-- Inline comments explain why, not just what
-- Avoid abbreviations in identifiers
-- Changes to assignment logic or output format should be coordinated
-
-## Quick sanity checks
-
-- `python -m py_compile autologic/gui.py` to confirm syntax
-- Run `python -m autologic.gui` and validate the main flows

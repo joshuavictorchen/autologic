@@ -1,5 +1,8 @@
 # Tests
 
+> [!NOTE]
+> All names in the sample files here are fictional and randomly generated.
+
 ## Overview
 
 - `tests/test_integration.py` is the ordered GUI integration suite.
