@@ -12,7 +12,7 @@ The available planning window is often very short - commonly limited to the time
 
 ## Overview
 
-`Autologic` is a desktop application for coordinating autocross events. It generates balanced run/work groups, assigns participants to roles based on qualifications and constraints, and produces printable artifacts (sign-in sheets and grid sheets) suitable for use by worker coordinators and grid workers on event day.
+`Autologic` is a desktop application for coordinating autocross events. It generates balanced run/work groups, assigns participants to roles based on qualifications and constraints, assigns class-mates to the same worker stations where feasible, and produces printable artifacts (sign-in sheets and grid sheets) suitable for use by worker coordinators and grid workers on event day.
 
 The application models events in terms of `Categories` (car classes), `Heats`, and `Participants`, and applies configurable constraints to ensure adequate role coverage, instructor availability for novices, and parity across groups.
 
@@ -119,6 +119,7 @@ All specialized roles must be filled within each heat:
 
 - Novice denominator and number of worker stations are configurable parameters.
 - Novices may be assigned to specialized roles if qualified; each such assignment generates a warning.
+- Workers and captains are assigned to stations. Workers from the same car class are grouped at the same station when possible, subject to even distribution constraints.
 
 ## Contribution
 

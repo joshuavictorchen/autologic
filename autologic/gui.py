@@ -46,6 +46,7 @@ from autologic.algorithms import get_algorithms
 from autologic.app import load_event, main
 from autologic.config import Config, resolve_config_paths
 from autologic.event import Event
+from autologic.stations import assign_stations
 
 # constants and defaults -------------------------------------------------------------------
 # centralizes user interface labels, colors, and default values for consistent configuration
@@ -1661,11 +1662,12 @@ class AutologicGUI:
         for heat in self.current_event.heats:
             for participant in heat.participants:
                 # store participant objects for later inline edits
+                # display formatted assignment with station numbers (uppercase)
                 rows.append(
                     (
                         heat.working,
                         participant.name,
-                        participant.assignment or "",
+                        (participant.formatted_assignment or "").upper(),
                         participant.axware_category,
                         participant.number,
                         participant,
@@ -2280,6 +2282,9 @@ class AutologicGUI:
             except Exception as exc:
                 messagebox.showerror("Error", f"Failed to update assignment: {exc}")
                 return
+            # re-run station assignment for the heat when role changes
+            # this rebalances stations to maintain even distribution
+            assign_stations(participant.heat, self.current_event.number_of_stations)
             self._mark_event_dirty()
             self._refresh_event_views()
             self._validate_current_event()

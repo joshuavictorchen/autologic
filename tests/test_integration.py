@@ -955,7 +955,7 @@ def test_step09_update_worker_assignment(state_path: Path, monkeypatch):
         worker_row_id = find_worker_row(gui_controller, participant.name)
         assert (
             gui_controller.worker_tree.set(worker_row_id, "assignment")
-            == original_assignment
+            == original_assignment.upper()
         )
     finally:
         cleanup()

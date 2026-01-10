@@ -325,7 +325,7 @@ class Event(Group):
                         "name": p.name,
                         "class": p.axware_category,
                         "number": p.number,
-                        "assignment": f"{p.assignment}",
+                        "assignment": p.formatted_assignment,
                         "checked_in": "",
                     }
                 )
