@@ -44,6 +44,7 @@ class Participant:
         # dynamically assign additional role flags (e.g., instructor=True)
         [setattr(self, key, value) for key, value in kwargs.items()]
         self.special = None  # also set special as a "role" for consistency
+        self.station = None  # station number for worker/captain roles (1..N)
 
         # if participant has a special assignment, assign them immediately
         (self.set_assignment(special_assignment) if special_assignment else None)
@@ -76,6 +77,21 @@ class Participant:
                     return False
                 role_found = True
         return role_found
+
+    @property
+    def formatted_assignment(self) -> str:
+        """Returns assignment with station number for worker/captain roles.
+
+        For roles that have station assignments (worker, captain), returns the
+        assignment with the station number appended (e.g., "worker 1", "captain 3").
+        For other roles, returns the plain assignment string.
+
+        Returns:
+            str: Formatted assignment string for display and export.
+        """
+        if self.assignment in ("worker", "captain") and self.station is not None:
+            return f"{self.assignment} {self.station}"
+        return self.assignment or ""
 
     def set_assignment(
         self, assignment, verbose=True, show_previous=False, manual_override=False
