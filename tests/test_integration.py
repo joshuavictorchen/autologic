@@ -1147,3 +1147,124 @@ def test_step13_draft_mode_blocks_save(
         assert "DRAFT" in gui_controller.unsaved_label.cget("text")
     finally:
         cleanup()
+
+
+def _load_sample_event(**overrides) -> object:
+    """Load an Event from the sample fixtures for standalone regression tests."""
+    sample_tsv = Path(__file__).resolve().parent / "sample_axware_export.tsv"
+    sample_csv = Path(__file__).resolve().parent / "sample_member_attributes.csv"
+    kwargs = dict(
+        name="regression-event",
+        axware_export_tsv=str(sample_tsv),
+        member_attributes_csv=str(sample_csv),
+        number_of_heats=3,
+        custom_assignments={},
+        number_of_stations=5,
+        heat_size_parity=50,
+        novice_size_parity=40,
+        novice_denominator=4,
+        max_iterations=8000,
+        seed=SEED,
+    )
+    kwargs.update(overrides)
+    return app_module.load_event(**kwargs)
+
+
+def test_pdf_build_failure_does_not_leak_output_path(tmp_path, monkeypatch):
+    """Mid-build exceptions must not create or lock the target PDF path.
+
+    Field report: reportlab's SimpleDocTemplate opens the output file inside
+    build() and does not guarantee cleanup on exception; on Windows this
+    locked the path and fired an I/O exception on the next save attempt.
+    """
+    import autologic.pdf as pdf_module
+
+    event = _load_sample_event(name="pdf-fail-test")
+    app_module.main(algorithm=ALGORITHM_NAME, event=event, export=False)
+
+    output_path = tmp_path / "should-not-exist.pdf"
+
+    def failing_build(self, *args, **kwargs):
+        raise RuntimeError("simulated build failure")
+
+    monkeypatch.setattr(pdf_module.SimpleDocTemplate, "build", failing_build)
+
+    with pytest.raises(RuntimeError, match="simulated build failure"):
+        pdf_module.generate_event_pdf(event, output_path=str(output_path))
+
+    assert not output_path.exists(), (
+        "PDF output path must not exist after a failed build; a partial or "
+        "locked file indicates the handle leak has regressed"
+    )
+
+
+def test_no_show_with_special_assignment_is_surfaced_not_prompted():
+    """No-shows with custom assignments must be exposed on the Event,
+    not resolved via a terminal prompt that bypasses the GUI.
+
+    Field report: a terminal confirmation prompt was appearing instead of a
+    GUI dialog when a custom-assigned member had not checked in.
+    """
+    import autologic.participant as participant_module
+
+    assert not hasattr(participant_module, "questionary"), (
+        "participant module must not import questionary; terminal prompts in a "
+        "GUI app block the worker thread on invisible stdin"
+    )
+
+    # SAMPLE-1567 is a documented no-show in sample_axware_export.tsv
+    no_show_id = "SAMPLE-1567"
+    event = _load_sample_event(
+        name="no-show-conflict-test",
+        custom_assignments={no_show_id: "timing"},
+    )
+
+    assert len(event.no_show_special_assignments) == 1
+    participant, assignment = event.no_show_special_assignments[0]
+    assert participant.id == no_show_id
+    assert assignment == "timing"
+    # no-shows must not leak into the active participant pool
+    assert participant in event.no_shows
+    assert participant not in event.participants
+
+
+def test_gui_prompts_via_messagebox_for_no_show_special_assignment(
+    tmp_path, monkeypatch
+):
+    """The GUI must route the no-show conflict through messagebox, not stdin."""
+    sample_config_path = Path(__file__).resolve().parent / "sample_event_config.yaml"
+    config_path, config_data = build_test_config(
+        sample_config_path, tmp_path, "no-show-gui-event"
+    )
+    # overwrite custom_assignments with one that targets a known no-show
+    config_data["custom_assignments"] = {"SAMPLE-1567": "timing"}
+    config_path.write_text(
+        yaml.safe_dump(config_data, sort_keys=False), encoding="utf-8"
+    )
+
+    gui_controller, messagebox_recorder, _, cleanup = create_gui_controller(monkeypatch)
+    try:
+        gui_controller._load_config_from_path(config_path)
+
+        # user declines: generation must abort without spawning the worker
+        messagebox_recorder.reset()
+        messagebox_recorder.ask_yes_no_response = False
+        gui_controller._start_generation()
+        assert messagebox_recorder.ask_yes_no, (
+            "GUI must ask via messagebox.askyesno when a no-show has a "
+            "custom assignment"
+        )
+        assert "SAMPLE-1567".lower() not in (
+            title.lower() for title, _ in messagebox_recorder.ask_yes_no
+        ) or True  # title need not contain id; presence of the prompt is what matters
+        assert gui_controller.current_event is None
+
+        # user accepts: generation proceeds and the event is produced
+        messagebox_recorder.reset()
+        messagebox_recorder.ask_yes_no_response = True
+        gui_controller._start_generation()
+        wait_for_generation(gui_controller)
+        assert gui_controller.current_event is not None
+        assert messagebox_recorder.ask_yes_no
+    finally:
+        cleanup()

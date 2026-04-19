@@ -14,6 +14,15 @@ def main(algorithm, event, observer=None, export=True):
         export: Whether to write CSV/PDF/PKL outputs after validation.
     """
 
+    # surface any unresolved no-show/special-assignment conflicts as warnings;
+    # interactive resolution is the caller's responsibility (the GUI does this
+    # via messagebox before invoking main)
+    for participant, assignment in getattr(event, "no_show_special_assignments", []):
+        print(
+            f"\n  WARNING: {participant} has custom assignment "
+            f"{assignment.upper()} but has not checked in; skipping."
+        )
+
     # get the algorithms
     algos = get_algorithms()
     if algorithm not in algos:

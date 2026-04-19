@@ -1217,6 +1217,30 @@ class AutologicGUI:
             messagebox.showerror("Error", f"Invalid configuration: {exc}")
             return
 
+        # load the event on the UI thread so any no-show/special-assignment
+        # conflicts can be resolved via GUI dialogs (not a terminal prompt)
+        # before we spin up the worker thread for heat generation
+        config_payload = config.model_dump()
+        try:
+            event = load_event(**config_payload)
+        except Exception as exc:
+            messagebox.showerror("Error", f"Failed to load event: {exc}")
+            return
+
+        for participant, assignment in event.no_show_special_assignments:
+            proceed = messagebox.askyesno(
+                "No-show with custom assignment",
+                f"{participant} has custom assignment "
+                f"{assignment.upper()} but has not checked in.\n\n"
+                f"Continue without {participant}?",
+            )
+            if not proceed:
+                self._set_status("Generation cancelled")
+                return
+        # clear resolved conflicts so downstream callers (e.g. app.main) don't
+        # re-warn about the same entries
+        event.no_show_special_assignments = []
+
         self._set_status("Generating event...")
         self._set_generation_state(True)
         self.generation_cancel_requested.clear()
@@ -1228,26 +1252,23 @@ class AutologicGUI:
                 break
 
         # run generation in a thread to keep the GUI responsive
-        config_payload = config.model_dump()
         self.generation_thread = threading.Thread(
             target=self._run_generation_thread,
-            args=(config_payload, algorithm),
+            args=(event, algorithm),
             daemon=True,
         )
         self.generation_thread.start()
         self.root.after(100, self._check_generation_queue)
 
-    def _run_generation_thread(self, config_payload: dict, algorithm: str) -> None:
+    def _run_generation_thread(self, event: Event, algorithm: str) -> None:
         """Generate the event on a worker thread and queue the result.
 
         Args:
-            config_payload: Validated config payload.
+            event: Pre-loaded event (no-show conflicts already resolved).
             algorithm: Algorithm name to execute.
         """
-        event: Event | None = None
         error: Exception | None = None
         try:
-            event = load_event(**config_payload)
             main(
                 algorithm=algorithm,
                 event=event,

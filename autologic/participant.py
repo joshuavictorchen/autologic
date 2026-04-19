@@ -1,5 +1,3 @@
-import questionary
-import sys
 from autologic import utils
 
 WORKER_ASSIGNMENT = "worker"
@@ -45,8 +43,12 @@ class Participant:
         [setattr(self, key, value) for key, value in kwargs.items()]
         self.special = None  # also set special as a "role" for consistency
 
-        # if participant has a special assignment, assign them immediately
-        (self.set_assignment(special_assignment) if special_assignment else None)
+        # if participant has a special assignment, assign them immediately;
+        # no-shows (event=None) are surfaced to the caller via
+        # Event.no_show_special_assignments so the UI can confirm the conflict,
+        # so skip the auto-assignment here to avoid UI prompts in a domain object
+        if special_assignment and self.event:
+            self.set_assignment(special_assignment)
 
     def __repr__(self):
         return f"{self.name}"
@@ -88,19 +90,12 @@ class Participant:
         """
 
         if not self.event:
-            choice = questionary.select(
-                f"\nWARNING: {self} has custom assignment {assignment.upper()} but has not checked in:",
-                choices=[f"Continue without {self}", "Quit"],
-                qmark="",
-                instruction=" ",
-            ).ask()
-
-            if choice == f"Continue without {self}":
-                print()
-                return
-            else:
-                print()
-                sys.exit()
+            # defensive: no-show participants should not reach set_assignment;
+            # Event.no_show_special_assignments captures the conflict for the
+            # caller (GUI messagebox or CLI prompt) to resolve before generation
+            raise RuntimeError(
+                f"{self} has no event context; cannot assign role {assignment}"
+            )
 
         assignment_string = f"    {self.name.ljust(self.event.max_name_length)} assigned to {assignment.upper().ljust(utils.get_max_role_str_length())}"
         suffix = (

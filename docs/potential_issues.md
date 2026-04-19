@@ -18,7 +18,7 @@ Items identified during reverse-engineering that may represent bugs, misintent, 
 
 6. **Unbounded inner loop in `randomize_heats()`** — the inner loop retries until CAM classes are in the same heat AND heat sizes are valid. There is no iteration limit; if the constraints are unsatisfiable for a given set of categories, this loop runs forever (with observer notifications every 100 iterations as the only interrupt point).
 
-7. **`questionary` CLI prompt reachable from GUI** — when a no-show has a special assignment, `Participant.set_assignment()` invokes an interactive CLI prompt via `questionary` and may call `sys.exit()`. This path is reachable from the GUI generation thread (not just headless mode), where it would block the thread on stdin and/or crash the application.
+7. ~~**`questionary` CLI prompt reachable from GUI**~~ — fixed. `Participant.set_assignment()` no longer prompts; no-show + special-assignment conflicts are now collected into `Event.no_show_special_assignments` and resolved by the caller (GUI via `messagebox.askyesno`, CLI via warning print).
 
 ## Possible Misintent
 

@@ -37,6 +37,7 @@ class Event(Group):
             self.participants,
             self.no_shows,
             self.draft_mode,
+            self.no_show_special_assignments,
         ) = self.load_participants(
             axware_export_tsv, member_attributes_csv, custom_assignments
         )
@@ -97,6 +98,9 @@ class Event(Group):
             list[Participant]: All participants that have checked into the event.
             list[Participant]: All participants that have NOT checked into the event.
             bool: Whether the event is in draft mode due to missing check-in data.
+            list[tuple[Participant, str]]: No-shows that still carry a special
+                assignment from the config; the caller (GUI or CLI) is
+                responsible for surfacing these conflicts to the user.
         """
         member_attributes_dict = {}
         with open(member_attributes_csv, newline="", encoding="utf-8-sig") as file:
@@ -109,6 +113,7 @@ class Event(Group):
         has_special_assignments = False
         participants = []
         no_shows = []
+        no_show_special_assignments = []
         draft_mode = False
         with open(axware_export_tsv, newline="", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file, delimiter="\t")
@@ -177,13 +182,17 @@ class Event(Group):
 
                 if no_show:
                     no_shows.append(participant)
+                    if special_assignment:
+                        no_show_special_assignments.append(
+                            (participant, special_assignment)
+                        )
                 else:
                     participants.append(participant)
 
         if not has_special_assignments:
             print("    No special assignments.")
 
-        return participants, no_shows, draft_mode
+        return participants, no_shows, draft_mode, no_show_special_assignments
 
     def load_categories(self):
         """
