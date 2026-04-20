@@ -1,12 +1,12 @@
 # Autologic — Potential Issues
 
-Last updated: 2026-02-26
+Last updated: 2026-04-20
 
 Items identified during reverse-engineering that may represent bugs, misintent, or design concerns. Tracked separately from the spec.
 
 ## Likely Bugs
 
-1. **`Heat.compliment` misspelling** — should be `complement`. Used in `heat.py` and `event.py`. Functional but misleading. (Naming debt)
+1. ~~**`Heat.compliment` misspelling**~~ — fixed. The property and its in-repo call sites now use `Heat.complement`.
 
 2. **Instructor minimum: `round()` vs README's `÷`** — `roles_and_minima()` uses `round(number_of_novices / novice_denominator)` with a floor of `MIN_INSTRUCTOR_PER_HEAT`. The README says `≥ (novices in complement) ÷ (novice denominator)`. The `≥` framing suggests floor or ceil as the rounding policy, not banker's rounding. Python's `round()` (banker's rounding) diverges from both floor and ceil for a range of inputs — e.g., 7/3 = 2.33 rounds to 2 but ceils to 3. Whether `round()` is the intended behavior is ambiguous.
 

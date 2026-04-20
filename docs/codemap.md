@@ -86,7 +86,7 @@ tests/
 
 - **Owns**: time-slot representation, participant derivation, per-heat validation
 - **Key files**: `heat.py`
-- **Interface**: `participants` (property, derived from categories), `valid_size`, `valid_novice_count`, `valid_role_fulfillment`, `working` (property), `compliment` (property)
+- **Interface**: `participants` (property, derived from categories), `valid_size`, `valid_novice_count`, `valid_role_fulfillment`, `working` (property), `complement` (property)
 - **Depends on**: Group, Event (back-reference), utils
 - **Depended on by**: Event, algorithms, GUI
 - **Invariants**: heat does not store participants directly — derives them from assigned categories; `working` maps running heat number to work-group number based on heat count
@@ -252,7 +252,6 @@ Inputs:
 ## Known Gotchas
 
 - **`Heat.participants` is a derived property** — it recomputes from categories on every access; there is no cached list.
-- **`Heat.compliment` is misspelled** — should be "complement"; appears throughout the codebase.
 - **No-show + special assignment** — these conflicts are collected on `Event.no_show_special_assignments` and must be resolved before generation continues. `Participant.set_assignment` assumes an event context and raises if called for a no-show.
 - **`gate` role in member CSV but not in `roles_and_minima()`** — the attribute is loaded onto Participant objects but never used in validation or assignment.
 - **Algorithm `exit(1)` on failure** — `randomize.py` calls `exit(1)` when max iterations exceeded; GUI catches this as `SystemExit`.

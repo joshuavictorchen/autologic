@@ -267,7 +267,7 @@ def choose_assignment_break_target(gui_controller: AutologicGUI):
         role_minima = utils.roles_and_minima(
             number_of_stations=event.number_of_stations,
             number_of_novices=len(
-                heat.compliment.get_participants_by_attribute("novice")
+                heat.complement.get_participants_by_attribute("novice")
             ),
             novice_denominator=event.novice_denominator,
         )

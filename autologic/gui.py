@@ -1599,7 +1599,7 @@ class AutologicGUI:
             role_minima = utils.roles_and_minima(
                 number_of_stations=self.current_event.number_of_stations,
                 number_of_novices=len(
-                    heat.compliment.get_participants_by_attribute("novice")
+                    heat.complement.get_participants_by_attribute("novice")
                 ),
                 novice_denominator=self.current_event.novice_denominator,
             )

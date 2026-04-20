@@ -272,7 +272,7 @@ class Event(Group):
             for role, minimum in utils.roles_and_minima(
                 number_of_stations=self.number_of_stations,
                 number_of_novices=len(
-                    h.compliment.get_participants_by_attribute("novice")
+                    h.complement.get_participants_by_attribute("novice")
                 ),
                 novice_denominator=self.novice_denominator,
             ).items():

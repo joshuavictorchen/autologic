@@ -82,7 +82,7 @@ class Heat(Group):
         for role, minimum in utils.roles_and_minima(
             number_of_stations=self.event.number_of_stations,
             number_of_novices=len(
-                self.compliment.get_participants_by_attribute("novice")
+                self.complement.get_participants_by_attribute("novice")
             ),
             novice_denominator=self.event.novice_denominator,
         ).items():
@@ -127,10 +127,10 @@ class Heat(Group):
         return (self.running + work_offset) % self.event.number_of_heats + 1
 
     @property
-    def compliment(self):
+    def complement(self):
         # heat that is running while self is working
         for h in self.event.heats:
             if h.running == self.working:
                 return h
 
-        raise ValueError(f"Heat {self} has no compliment")
+        raise ValueError(f"Heat {self} has no complement")
