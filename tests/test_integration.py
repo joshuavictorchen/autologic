@@ -13,7 +13,6 @@ import autologic.gui as gui_module
 from autologic import utils
 from autologic.gui import AutologicGUI
 
-
 ALGORITHM_NAME = "randomize"
 EVENT_NAME = "gui-integration-event"
 INVALID_ASSIGNMENT = "invalid-role"
