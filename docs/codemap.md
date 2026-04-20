@@ -253,7 +253,7 @@ Inputs:
 
 - **`Heat.participants` is a derived property** — it recomputes from categories on every access; there is no cached list.
 - **`Heat.compliment` is misspelled** — should be "complement"; appears throughout the codebase.
-- **No-show + special assignment** — when a config maps a custom assignment to a member who has not checked in, the conflict is collected into `Event.no_show_special_assignments`; the GUI surfaces each entry via `messagebox.askyesno` in `_start_generation` before dispatching the worker thread. `Participant.set_assignment` does not prompt and raises `RuntimeError` if invoked on a participant with no event context.
+- **No-show + special assignment** — these conflicts are collected on `Event.no_show_special_assignments` and must be resolved before generation continues. `Participant.set_assignment` assumes an event context and raises if called for a no-show.
 - **`gate` role in member CSV but not in `roles_and_minima()`** — the attribute is loaded onto Participant objects but never used in validation or assignment.
 - **Algorithm `exit(1)` on failure** — `randomize.py` calls `exit(1)` when max iterations exceeded; GUI catches this as `SystemExit`.
 - **`working` property formula changes by heat count** — 2-heat, 3-heat, and 4+-heat events use different mapping logic.

@@ -57,9 +57,10 @@ Key state fields in `AutologicGUI`:
 Event lifecycle:
 
 1. Load config (`_load_config_from_path`) and resolve relative paths
-2. Generate event (`_start_generation` -> `_run_generation_thread`)
-3. Apply results (`_handle_generation_result`) and refresh views
-4. Save outputs (`_save_event`) next to the active config and embed a config snapshot in the PKL
+2. Load and preflight the event on the UI thread (`_start_generation`)
+3. Generate assignments on the worker thread (`_run_generation_thread`)
+4. Apply results (`_handle_generation_result`) and refresh views
+5. Save outputs (`_save_event`) next to the active config and embed a config snapshot in the PKL
 
 ## Config handling
 

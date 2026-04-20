@@ -321,7 +321,7 @@ Custom assignments pre-lock specific participants to specific roles before gener
   - MUST be assigned that role during algorithmic generation.
   - Is auto-qualified for the assigned role (the qualification flag is set dynamically).
   - The GUI MAY override the assignment via manual inline editing (bypasses qualification and special-assignment checks).
-- No-show participants with special assignments trigger an interactive CLI prompt asking whether to continue without the participant or quit. This path is reachable from both headless and GUI generation flows.
+- No-show participants with special assignments are excluded from the event. The GUI asks whether to continue without the participant before the generation worker starts. Non-GUI callers receive a warning and generation continues without the participant.
 
 ---
 

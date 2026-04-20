@@ -1254,9 +1254,10 @@ def test_gui_prompts_via_messagebox_for_no_show_special_assignment(
             "GUI must ask via messagebox.askyesno when a no-show has a "
             "custom assignment"
         )
-        assert "SAMPLE-1567".lower() not in (
-            title.lower() for title, _ in messagebox_recorder.ask_yes_no
-        ) or True  # title need not contain id; presence of the prompt is what matters
+        prompt_title, prompt_message = messagebox_recorder.ask_yes_no[-1]
+        assert prompt_title == "No-show with custom assignment"
+        assert "Simmons, Isabella" in prompt_message
+        assert "TIMING" in prompt_message
         assert gui_controller.current_event is None
 
         # user accepts: generation proceeds and the event is produced
