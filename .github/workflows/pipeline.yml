@@ -46,8 +46,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt pyinstaller
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements.txt
           pip install -e .
 
       - name: Build autologic.exe with PyInstaller
@@ -86,7 +86,7 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements.txt -r requirements-dev.in
           pip install -e .
 

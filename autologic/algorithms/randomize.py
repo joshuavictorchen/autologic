@@ -105,13 +105,13 @@ class Randomizer(HeatGenerator):
                 print(f"    Car classes: {h.categories}\n")
 
                 # check if number of qualified participants for each role exceed the minima required
-                complimentary_novice_count = len(
-                    h.compliment.get_participants_by_attribute("novice")
+                complementary_novice_count = len(
+                    h.complement.get_participants_by_attribute("novice")
                 )
                 role_extras = {}
                 for role, minimum in utils.roles_and_minima(
                     number_of_stations=event.number_of_stations,
-                    number_of_novices=complimentary_novice_count,
+                    number_of_novices=complementary_novice_count,
                     novice_denominator=event.novice_denominator,
                 ).items():
                     qualified = len(h.get_participants_by_attribute(role))
@@ -167,7 +167,7 @@ class Randomizer(HeatGenerator):
                         pre_assigned_count = len(pre_assigned_participants)
                         baseline_required_count = utils.roles_and_minima(
                             number_of_stations=event.number_of_stations,
-                            number_of_novices=complimentary_novice_count,
+                            number_of_novices=complementary_novice_count,
                             novice_denominator=event.novice_denominator,
                         )[role]
                         actual_required_count = (

@@ -1,3 +1,5 @@
+from io import BytesIO
+from pathlib import Path
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import letter
@@ -34,8 +36,12 @@ def generate_event_pdf(event, output_path=None):
         str: Path to the generated PDF.
     """
 
-    pdf_path = output_path or f"{event.name}.pdf"
-    doc = SimpleDocTemplate(pdf_path, pagesize=letter, topMargin=0.75 * inch)
+    pdf_path = Path(output_path or f"{event.name}.pdf")
+    # build into memory and only write to disk on a clean build; SimpleDocTemplate
+    # opens its target during build() and does not guarantee the handle is closed
+    # if build() raises, which on Windows leaves the output path locked
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.75 * inch)
     # usable horizontal space after subtracting margins; reused across tables for consistent sizing
     available_width = letter[0] - doc.leftMargin - doc.rightMargin
 
@@ -67,8 +73,9 @@ def generate_event_pdf(event, output_path=None):
 
     # custom canvas prints "Page X of Y" in the footer
     doc.build(elements, canvasmaker=NumberedCanvas)
-    print(f"\n  Worker assignment printout saved to {event.name}.pdf")
-    return pdf_path
+    pdf_path.write_bytes(buffer.getvalue())
+    print(f"\n  Worker assignment printout saved to {pdf_path.name}")
+    return str(pdf_path)
 
 
 def _build_worker_table(event, available_width):
