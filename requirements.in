@@ -2,6 +2,7 @@ click
 pydantic
 pyyaml
 pyinstaller
+altgraph>=0.17.5
 questionary
 reportlab
 ttkbootstrap
