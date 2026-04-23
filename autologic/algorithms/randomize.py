@@ -1,5 +1,6 @@
 import random
 from autologic import utils
+from autologic.stations import assign_stations
 
 from autologic.algorithms import HeatGenerator, register
 
@@ -192,6 +193,9 @@ class Randomizer(HeatGenerator):
                     # now assign everyone else to worker role
                     for worker in h.get_available(role=None):
                         worker.set_assignment("worker")
+
+                    # assign station numbers to workers and captains
+                    assign_stations(h, event.number_of_stations)
 
         if not rules_satisfied:
             self._print_rejection_summary(iteration + 1, rejection_reasons)
